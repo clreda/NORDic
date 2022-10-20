@@ -5,7 +5,14 @@ Due to the presence of copyrighted databases, the license for this code is [Attr
 
 ## Environment
 
-Create the environment using script *install_environment.sh*.
+```bash
+pip install NORDic
+git clone https://github.com/cmap/cmapPy
+sed -i 's/temp_array = temp_array.astype(\"str\")/temp_array = np.core.defchararray.decode(temp_array, \"utf8\")  # <- introduced for Python3 compatibility/' cmapPy/cmapPy/pandasGEXpress/parse_gctx.py
+python3 -m pip install cmapPy/
+rm -rf cmapPy/
+python3 -m pip install git+https://github.com/bnediction/mpbn-sim.git@5f919c5c62e111628136d62357902966404b988e
+```
 
 ## Using the "refractory epilepsy" application
 
