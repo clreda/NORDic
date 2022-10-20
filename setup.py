@@ -3,7 +3,7 @@
 from setuptools import setup
 
 NAME = "NORDic"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 setup(name=NAME,
     version=VERSION,
