@@ -1,6 +1,14 @@
 # Network Oriented Repurposing of Drugs (NORDic) package
 (c) Clémence Réda, 2022.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7239048.svg)](https://doi.org/10.5281/zenodo.7239048)
+
+## Citation
+
+If you use NORDic in published research, please cite the following preliminary work:
+
+> Réda, C., & Delahaye-Duriez, A. (2022). Prioritization of Candidate Genes Through Boolean Networks. In *International Conference on Computational Methods in Systems Biology* (pp. 89-121). Springer, Cham.
+
 Due to the presence of copyrighted databases, the license for this code is [Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 ## Installation
@@ -51,12 +59,6 @@ solution2cytoscape(solution, file_folder+"solution_minimal_cytoscape")
 ```
 
 which will create a style file (in .xml) and a network file readable by Cytoscape (in .sif). 
-
-## Citation
-
-If you use NORDic in published research, please cite the following preliminary work:
-
-> Réda, C., & Delahaye-Duriez, A. (2022). Prioritization of Candidate Genes Through Boolean Networks. In *International Conference on Computational Methods in Systems Biology* (pp. 89-121). Springer, Cham.
 
 ## Pull requests, issues, suggestions?
 
