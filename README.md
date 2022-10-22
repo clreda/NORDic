@@ -3,15 +3,10 @@
 
 Due to the presence of copyrighted databases, the license for this code is [Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-## Environment
+## Installation
 
 ```bash
 pip install NORDic
-git clone https://github.com/cmap/cmapPy
-sed -i 's/temp_array = temp_array.astype(\"str\")/temp_array = np.core.defchararray.decode(temp_array, \"utf8\")  # <- introduced for Python3 compatibility/' cmapPy/cmapPy/pandasGEXpress/parse_gctx.py
-python3 -m pip install cmapPy/
-rm -rf cmapPy/
-python3 -m pip install git+https://github.com/bnediction/mpbn-sim.git@5f919c5c62e111628136d62357902966404b988e
 ```
 
 ## Using the "refractory epilepsy" application
@@ -56,6 +51,12 @@ solution2cytoscape(solution, file_folder+"solution_minimal_cytoscape")
 ```
 
 which will create a style file (in .xml) and a network file readable by Cytoscape (in .sif). 
+
+## Citation
+
+If you use NORDic in published research, please cite the following preliminary work:
+
+> Réda, C., & Delahaye-Duriez, A. (2022). Prioritization of Candidate Genes Through Boolean Networks. In *International Conference on Computational Methods in Systems Biology* (pp. 89-121). Springer, Cham.
 
 ## Pull requests, issues, suggestions?
 

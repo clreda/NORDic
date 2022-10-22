@@ -21,7 +21,7 @@ def binarize_experiments(data, thres=0.5, method="binary", strict=True, njobs=1)
     assert method in ["binary","probin"]
     assert thres <= 0.5 and thres >= 0
     from multiprocessing import cpu_count
-    assert njobs <= cpu_count()-2 and njobs >= 1
+    assert njobs <= max(1,cpu_count()-2) and njobs >= 1
     if (method == "probin"):
         ## /!\ needs to install profilebinR (see install_env_synthesis.sh)
         from profile_binr import ProfileBin

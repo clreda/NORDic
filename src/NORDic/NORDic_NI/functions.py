@@ -42,7 +42,7 @@ def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_a
     return solution
 
 def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1):
-
+    sbcall("mkdir -p "+file_folder, shell=True)
     solution_fname=file_folder+("SOLUTIONS-%d_binthres=%.3f_score=%.2f_maxclause=%d" % (bonesis_args.get("limit", 1), sig_args.get("bin_thres", 0.5), string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
     solution_fname_ls, solution_ls = glob(solution_fname+"_*.zip"), []
     if (len(solution_fname_ls)>0):
@@ -95,8 +95,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             assert col == cols[coli]
         for col in cols:
             assert col in network.columns
-        assert all([v in [1,-1] for v in list(network["sign"])])
-        assert all([v in [1] for v in list(network["directed"])])
+        assert all([v in [1,2,-1] for v in list(network["sign"])])
+        assert all([v in [1,0] for v in list(network["directed"])])
         assert all([v <= 1 and v >= 0 for v in list(network["score"])])
         model_genes = list(set(list(network["preferredName_A"])+list(network["preferredName_B"])))
     else:
@@ -290,7 +290,13 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         influences = build_influences(network_df, edge_args.get("tau", 0), beta=edge_args.get("beta", 1), cor_method=edge_args.get("cor_method", "pearson"), expr_df=expr_df)
         influences.to_csv(influences_fname)
     elif (not os.path.exists(influences_fname)):
-        network_df.to_csv(influences_fname)
+        network_df.index = ["-".join(list(map(str, list(network_df.loc[idx][["Input","Output"]])))) for idx in network_df.index]
+        influences = network_df.groupby(level=0).max()
+        network_df.index = range(network_df.shape[0])
+        influences = influences.pivot_table(index="Input",columns="Output",values="SSign", fill_value=0)
+        influences[influences<0] = -1
+        influences[influences>0] = 1
+        influences.to_csv(influences_fname)
     influences = pd.read_csv(influences_fname, index_col=0, header=0)
     model_genes = list(influences.index) #
     profiles = profiles.loc[[m for m in model_genes if (m in profiles.index)]+list(profiles.index)[-3:]]
@@ -366,7 +372,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         BO.boolean_networks().standalone(output_filename=solution_fname+".asp")
         nsolutions = infer_network(BO, fname=solution_fname, limit=bonesis_args.get("limit", 1), use_diverse=bonesis_args.get("use_diverse", True), niterations=bonesis_args.get("niterations",1), njobs=njobs)
         if (sum(nsolutions)==0):
-            print("No solution found. Try decreasing value bin_thres=%.3f in [0,0.5], or increasing STRING score=%.2f in [0,1], or increasing max_maxclause=%d." % (sig_args.get("bin_thres",0.5),string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
+            print("No solution found. Try decreasing value bin_thres=%.3f in [0,0.5], or decreasing STRING score=%.2f in [0,1], or increasing max_maxclause=%d." % (sig_args.get("bin_thres",0.5),string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
             sbcall("rm -f "+solution_fname+"*.zip", shell=True)
             return None, 0
         else:

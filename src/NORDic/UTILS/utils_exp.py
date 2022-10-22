@@ -73,7 +73,7 @@ def profiles2signatures(profiles_df, user_key, path_to_lincs, save_fname, backgr
                 max_selection = max_selection[-min(selection_max,len(max_selection)):]
                 vals_selection = [dt[selection] for dt in [data[i] for i in max_selection]]
                 if (not quiet):
-                    print("<UTILS_EXP> %d (good) profiles | %d (best) profiles (capped at 50 or min>=%d) (%s max=%.3f, min=%.3f)" % (len(data), selection_min, len(max_selection), selection, np.max(vals_selection), np.min(vals_selection)))
+                    print("<UTILS_EXP> %d (good) profiles | %d (best) profiles (capped at 50 or min>=%d) (%s max=%.3f, min=%.3f)" % (len(data), len(max_selection), selection_min, selection, np.max(vals_selection), np.min(vals_selection)))
                 bkgrnd = create_restricted_drug_signatures([did for dt in [data[i] for i in max_selection] for did in dt["distil_id"]], [int(g) for g in list(profiles__df.index)[:-3]], path_to_lincs, which_lvl=[3], strict=False)
                 bkgrnd.index = [int(g) for g in bkgrnd.index]
             ## 2. Aggregate replicates by median values for signature ~ initial condition

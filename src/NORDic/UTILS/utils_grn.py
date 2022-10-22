@@ -300,7 +300,7 @@ def build_observations(grn, signatures, quiet=False):
     if (len(signatures)==0):
         BO = bonesis.BoNesis(grn, data_exps)
         return BO
-    assert all([g in signatures.index for g in grn.nodes])
+    signatures = signatures.loc[[g for g in signatures.index if (g in grn.nodes)]]
     ## 1. Add signatures of experimental states
     exps = [x for x in signatures.columns if ("initial" not in x)]
     exps_ids = range(len(exps))
