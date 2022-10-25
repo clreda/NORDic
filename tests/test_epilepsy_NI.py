@@ -41,6 +41,7 @@ EDGE_args = {
         "tau": 0,
         "cor_method": "pearson",
         "filter": True,
+	"connected": True,
 }
 
 SIG_args = {

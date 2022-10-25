@@ -129,7 +129,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     else:
         ## Import prepared network: four columns ["preferredName_A","preferred_B","sign","directed","score"], sep="\t"
         ## preferredName_A, preferredName_B are HUGO gene symbols
-        ## score in [0,1], directed in {1}, sign in {1,-1} (duplicate edges which are not directed / signed)
+        ## score in [0,1], directed in {1,0}, sign in {1,2,-1}
         network = pd.read_csv(network_fname, sep="\t")
         cols = ["preferredName_A","preferredName_B","sign","directed","score"]
         assert network.shape[1] == len(cols)
@@ -137,8 +137,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             assert col == cols[coli]
         for col in cols:
             assert col in network.columns
-        assert all([v in [1,-1] for v in list(network["sign"])])
-        assert all([v in [1] for v in list(network["directed"])])
+        assert all([v in [1,2,-1] for v in list(network["sign"])])
+        assert all([v in [1,0] for v in list(network["directed"])])
         assert all([v <= 1 and v >= 0 for v in list(network["score"])])
 
     model_genes = list(set([g for a in ["preferredName_A","preferredName_B"] for g in list(network[a])]))
@@ -263,8 +263,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
 
     score_thres = 0 if (string_args is None) else string_args.get("score", 0)
     edges_file = file_folder+"EDGES_score=%f.tsv" % (score_thres)
-    if (not os.path.exists(edges_file) and (edge_args is not None and edge_args.get("filter", False))):
-        network_df = get_genes_interactions_from_PPI(network, connected=True, score=score_thres)
+    if (not os.path.exists(edges_file) and ((network["sign"]==2).any() or (network["directed"]==0).any())):
+        network_df = get_genes_interactions_from_PPI(network, connected=(edge_args is None and edge_args.get("connected", True)), score=score_thres, filtering=(edge_args is not None and edge_args.get("filter", False)))
         network_df.to_csv(edges_file, sep="\t", index=None)
     elif (not os.path.exists(edges_file)):
         network_df["sscore"] = np.multiply(network_df["sign"], network_df["score"])

@@ -58,7 +58,7 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
             dists.append(dt)
     return np.mean(dists)
 
-def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, seednb=0, quiet=False):
+def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, seednb=0, chunksize=1, quiet=False):
     '''
         Compute the spread of each gene in @gene_inputs+@spreader with initial state @state on genes @gene_outputs
         Here, the (single state) spread is defined as the indicator of the emptyness of the intersection between WT and mutant attractors
@@ -69,15 +69,13 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
         @param\tgene_outputs\tPython character string list: list of node names to check
         @param\tsimu_params\tPython dictionary: arguments to MPBN-SIM
         @param\tseednb\tPython integer[default=0]
+        @param\tchunk_size\tPython integer[default=30]: number of genes to test at a time
         @param\tquiet\tPython bool[default=False]
         @return\tspds\tPython float dictionary: change in mutant attractor states for each gene in @gene_list
         that is, the similarity between any attractor reachable from @state in WT and any in mutant spreader+{g} where g in gene_list
     '''
     random.seed(seednb)
     np.random.seed(seednb)
-    perts, perts_S = [(state.loc[[g for g in lst if (g in state.index)]]+1)%2 for lst in [gene_list, spreader]]
-    mutants = {g+"_"+("KO" if (perts.loc[g][perts.columns[0]]==0) else "OE")+" {"+str(spreader)+"}": {gx: str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]]) for gx in [g]+spreader} for g in list(perts.index)}
-    experiments = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}]
     ## 1. Load the Boolean network
     f = mpbn.load(network_name)
     ## 2. Create the initial profile
@@ -87,36 +85,43 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     for i in list(state.loc[state[state.columns[0]]==1].index):
         x0[i] = 1
     ## 3. Get the reachable attractors from initial state in the absence of perturbation ("wild type")
-    A = [a for a in tqdm(list(f.attractors(reachable_from=x0)))]
+    A_WT = [a for a in tqdm(list(f.attractors(reachable_from=x0)))]
     if (not quiet):
-        print("%d wild type attractors (initial state %s)" % (len(A), state.columns[0]))
+        print("%d wild type attractors (initial state %s)" % (len(A_WT), state.columns[0]))
     ## 4. Create the mutated networks
     def patch_model(f, patch):
         f = mpbn.MPBooleanNetwork(f)
         for i, fi in patch.items():
             f[i] = fi
         return f
-    f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
-    ## 5. Get the reachable attractors from initial state in the presence of mutations ("mutants" KO/OE)
-    for ni, name in enumerate(f_mutants):
-        f_muted, NnewA = f_mutants[name], 0
-        for a in tqdm(list(f_muted.attractors(reachable_from=x0))):
-            if a not in A:
-                NnewA += 1
-                A.append(a)
-        if (not quiet):
-            print("%d new mutant %s attractors (%d/%d) (initial state %s)" % (NnewA, name, ni+1, len(f_mutants), state.columns[0]))
-    ## 6. Estimate probabilities of attractors from Mutants and compute similarities
-    nb_sims = simu_params["nb_sims"]
-    A_WT = list(f.attractors(reachable_from=x0))
+    experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
     spds = {}
-    for name, f_mut in list(f_mutants.items()):
+    from copy import deepcopy
+    for i_idx_lst in range(0, len(gene_list), chunksize):
         if (not quiet):
-            print("* %s" % name, end="\t")
-        B = list(f_mut.attractors(reachable_from=x0))
-        myA = [a if (a in B) else {"__masked__": '*'} for a in A]
-        sim = compute_similarities(f_mut, x0, myA, A_WT, [g for g in gene_outputs if (g not in [name.split("_")[0]]+spreader)], nb_sims, experiments, quiet=quiet)
-        spds.setdefault(name.split("_")[0], sim)
+            print("Chunk (%d/%d)" % (i_idx_lst*chunksize+1, len(gene_list)//chunksize))
+        A = deepcopy(A_WT)
+        gene_list_ = gene_list[i_idx_lst:i_idx_lst+chunksize]
+        perts, perts_S = [(state.loc[[g for g in lst if (g in state.index)]]+1)%2 for lst in [gene_list_, spreader]]
+        mutants = {g+"_"+("KO" if (perts.loc[g][perts.columns[0]]==0) else "OE")+" {"+str(spreader)+"}": {gx: str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]]) for gx in [g]+spreader} for g in list(perts.index)}
+        f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
+        ## 5. Get the reachable attractors from initial state in the presence of mutations ("mutants" KO/OE)
+        for ni, name in enumerate(f_mutants):
+            f_muted, NnewA = f_mutants[name], 0
+            for a in tqdm(list(f_muted.attractors(reachable_from=x0))):
+                if a not in A:
+                    NnewA += 1
+                    A.append(a)
+            if (not quiet):
+                print("%d new mutant %s attractors (%d/%d) (initial state %s)" % (NnewA, name, ni+1, len(f_mutants), state.columns[0]))
+        ## 6. Estimate probabilities of attractors from Mutants and compute similarities
+        for name, f_mut in list(f_mutants.items()):
+            if (not quiet):
+                print("* %s" % name, end="\t")
+            B = list(f_mut.attractors(reachable_from=x0))
+            myA = [a if (a in B) else {"__masked__": '*'} for a in A]
+            sim = compute_similarities(f_mut, x0, myA, A_WT, [g for g in gene_outputs if (g not in [name.split("_")[0]]+spreader)], nb_sims, experiments, quiet=quiet)
+            spds.setdefault(name.split("_")[0], sim)
     return spds
 
 def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, im_params, simu_params, quiet=False):

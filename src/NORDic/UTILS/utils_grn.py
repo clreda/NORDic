@@ -135,12 +135,13 @@ def get_weakly_connected(network_df, gene_list, index_col="preferredName_A", col
     components = [[list(adjacency.index)[n] for n in c] for c in components]
     return components
 
-def get_genes_interactions_from_PPI(ppi, connected=False, score=0, quiet=False):
+def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=True, quiet=False):
     '''
         Filtering edges to decrease computational cost while preserving network connectivity (if needed)
         @param\tppi\tPandas DataFrame: rows/[index] x columns[{"preferredName_A", "preferredName_B", "sign", "directed", "score"]]; sign in {-1,1,2}, directed in {0,1}, score in [0,1]
         @param\tconnected\tPython bool[default=True]: if set to True, preserve/enforce connectivity on the final network
         @param\tscore\tPython float[default=0]: Lower bound on the edge-associated score
+        @param\tfiltering\tPython bool[default=True]: Whether to filter out edges by a correlation threshold
         @param\tquiet\tPython bool[default=False]
         @return\tppi_accepted\tPandas DataFrame: rows/[index] x columns/[["Input", "Output"]]
     '''
@@ -151,15 +152,14 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, quiet=False):
     assert ppi.shape[1]==5
     ## 1. Double edges depending on whether they are marked as "directed"
     undirected_edges = ppi.loc[ppi["directed"]==0]
-    undirected_edges["tmp"] =  undirected_edges["preferredName_B"]
-    undirected_edges["preferredName_B"] =  undirected_edges["preferredName_A"]
-    undirected_edges["preferredName_A"] =  undirected_edges["tmp"]
-    undirected_edges = undirected_edges[[c for c in undirected_edges.columns if (c!="tmp")]]
+    undirected_edges.columns = ['preferredName_B', 'preferredName_A', 'sign', 'directed', 'score']
+    undirected_edges = undirected_edges[['preferredName_A', 'preferredName_B', 'sign', 'directed', 'score']]
     ppi = pd.concat((ppi, undirected_edges),axis=0)[["preferredName_A","preferredName_B","sign","score"]]
     ppi.index = range(ppi.shape[0])
     ## 2. Double edges depending on whether they have a specific sign
     nonmonotonic_edges = ppi.loc[ppi["sign"]==2]
-    nonmonotonic_edges["sign"] = [-1]*nonmonotonic_edges.shape[0]
+    nonmonotonic_edges = pd.concat((nonmonotonic_edges[[c for c in nonmonotonic_edges.columns if (c!="sign")]], pd.DataFrame([[-1]]*nonmonotonic_edges.shape[0], index=nonmonotonic_edges.index, columns=["sign"])), axis=1)
+    nonmonotonic_edges = nonmonotonic_edges[["preferredName_A","preferredName_B","sign","score"]]
     ppi["sign"] = [1 if (s==2) else s for s in list(ppi["sign"])]
     ppi = pd.concat((ppi, nonmonotonic_edges), axis=0)
     ppi.index = range(ppi.shape[0])
@@ -180,7 +180,7 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, quiet=False):
         if (len(isolated_genes)>0):
             test_isolated = np.vectorize(lambda x : x in isolated_genes)
             ppi = ppi.loc[~test_isolated(ppi["preferredName_A"])&~test_isolated(ppi["preferredName_B"])]
-        t = min(score, ppi["sscore"].abs().max())
+        t = min(score, ppi["sscore"].abs().max()) if (filtering) else ppi["sscore"].abs().min()
         ppi_accepted = ppi.loc[ppi["sscore"].abs()>=t]
         components = get_weakly_connected(ppi_accepted, main_component)
         isolated_genes = [g for c in components[1:] for g in c if (g not in components[0])]
@@ -204,6 +204,9 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, quiet=False):
                 test_isolated = np.vectorize(lambda x : x in isolated_genes)
                 ppi_rejected = ppi_rejected.loc[(ppi_rejected["sscore"].abs()<t)|((test_isolated(ppi_rejected["preferredName_A"])|(test_isolated(ppi_rejected["preferredName_B"]))))]
         assert len(components)==1 and len(components[0])==len(main_component)
+    else:
+        t = min(score, ppi["sscore"].abs().max()) if (filtering) else ppi["sscore"].abs().min()
+        ppi_accepted = ppi.loc[ppi["sscore"].abs()>=t]
     ppi_accepted.columns = ["Input","Output","SSign"]
     return ppi_accepted
 
