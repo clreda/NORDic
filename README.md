@@ -14,7 +14,8 @@ Due to the presence of copyrighted databases, the license for this code is [Attr
 ## Installation
 
 ```bash
-pip install NORDic
+pip install NORDic==1.0.5 # release version
+pip install NORDic==1.0.6 # latest version
 ```
 
 ## Using the "refractory epilepsy" application
