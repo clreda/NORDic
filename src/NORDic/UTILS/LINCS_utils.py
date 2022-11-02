@@ -420,7 +420,7 @@ def get_treated_control_dataset(treatment, pert_type, cell, filters, entrez_ids,
         @param\tquiet\tPython bool[default=True]
         @param\ttrim_w_interference_scale\tPython bool[default=True]: computes the interference scale criteria for further trimming
         @param\treturn_metrics\tPython character string list: list of LINCS L1000 metrics to return as the same time as the profiles
-        @return\tsigs\tPandas DataFrame: rows/[genes+"annotation"+"signame"+"sigid"] x columns/[profiles]
+        @return\tsigs\tPandas DataFrame: rows/[genes+"annotation"+"signame"+"sigid"] x columns/[profiles] or None
     '''
     assert all([x in [3,5] for x in which_lvl])
     assert len(which_lvl)==1
@@ -468,7 +468,8 @@ def get_treated_control_dataset(treatment, pert_type, cell, filters, entrez_ids,
         sigs = pd.concat((sigs, metric_vals), axis=0)
     ## 7. Compute interference scale for genetic experiments if needed for further trimming
     if (trim_w_interference_scale):
-        assert entrez_id in sigs.index
+        if (entrez_id not in sigs.index):
+            return None
         select = [col for col in sigs.columns if (sigs.loc["annotation"][col] in [1, 2])]
         iscale = compute_interference_scale(sigs[select].drop(["annotation"]), sigs[select].loc["annotation"], entrez_id, (pert_type in ["trt_oe"]), taxon_id, lincs_specific_ctl_genes, quiet=quiet)
         sigs.loc["interference_scale"] = [iscale]*sigs.shape[1] ## common to all profiles from the same experiment (treated/control)

@@ -169,11 +169,11 @@ def get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, sele
                     print("\t<UTILS_EXP> Treatment %s (entrez_id %d)... " % (treatment, entrez_id), end="")
                 ## 6. Returns control & treated profiles from LINCS L1000
                 sigs = get_treated_control_dataset(treatment, pert_type, line, {}, entrez_ids, taxon_id, user_key, path_to_lincs, entrez_id=entrez_id,
-                        which_lvl=[3], nsigs=nsigs, same_plate=True, selection=selection, quiet=quiet, trim_w_interference_scale=(str(thres_iscale)!="None"))
+                        which_lvl=[3], nsigs=nsigs, same_plate=True, selection=selection, quiet=quiet, trim_w_interference_scale=True)
+                if (sigs is None or len(sigs)==0):
+                    continue
                 if (not quiet):
                     print("... %d genes, %d profiles" % (sigs.shape[0]-3, sigs.shape[1]))
-                if (str(sigs)=="None" or len(sigs)==0):
-                    continue
                 perturbed_genes.append(treatment)
                 sigs.loc["signame"] = [signame]*sigs.shape[1]
                 sigs.loc["sigid"] = list(sigs.columns)

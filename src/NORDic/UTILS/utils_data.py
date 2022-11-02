@@ -151,7 +151,7 @@ def get_all_celllines(pert_inames, user_key, quiet=False):
     cell_lines = []
     for ig, g in enumerate(pert_inames):
         if (not quiet):
-            print("<UTILS_DATA> Gene %s (%d/%d)" % (g, ig+1, len(pert_inames)), end=": ")
+            print("<UTILS_DATA> Perturbagen %s (%d/%d)" % (g, ig+1, len(pert_inames)), end=": ")
         params = {"where": {"pert_iname": g}, "fields": ["cell_id"]}
         request_url = build_url(endpoint, method, params, user_key=user_key)
         response = requests.get(request_url)

@@ -38,7 +38,8 @@ setup(name=NAME,
         "qnorm==0.5.1",
         "tqdm==4.62.3",
         "cmapPy==4.0.1",
-	"mpbn-sim==0.1"
+	"mpbn-sim==0.1",
+	"openpyxl==3.0.10",
     ],
     entry_points={},
 )

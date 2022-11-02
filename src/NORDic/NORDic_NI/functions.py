@@ -229,6 +229,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         full_profiles = pd.read_csv(profiles_fname, header=0, index_col=0)
         if (thres_iscale is not None):
             profiles_ = full_profiles[[c for ic, c in enumerate(full_profiles.columns) if (float(list(full_profiles.loc["interference_scale"])[ic])>thres_iscale)]]
+            if (profiles_.shape[1]==0):
+                raise ValueError("The selected value of thres_iscale (%s) is too large, maximum value in collected experiments=%s" % (thres_iscale, np.max(full_profiles.loc["interference_scale"].values)))
             min_iscale = np.min(profiles_.loc["interference_scale"].values)
         else:
             profiles_ = full_profiles
@@ -261,14 +263,17 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     print("... %d genes, %d unique edges involving genes in experiments" % (len(model_genes), network.shape[0]))
     plot_influence_graph(network, "preferredName_A","preferredName_B","sign",file_folder+"network",True)
 
+    from copy import deepcopy
+
     score_thres = 0 if (string_args is None) else string_args.get("score", 0)
     edges_file = file_folder+"EDGES_score=%f.tsv" % (score_thres)
     if (not os.path.exists(edges_file) and ((network["sign"]==2).any() or (network["directed"]==0).any())):
         network_df = get_genes_interactions_from_PPI(network, connected=(edge_args is None and edge_args.get("connected", True)), score=score_thres, filtering=(edge_args is not None and edge_args.get("filter", False)))
         network_df.to_csv(edges_file, sep="\t", index=None)
     elif (not os.path.exists(edges_file)):
+        network_df = deepcopy(network)
         network_df["sscore"] = np.multiply(network_df["sign"], network_df["score"])
-        network_df = network[["preferredName_A","preferredName_B", "sscore"]]
+        network_df = network_df[["preferredName_A","preferredName_B", "sscore"]]
         network_df.columns = ["Input", "Output", "SSign"]
         network_df.to_csv(edges_file, sep="\t", index=None)
     network_df = pd.read_csv(edges_file, sep="\t")
@@ -313,7 +318,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     ###################################
     print("3. Build dynamical constraints by binarization of experimental profiles... ", end=" ...")
 
-    sigs_fname = file_folder+"SIGNATURES_"+"-".join(cell_lines[:4])+"_binthres="+str(sig_args.get("bin_thres", 0.5))+".csv"
+    ## Signatures are vectors containing values {NaN,0,1}
+    sigs_fname = file_folder+"SIGNATURES_"+"-".join(cell_lines[:4])+"_binthres="+str(sig_args.get("bin_thres", 0.5))+"_thres_iscale="+str(lincs_args.get("thres_iscale", None))+".csv"
     if (not os.path.exists(sigs_fname)):
         save_fname=file_folder+"CELL"
         if (experiments_fname is None):
@@ -372,7 +378,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         BO.boolean_networks().standalone(output_filename=solution_fname+".asp")
         nsolutions = infer_network(BO, fname=solution_fname, limit=bonesis_args.get("limit", 1), use_diverse=bonesis_args.get("use_diverse", True), niterations=bonesis_args.get("niterations",1), njobs=njobs)
         if (sum(nsolutions)==0):
-            print("No solution found. Try decreasing value bin_thres=%.3f in [0,0.5], or decreasing STRING score=%.2f in [0,1], or increasing max_maxclause=%d." % (sig_args.get("bin_thres",0.5),string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
+            print("No solution found. Try decreasing value bin_thres=%.3f in [0,0.5], or decreasing STRING score=%.2f in [0,1], or increasing max_maxclause=%d, or increasing thres_iscale=%s." % (sig_args.get("bin_thres",0.5),string_args.get("score", 1), bonesis_args.get("max_maxclause", 5), lincs_args.get("thres_iscale", None)))
             sbcall("rm -f "+solution_fname+"*.zip", shell=True)
             return None, 0
         else:
