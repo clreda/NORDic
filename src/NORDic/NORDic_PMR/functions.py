@@ -132,10 +132,12 @@ def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, i
         @return\tspds\tPython float dictionary: change in mutant attractor states for each gene in @gene_list
         that is, the geometric mean of similarities between any attractor reachable from state in @states in WT and any in mutant spreader+{g} where g in gene_list
     '''
-    if (im_params.get("njobs", 1)==1):
+    from multiprocessing import cpu_count
+    assert simu_params.get('thread_count', 1)>=1 and simu_params.get('thread_count', 1)<=max(1,cpu_count()-2)
+    if (simu_params.get('thread_count', 1)==1):
         sprds_multistate = [spread(network_name, spreader, gene_list, states[[col]], gene_outputs, simu_params, seednb=im_params.get("seed", 0)) for col in states.columns]
     else:
-        sprds_multistate = Parallel(n_jobs=im_params["njobs"], backend='loky')(delayed(spread)(network_name, spreader, gene_list, states[[col]], gene_outputs, simu_params, seednb=im_params.get("seed", 0)) for col in states.columns)
+        sprds_multistate = Parallel(n_jobs=simu_params['thread_count'], backend='loky')(delayed(spread)(network_name, spreader, gene_list, states[[col]], gene_outputs, simu_params, seednb=im_params.get("seed", 0)) for col in states.columns)
     ## Aggregate the values across the set of initial states
     ## Genes which are not measured in the states are assigned value 0
     spds = [(gmean([(s[ig]+1) for s in sprds_multistate])-1) for ig, g in enumerate(gene_list)]

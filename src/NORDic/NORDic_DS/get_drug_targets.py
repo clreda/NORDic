@@ -73,8 +73,8 @@ def retrieve_drug_targets(file_folder, drug_names, TARGET_args={}, gene_list=[],
             print("<DRUG_TARGETS> TTD")
 
         if (not os.path.exists(file_folder+"drug_targets_TTD.csv")):
-            drug_targets = get_targets_TTD(drug_names, quiet=quiet)
-            drug_targets.to_csv(file_folder+"drug_targets_TTD.csv")
+            targets_TTD = get_targets_TTD(drug_names, quiet=quiet)
+            targets_TTD.to_csv(file_folder+"drug_targets_TTD.csv")
             print(targets_TTD.head())
         targets_TTD = pd.read_csv(file_folder+"drug_targets_TTD.csv", index_col=0)
         if (targets_TTD.shape[1]<len(drug_names)):
@@ -124,13 +124,15 @@ def get_targets_MINERVA(drug_names, quiet=False):
     projects = json.loads(response.text)
     project_ids = [pi['projectId'] for pi in projects]
     target_lst = [[]]*len(drug_names)
-    for idi, drug_name in enumerate(drug_names):
+    for idi, drug_name in tqdm(enumerate(drug_names)):
         for project_id in tqdm(project_ids):
             response = requests.get(base_url+project_id+"/drugs:search?query="+drug_name, headers=headers)
             ### 2. Omit results with zero map elements, these are drug targets not in the map
-            if ((response.status_code!=200) or (len(json.loads(response.text))==0)):
-                pass
+            if (response.status_code!=200):
+                continue
             targets = json.loads(response.text)
+            if (len(targets)==0):
+                continue
             map_hits = [x for x in targets[0]["targets"] if (len(x["targetElements"])>0)]
             ### 3. Extract HGNC symbols from the 'targetParticipants' part of the results
             target_lst[idi] += [xx["resource"] for x in map_hits for xx in x["targetParticipants"]]
@@ -177,7 +179,14 @@ def get_targets_DrugBank(drug_names, path_to_drugbank, drug_fname, target_fname,
     protein_db["Drug IDs"] = ["; ".join([convert_di[xx] for xx in list(set(x.split("; "))) if (xx in convert_di)]) for x in protein_db["Drug IDs"]]
     protein_db = protein_db.loc[protein_db["Drug IDs"]!=""]
     protein_db["presence"] = "*"
-    target_df = protein_db.pivot_table(columns="Drug IDs", index="Gene Name", values="presence").fillna("")
+    ## 5. Decouple rows with a list of several drugs
+    add_rows = protein_db.loc[np.vectorize(lambda x : "; " in x)(list(protein_db["Drug IDs"]))]
+    add_rows = [[g, d, sign] for g, d_lst, sign in add_rows.values.tolist() for d in d_lst.split("; ")]
+    add_rows = pd.DataFrame(add_rows, index=range(len(add_rows)), columns=protein_db.columns)
+    protein_db = pd.concat((protein_db.loc[np.vectorize(lambda x : "; " not in x)(list(protein_db["Drug IDs"]))], add_rows), axis=0)
+    protein_db.index = ["--".join(list(protein_db.loc[idx][["Drug IDs", "Gene Name"]])) for idx in protein_db.index]
+    protein_db = protein_db.loc[~protein_db.index.duplicated()]
+    target_df = protein_db.pivot(columns="Drug IDs", index="Gene Name", values="presence").fillna("")
     return target_df
 
 ####################
@@ -192,11 +201,13 @@ def get_targets_LINCS(drug_names, path_to_lincs, credentials, selection=None, ns
         @param\tquiet\tPython bool[default=False]
         @return\ttarget_df\tPandas DataFrame: rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
     '''
-    target_lst = [None]*len(drug_names)
+    target_lst = [[]]*len(drug_names)
     pubchem_cids = drugname2pubchem(drug_names, lincs_args={"path_to_lincs": path_to_lincs, "credentials": credentials})
     pubchem_cids.update({"dmcm": 104999,"glycerin":753})
     user_key = get_user_key(credentials)
-    for idi, drug_name in enumerate(drug_names):
+    for idi, drug_name in tqdm(enumerate(drug_names)):
+        if (np.isnan(pubchem_cids[drug_name])):
+            continue
         params = {"where": {"pubchem_cid": pubchem_cids[drug_name]}, "fields": ["target"]}
         url_perts = build_url("perts", method="filter", params=params, user_key=user_key)
         data = post_request(url_perts, quiet=quiet)
@@ -234,6 +245,13 @@ def get_targets_TTD(drug_names, quiet=False):
     drug_targets["MOA"] = [("-" if (m in decrease_expr_MOA) else "+") for m in drug_targets["MOA"]]
     drug_targets["Target"] = [target_matchings.get(t,"") for t in drug_targets["Target"]]
     drug_targets = drug_targets.loc[drug_targets["Target"]!=""]
+    ## 3. Decouple rows with several targets
+    add_rows = drug_targets.loc[np.vectorize(lambda x : "; " in x)(list(drug_targets["Target"]))]
+    add_rows = [[g, d, sign] for g_lst, d, sign in add_rows.values.tolist() for g in g_lst.split("; ")]
+    add_rows = pd.DataFrame(add_rows, index=range(len(add_rows)), columns=drug_targets.columns)
+    drug_targets = pd.concat((drug_targets.loc[np.vectorize(lambda x : "; " not in x)(list(drug_targets["Target"]))], add_rows), axis=0)
+    drug_targets.index = ["--".join(list(drug_targets.loc[idx][["Drug", "Target"]])) for idx in drug_targets.index]
+    drug_targets = drug_targets.loc[~drug_targets.duplicated()]
     sbcall("rm -f "+target_info+" "+drug_target, shell=True)
     target_df = drug_targets.pivot(index="Target", columns="Drug", values="MOA").fillna("")
     return target_df

@@ -20,7 +20,7 @@ from NORDic.UTILS.utils_grn import load_grn
 
 seed_number=0
 k=1
-solution_fname=file_folder+"solution_old.bnet"
+solution_fname=file_folder+"solution.bnet"
 
 from multiprocessing import cpu_count
 njobs=max(1,cpu_count()-2)
@@ -46,7 +46,6 @@ if (not os.path.exists(grn_fname)):
 
 IM_params = {
     "seed": seed_number,
-    "njobs": njobs,
     "gene_inputs": genes, # genes to be perturbed
     "gene_outputs": gene_outputs # genes to be observed
 }

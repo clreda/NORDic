@@ -25,7 +25,7 @@ from NORDic.NORDic_DS.get_drug_targets import retrieve_drug_targets
 
 seed_number=0
 solution_fname=file_folder+"solution.bnet"
-drug_dataset_fname=dataset_folder+"smallest_drug_dataset.txt"
+drug_dataset_fname=dataset_folder+"small_drug_dataset.txt"
 file_folder=file_folder+"DS/"
 sbcall("mkdir -p "+file_folder, shell=True)
 
@@ -93,7 +93,7 @@ target_args = {
 }
 
 from multiprocessing import cpu_count
-njobs=1#max(1,cpu_count()-2)
+njobs=max(1,cpu_count()-2)
 
 SIMU_params = {
     'nb_sims': 1000,
@@ -103,7 +103,7 @@ SIMU_params = {
 }
 
 ## 1. Get drug targets
-targets = retrieve_drug_targets(file_folder, drug_names, TARGET_args=target_args, gene_list=genes, quiet=True)
+targets = retrieve_drug_targets(file_folder, drug_names, TARGET_args=target_args, gene_list=genes, quiet=False)
 targets = targets.drop_duplicates() # restrict to genes in M30
 print(targets)
 
@@ -116,7 +116,11 @@ binary_phenotypes.loc["annotation"] = phenotypes.loc["annotation"]
 print(binary_phenotypes)
 
 ## 3. Score the effect of each drug in each patient phenotype using the network
-scores = simulate(solution_fname, targets, phenotypes, SIMU_params, nbseed=0)
+scores_fname = file_folder+"scores.csv"
+if (not os.path.exists(scores_fname)):
+    scores = simulate(solution_fname, targets, binary_phenotypes, simu_params=SIMU_params, nbseed=0)
+    scores.to_csv(scores_fname)
+scores = pd.read_csv(scores_fname, index_col=0)
 scores = pd.DataFrame(scores.mean(axis=0), index=scores.index, columns=["Simulator Score"])
 scores = scores.sort_values(by="Simulator Score", ascending=False)
 scores = scores.join(ground_truth_scores, how="inner")

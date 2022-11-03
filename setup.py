@@ -8,7 +8,7 @@ from setuptools.command.install import install
 from subprocess import check_call
 
 NAME = "NORDic"
-VERSION = "1.0.6"
+VERSION = "2.0.0"
 
 setup(name=NAME,
     version=VERSION,
@@ -22,7 +22,7 @@ setup(name=NAME,
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
     keywords='',
-    description="Network Oriented Repurposing of Drugs (NORDic): network identification and master regulator detection",
+    description="Network Oriented Repurposing of Drugs (NORDic): network identification & master regulator detection",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     packages=find_packages(where="src"),
@@ -40,6 +40,7 @@ setup(name=NAME,
         "cmapPy==4.0.1",
 	"mpbn-sim==0.1",
 	"openpyxl==3.0.10",
+	"quadprog==0.1.11",
     ],
     entry_points={},
 )
