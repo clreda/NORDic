@@ -1,4 +1,4 @@
-# Network Oriented Repurposing of Drugs (NORDic) package
+# Network Oriented Repurposing of Drugs (NORDic)
 (c) Clémence Réda, 2022.
 
 [NORDic](https://github.com/clreda/NORDic) is an open-source package which allows to focus on a network-oriented approach to identify regulatory mechanisms linked to a disease, master regulators, and to simulate drug effects on a network, and adaptively test drugs to perform drug repurposing. As such, it is comprised of four distinct parts:

@@ -201,7 +201,7 @@ def plot_boxplots(scores, patient_scores, ground_truth=None, fsize=12, msize=5, 
     plt.savefig(fname, bbox_inches="tight")
     plt.close()
 
-def plot_heatmap(X, ground_truth=None, fname="heatmap.pdf", w=20, h=20, bfsize=20, fsize=20, rot=75, nbseed=0):
+def plot_heatmap(X, ground_truth=None, fname="heatmap.pdf", w=20, h=20, bfsize=20, fsize=20, rot=75):
     '''
         Plots an heatmap of the signatures, with the potential ground truth
         @param\tX\tPandas DataFrame: rows/[features] x columns/[drug names]
@@ -237,16 +237,14 @@ def plot_heatmap(X, ground_truth=None, fname="heatmap.pdf", w=20, h=20, bfsize=2
 
 def plot_roc_curve(pr, prs, tr, fname="ROC.pdf", method_name="predictor", fsize=18):
     '''
-        Plots an heatmap of the signatures, with the potential ground truth
-        @param\tX\tPandas DataFrame: rows/[features] x columns/[drug names]
-        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
-        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
-        @param\tfname\tPython character string[default="heatmap.pdf"]: file name for the plot
-        @param\tw\tPython integer[default=20]: figure width
-        @param\th\tPython integer[default=20]: figure height
-        @param\tbfsize\tPython integer[default=20]: font size in the color bar
-        @param\trot\tPython integer[default=75]: rotation angle of labels
-        @return\tARI\tPython dictionary: (key=["ARI", "nclusters"], value=[ari, corresponding nclusters])
+        Plots a ROC curve (with variations across samples)
+        @param\tpr\tPandas DataFrame: rows/[drug names] x column/[value]
+        @param\tprs\tPandas DataFrame: rows/[drug names] x columns/[patient samples]
+        @param\ttr\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
+        @param\tfname\tPython character string[default="ROC.pdf"]: file name for the plot
+        @param\tmethod_name\tPython character string[default="predictor"]: name of the predictor
+        @param\tfsize\tPython integer[default=18]: font size
+        @return\tNone
     '''
     from sklearn.metrics import roc_curve, roc_auc_score
     from scipy import interp
@@ -284,18 +282,18 @@ def plot_roc_curve(pr, prs, tr, fname="ROC.pdf", method_name="predictor", fsize=
     plt.savefig(fname, bbox_inches="tight")
     plt.close()
 
-def plot_precision_recall(pr, prs, tr, beta=1, thres=0.5, method_name="predictor", fname="PRC.pdf", fsize=18):
+def plot_precision_recall(pr, prs, tr, beta=1, thres=0.5, fname="PRC.pdf", method_name="predictor", fsize=18):
     '''
-        Plots an heatmap of the signatures, with the potential ground truth
-        @param\tX\tPandas DataFrame: rows/[features] x columns/[drug names]
-        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
-        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
-        @param\tfname\tPython character string[default="heatmap.pdf"]: file name for the plot
-        @param\tw\tPython integer[default=20]: figure width
-        @param\th\tPython integer[default=20]: figure height
-        @param\tbfsize\tPython integer[default=20]: font size in the color bar
-        @param\trot\tPython integer[default=75]: rotation angle of labels
-        @return\tARI\tPython dictionary: (key=["ARI", "nclusters"], value=[ari, corresponding nclusters])
+        Plots a Precision-Recall curve (with variations across samples)
+        @param\tpr\tPandas DataFrame: rows/[drug names] x column/[value]
+        @param\tprs\tPandas DataFrame: rows/[drug names] x columns/[patient samples]
+        @param\ttr\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
+        @param\tbeta\tPython float[default=1]: value of coefficient beta for the F-measure
+        @param\tthres\tPython float[default=0.5]: decision threshold
+        @param\tfname\tPython character string[default="PRC.pdf"]: file name for the plot
+        @param\tmethod_name\tPython character string[default="predictor"]: name of the predictor
+        @param\tfsize\tPython integer[default=18]: font size
+        @return\tNone
     '''
     from sklearn.metrics import precision_recall_curve, fbeta_score
     from scipy import interp
