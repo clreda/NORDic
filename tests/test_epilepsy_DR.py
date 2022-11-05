@@ -106,7 +106,7 @@ BANDIT_args = {
 
 if (not os.path.exists(file_folder+"recommendation.csv")):
     recommendation = adaptive_testing(solution_fname, signatures, targets, frontier, 
-		patients, SIMU_params, BANDIT_args, reward_fname=save_folder+"scores.csv", quiet=False)
+		patients, SIMU_params, BANDIT_args, reward_fname=save_folder+"scores.csv", quiet=False).T
     recommendation.to_csv(file_folder+"recommendation.csv")
 recommendation = pd.read_csv(file_folder+"recommendation.csv", index_col=0)
 recommendation = recommendation.loc[recommendation["Frequency"]>0]

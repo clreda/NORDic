@@ -42,7 +42,7 @@ def adaptive_testing(network_name, signatures, targets, frontier, states, simu_p
 
     if (simu_params.get('thread_count', 1)==1 or bandit_args.get("nsimu", 1)==1):  # No parallelization in this case
         active_arms, complexity, running_time = bandit_algorithm.run(problem, bandit_args.get("nsimu", 1))
-        active_arms = [active_arms.tolist()] if (bandit_args.get("nsimu", 1)==1) else active_arms
+        active_arms = [[a] for a in active_arms.tolist()] if (bandit_args.get("nsimu", 1)==1) else active_arms
     else:
         # Generate one random seed for each run (best practice with joblib)
         seeds = [np.random.randint(int(1e8)) for _ in range(bandit_args.get("nsimu", 1))]
@@ -56,10 +56,10 @@ def adaptive_testing(network_name, signatures, targets, frontier, states, simu_p
         # we finally merge the results so as to have them in the same form as for a single process
         active_arms = np.mean(np.array([r[0] for r in results]), axis=0).tolist()
         complexity = [r[1][0] for r in results]
-        running_time = [r[4][0] for r in results]
+        running_time = [r[2][0] for r in results]
 
     # results 
-    empirical_rec = pd.DataFrame(active_arms, index=["Frequency"], columns=signatures.columns).T
+    empirical_rec = pd.DataFrame(active_arms, columns=["Frequency"], index=signatures.columns).T
     if (not quiet):
         print("Avg. #samples = %d, avg. runtime %s sec (over %d iterations)" % (np.mean(complexity), np.mean(running_time), bandit_args.get("nsimu", 1)))
     return empirical_rec
