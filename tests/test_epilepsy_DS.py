@@ -6,6 +6,7 @@ import pandas as pd
 import os
 from subprocess import call as sbcall
 from copy import deepcopy
+from tqdm import tqdm
 
 LINCS_args = {
         "path_to_lincs": "../lincs/",
@@ -65,7 +66,7 @@ if (not os.path.exists(diffpheno_fname)):
     differential_phenotype.to_csv(diffpheno_fname)
 differential_phenotype = pd.read_csv(diffpheno_fname, index_col=0)
 
-print(signatures.join(differential_phenotype, how="inner"))
+print(signatures.join(differential_phenotype, how="inner").head())
 
 ## 3. Ground truth scores (1: treating, -1: mimicking the disease)
 ground_truth_scores = pd.read_csv(dataset_folder+"scores.csv", index_col=1)[["score"]]
@@ -73,12 +74,12 @@ ground_truth_scores.columns = ["Ground Truth"]
 
 ## 4. Compute scores
 scores = baseline(signatures, differential_phenotype, is_binary=True)
-scores = scores.sort_values(by="Cosine Score", ascending=False)
 scores = scores.join(ground_truth_scores, how="inner")
-print(scores)
+scores = scores.sort_values(by="Cosine Score", ascending=False)
+print(scores.head())
 
 ## 5. Evaluate the accuracy
-res_di = compute_metrics(scores["Cosine Score"], scores["Ground Truth"], K=[2,5,10], nperms=100)
+res_di = compute_metrics(scores["Cosine Score"], scores["Ground Truth"], K=[2,5,10], thres=0.5, nperms=100)
 print(pd.DataFrame({"Baseline": res_di}))
 
 ############################
@@ -105,7 +106,7 @@ SIMU_params = {
 ## 1. Get drug targets
 targets = retrieve_drug_targets(file_folder, drug_names, TARGET_args=target_args, gene_list=genes, quiet=False)
 targets = targets.drop_duplicates() # restrict to genes in M30
-print(targets)
+print(targets.head())
 
 ## 2. Get binary patient/control phenotypes
 binary_phenotypes = deepcopy(phenotypes)
@@ -113,19 +114,57 @@ binary_phenotypes[binary_phenotypes>0] = 1
 binary_phenotypes[binary_phenotypes<0] = -1
 binary_phenotypes[binary_phenotypes==0] = 0
 binary_phenotypes.loc["annotation"] = phenotypes.loc["annotation"]
-print(binary_phenotypes)
+print(binary_phenotypes.head())
 
 ## 3. Score the effect of each drug in each patient phenotype using the network
 scores_fname = file_folder+"scores.csv"
 if (not os.path.exists(scores_fname)):
     scores = simulate(solution_fname, targets, binary_phenotypes, simu_params=SIMU_params, nbseed=0)
     scores.to_csv(scores_fname)
-scores = pd.read_csv(scores_fname, index_col=0)
-scores = pd.DataFrame(scores.mean(axis=0), index=scores.index, columns=["Simulator Score"])
-scores = scores.sort_values(by="Simulator Score", ascending=False)
-scores = scores.join(ground_truth_scores, how="inner")
-print(scores)
+scores_all = pd.read_csv(scores_fname, index_col=0).T
+scores = pd.DataFrame(scores_all.mean(axis=1), columns=["Simulator Score"])
+scores_ = scores.join(ground_truth_scores, how="inner")
+scores_ = scores_.sort_values(by="Simulator Score", ascending=False)
+print(scores_.head())
 
 ## 4. Evaluate the accuracy
-res_di = compute_metrics(scores["Simulator Score"], scores["Ground Truth"], K=[2,5,10], nperms=100)
+beta=1
+res_di = compute_metrics(scores_["Simulator Score"], scores_["Ground Truth"], K=[2,5,10], beta=beta, thres=0.5, nperms=100)
 print(pd.DataFrame({"Method": res_di}))
+
+############################
+## VISUALIZATION          ##
+############################
+from NORDic.UTILS.utils_plot import plot_boxplots, plot_heatmap, plot_roc_curve, plot_precision_recall
+
+## Boxplots
+plot_boxplots(scores, scores_all, ground_truth=ground_truth_scores, fname=file_folder+"boxplots.pdf")
+
+## Heatmap
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import adjusted_rand_score as ARI
+from sklearn.cluster import KMeans
+import numpy as np
+true = np.ravel(ground_truth_scores.join(scores, how="outer")[ground_truth_scores.columns[0]].loc[signatures.columns].fillna(0).astype(int).values)
+argmax_ncomponents, max_ari = 0, -float("inf")
+ncomponents_lst = [9]#range(2, 21, 1)
+nclusters=len(np.unique(ground_truth_scores.values))
+for ncomponents in tqdm(ncomponents_lst):
+    X = PCA(n_components=ncomponents, random_state=0).fit_transform(StandardScaler().fit_transform(signatures.values.T)).T
+    X = pd.DataFrame(X, index=["PCA%d" % (i+1) for i in range(ncomponents)], columns=signatures.columns)
+    clust = KMeans(n_clusters=nclusters, random_state=0).fit(X.T, true)
+    ari = ARI(true, clust.labels_)
+    if (ari>max_ari):
+        max_ari = ari
+        argmax_ncomponents = ncomponents
+print("%d components: ARI=%.5f (%d clusters)" % (argmax_ncomponents, ari, 2))
+if (len(ncomponents_lst)>1):
+    X = PCA(n_components=argmax_ncomponents).fit_transform(StandardScaler().fit_transform(signatures.values.T)).T
+    X = pd.DataFrame(X, index=["PCA%d" % (i+1) for i in range(argmax_ncomponents)], columns=signatures.columns)
+    plot_heatmap(X, ground_truth=ground_truth_scores, fname=file_folder+"heatmap.pdf")
+X.to_csv(file_folder+"reduced_signatures.csv")
+
+## Take into account possible variation to patients
+plot_roc_curve(scores_["Simulator Score"], scores_all, scores_["Ground Truth"], fname=file_folder+"ROC.pdf")
+plot_precision_recall(scores_["Simulator Score"], scores_all, scores_["Ground Truth"], beta=beta, fname=file_folder+"PRC.pdf")

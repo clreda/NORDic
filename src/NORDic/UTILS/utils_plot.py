@@ -3,6 +3,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from copy import deepcopy
+import seaborn as sns
 
 def influences2graph(influences, fname, optional=False, compile2png=True, engine=["sfdp","dot"][0]):
     '''
@@ -85,7 +87,6 @@ def plot_signatures(signatures, width=10, height=10, max_show=50, fname="signatu
         @return\tNone\t
     '''
     from matplotlib import colors,rc
-    from copy import deepcopy
     rc("ytick", labelsize=5)
     rc("xtick", labelsize=10)
     sigs = deepcopy(signatures)
@@ -155,203 +156,176 @@ def plot_discrete_distributions(signatures, fname="signature_expression_distribu
     plt.close()
     return None
 
-ffsize=18 #fontsize on plots
-french=False
+def plot_boxplots(scores, patient_scores, ground_truth=None, fsize=12, msize=5, fname="boxplots.pdf"):
+    '''
+        Plots one boxplot per treatment (all values obtained on patient profiles)
+        @param\tscores\tPandas DataFrame: rows/[drug names] x column/[value]
+        @param\tpatient_scores\tPandas DataFrame: rows/[drug names] x columns/[patient samples]
+        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
+        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
+        @param\tfsize\tPython integer[default=18]: font size
+        @param\tmsize\tPython integer[default=5]: marker size
+        @param\tfname\tPython character string[default="boxplots"]: file name for the plot
+        @return\tNone
+    '''
+    scores_ = deepcopy(scores).sort_values(by=scores.columns[0], ascending=False)
+    drug_names = list(scores_.index)
+    sorted_rewards_list = list(scores_[scores_.columns[0]])
+    sorted_rewards = patient_scores.loc[drug_names,:]
+    if (ground_truth is not None):
+        gt_scores = ground_truth.loc[[t for t in scores_.index if (t in ground_truth.index)]]
+        gt_missing = pd.DataFrame([], index=[t for t in scores_.index if (t not in ground_truth.index)], columns=ground_truth.columns)
+        gt_scores = pd.concat((gt_scores, gt_missing), axis=0).fillna(0).loc[drug_names].astype(int)
+        sorted_ground_truth = list(gt_scores[gt_scores.columns[0]])
+        positive = [si+1 for si, s in enumerate(sorted_ground_truth) if (s > 0)]
+        negative = [si+1 for si, s in enumerate(sorted_ground_truth) if (s < 0)]
+    else:
+        positive, negative = [], []
+    fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(10,6))
+    bplot = sns.boxplot(sorted_rewards.T, showmeans=False, meanline=False, notch=False, ax=ax)
+    if (ground_truth is not None):
+        colors = {1: "green", -1: "red", 0: "white"}
+        for i in range(len(sorted_rewards)):
+            mybox = bplot.artists[i]
+            mybox.set_facecolor(colors[sorted_ground_truth[i]])
+    ax.plot(range(len(drug_names)), sorted_rewards_list, "kD", label='score')
+    ax.set_ylabel("Scores across patient profiles", fontsize=fsize)
+    ax.set_xlabel("Drug", fontsize=fsize)
+    ax.set_xticklabels(["%s (%.2f)" % (drug_names[i], r) for i, r in enumerate(sorted_rewards_list)], rotation=90, fontsize=fsize)
+    plt.yticks(rotation=0)
+    cols=["r" if (i in negative) else ("g" if (i in positive) else "k") for i in range(1, scores.shape[0]+1)]
+    for xtick, color in zip(ax.get_xticklabels(), cols):
+        xtick.set_color(color)
+    ax.tick_params(axis='y', which='major', labelsize=fsize)
+    plt.legend(fontsize=fsize)
+    plt.savefig(fname, bbox_inches="tight")
+    plt.close()
 
-def plot_roc_curve(prs, tr, name, AUC, prs2=None, name2=None, AUC2=None, french=french):
-    import matplotlib.pyplot as plt
-    from sklearn.metrics import roc_curve
-    from sklearn.metrics import roc_auc_score
+def plot_heatmap(X, ground_truth=None, fname="heatmap.pdf", w=20, h=20, bfsize=20, fsize=20, rot=75, nbseed=0):
+    '''
+        Plots an heatmap of the signatures, with the potential ground truth
+        @param\tX\tPandas DataFrame: rows/[features] x columns/[drug names]
+        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
+        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
+        @param\tfname\tPython character string[default="heatmap.pdf"]: file name for the plot
+        @param\tw\tPython integer[default=20]: figure width
+        @param\th\tPython integer[default=20]: figure height
+        @param\tbfsize\tPython integer[default=20]: font size in the color bar
+        @param\trot\tPython integer[default=75]: rotation angle of labels
+        @return\tNone
+    '''
+    colors = {1: "green", -1: "red", 0: "black"}
+    if (ground_truth is not None):
+        gt_scores = ground_truth.loc[[t for t in X.columns if (t in ground_truth.index)]]
+        gt_missing = pd.DataFrame([], index=[t for t in X.columns if (t not in ground_truth.index)], columns=ground_truth.columns)
+        gt_scores = pd.concat((gt_scores, gt_missing), axis=0).fillna(0).loc[X.columns].astype(int)
+    else:
+        gt_scores = pd.DataFrame([], index=X.columns, columns=["Ground Truth"]).fillna(0)
+    row_colors = pd.Series([colors[i] for i in list(gt_scores[gt_scores.columns[0]])], index=list(gt_scores.index))
+    im = sns.clustermap(X.corr(method="pearson"), cmap="Blues", figsize=(w,h), row_cluster=True, col_cluster=True, 
+	row_colors=row_colors, col_colors=row_colors, vmin=-1, vmax=1)
+    im.ax_heatmap.axes.set_yticklabels([t.get_text() for t in im.ax_heatmap.axes.get_yticklabels()], fontsize=fsize)
+    im.ax_heatmap.axes.set_xticklabels([t.get_text() for t in im.ax_heatmap.axes.get_xticklabels()], fontsize=fsize, rotation=rot)
+    for ti, tick_label in enumerate(im.ax_heatmap.axes.get_yticklabels()):
+        tick_label.set_color(colors[gt_scores.loc[tick_label.get_text()][gt_scores.columns[0]]])
+    for ti, tick_label in enumerate(im.ax_heatmap.axes.get_xticklabels()):
+        tick_label.set_color(colors[gt_scores.loc[tick_label.get_text()][gt_scores.columns[0]]])
+    cbar = im.ax_heatmap.axes.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=bfsize)
+    plt.savefig(fname, bbox_inches="tight")
+    plt.close()
+
+def plot_roc_curve(pr, prs, tr, fname="ROC.pdf", method_name="predictor", fsize=18):
+    '''
+        Plots an heatmap of the signatures, with the potential ground truth
+        @param\tX\tPandas DataFrame: rows/[features] x columns/[drug names]
+        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
+        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
+        @param\tfname\tPython character string[default="heatmap.pdf"]: file name for the plot
+        @param\tw\tPython integer[default=20]: figure width
+        @param\th\tPython integer[default=20]: figure height
+        @param\tbfsize\tPython integer[default=20]: font size in the color bar
+        @param\trot\tPython integer[default=75]: rotation angle of labels
+        @return\tARI\tPython dictionary: (key=["ARI", "nclusters"], value=[ari, corresponding nclusters])
+    '''
+    from sklearn.metrics import roc_curve, roc_auc_score
     from scipy import interp
+    predicted = pr.values.tolist()
+    truth = tr.loc[pr.index].values.tolist()
+    ids = np.argsort(predicted).tolist()
+    ids.reverse()
+    sorted_rewards = [predicted[i] for i in ids]
+    sorted_ground_truth = [int(truth[i]>0) for i in ids]
+    AUC = roc_auc_score(sorted_ground_truth, sorted_rewards)
     base = np.linspace(0, 1, 101)
     tprs, tprs2 = [], []
     aucs = []
-    for i in range(prs.shape[0]):
-        fper, tper, _ = roc_curve(tr, prs[i,:].flatten())
-        aucs.append(roc_auc_score(tr,prs[i,:].flatten()))
+    for idx in prs.columns:
+        predicted_patient = prs.loc[pr.index][idx].values.tolist()
+        fper, tper, _ = roc_curve(truth, predicted_patient)
+        aucs.append(roc_auc_score(truth, predicted_patient))
         tpr = interp(base, fper, tper)
         tpr[0] = 0.0
         tprs.append(tpr)
-        if ((prs2 is not None) and (i in range(prs2.shape[0]))):
-            fper2, tper2, _ = roc_curve(tr, prs2[i,:].flatten())
-            tpr2 = interp(base, fper2, tper2)
-            tpr2[0] = 0.0
-            tprs2.append(tpr2)
     tprs = np.array(tprs)
     mean_tprs = tprs.mean(axis=0)
     std_tprs = tprs.std(axis=0)
     tprs_upper = np.minimum(mean_tprs + std_tprs, 1)
     tprs_lower = np.maximum(mean_tprs - std_tprs, 0)
-    plt.plot(base, mean_tprs, 'r', alpha = 0.8, label="%s (AUC=%.2f)" % (name.split("_")[0],AUC))
+    plt.plot(base, mean_tprs, 'r', alpha = 0.8, label="%s (AUC=%.2f)" % (method_name.split("_")[0],AUC))
     plt.fill_between(base, tprs_lower, tprs_upper, color = 'red', alpha = 0.2)
-    #plt.plot(fper, tper, color='red', label='ROC')
-    if (prs2 is not None):
-        tprs2 = np.array(tprs2)
-        mean_tprs2 = tprs2.mean(axis=0)
-        std_tprs2 = tprs2.std(axis=0)
-        tprs_upper2 = np.minimum(mean_tprs2 + std_tprs2, 1)
-        tprs_lower2 = np.maximum(mean_tprs2 - std_tprs2, 0)
-        plt.plot(base, mean_tprs2, 'g', alpha = 0.8, label="%s (AUC=%.2f)" % (name2.split("_")[0], AUC2))
-        plt.fill_between(base, tprs_lower2, tprs_upper2, color = 'green', alpha = 0.2)
-    if (name2 is None):
-        print(name)
-        #print(np.round(AUC,2))
-        print("%.2f +- %.2f" % (np.mean(aucs), np.sqrt(np.var(aucs))))
-        print("____")
     plt.plot([0, 1], [0, 1], color='blue', lw=2, linestyle='--', alpha=0.8)
-    plt.xticks(fontsize=ffsize)
-    plt.yticks(fontsize=ffsize)
-    plt.xlabel('Taux de faux positifs' if (french) else 'False Positive Rate', fontsize=ffsize)
-    plt.ylabel('Taux de vrais positifs' if (french) else 'True Positive Rate', fontsize=ffsize)
-    plt.title("Fonction d'efficacité du récepteur" if (french) else 'Receiver Operating Characteristic Curve', size=ffsize)
-    plt.legend(loc="lower right", fontsize=ffsize)
-    plt.savefig(plot_folder+"ROC"+("_"+name if (prs2 is None) else ("_"+use_small_dataset))+".pdf", bbox_inches="tight")
+    plt.xticks(fontsize=fsize)
+    plt.yticks(fontsize=fsize)
+    plt.xlabel('False Positive Rate', fontsize=fsize)
+    plt.ylabel('True Positive Rate', fontsize=fsize)
+    plt.title('Receiver Operating Characteristic Curve', size=fsize)
+    plt.legend(loc="lower right", fontsize=fsize)
+    plt.savefig(fname, bbox_inches="tight")
     plt.close()
 
-def plot_precision_recall(prs,tr,name,f,prs2=None, name2=None, f2=None, french=french):
-    import matplotlib.pyplot as plt
-    from sklearn.metrics import precision_recall_curve as PRC
+def plot_precision_recall(pr, prs, tr, beta=1, thres=0.5, method_name="predictor", fname="PRC.pdf", fsize=18):
+    '''
+        Plots an heatmap of the signatures, with the potential ground truth
+        @param\tX\tPandas DataFrame: rows/[features] x columns/[drug names]
+        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
+        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
+        @param\tfname\tPython character string[default="heatmap.pdf"]: file name for the plot
+        @param\tw\tPython integer[default=20]: figure width
+        @param\th\tPython integer[default=20]: figure height
+        @param\tbfsize\tPython integer[default=20]: font size in the color bar
+        @param\trot\tPython integer[default=75]: rotation angle of labels
+        @return\tARI\tPython dictionary: (key=["ARI", "nclusters"], value=[ari, corresponding nclusters])
+    '''
+    from sklearn.metrics import precision_recall_curve, fbeta_score
     from scipy import interp
+    predicted = pr.values.tolist()
+    truth = tr.loc[pr.index].values.tolist()
+    ids = np.argsort(predicted).tolist()
+    ids.reverse()
+    sorted_rewards = [int(predicted[i]>thres) for i in ids]
+    sorted_ground_truth = [int(truth[i]>0) for i in ids]
+    f = fbeta_score(sorted_ground_truth, sorted_rewards, average='weighted', beta=beta)
     base = np.linspace(0, 1, 101)
     recs, recs2 = [], []
-    for i in range(prs.shape[0]):
-        pres, rec, _ = PRC(tr, prs[i,:].flatten())
+    for idx in prs.columns:
+        predicted_patient = prs.loc[pr.index][idx].values.tolist()
+        pres, rec, _ = precision_recall_curve(truth, predicted_patient)
         rec = interp(base, pres, rec)
         recs.append(rec)
-        if ((prs2 is not None) and (i in range(prs2.shape[0]))):
-            pres2, rec2, _ = PRC(tr, prs2[i,:].flatten())
-            rec2 = interp(base, pres2, rec2)
-            recs2.append(rec2)
     recs = np.array(recs)
     mean_recs = recs.mean(axis=0)
     std_recs = recs.std(axis=0)
     recs_upper = np.minimum(mean_recs + std_recs, 1)
     recs_lower = np.maximum(mean_recs - std_recs, 0)
-    plt.plot(base, mean_recs, 'r', alpha=0.8, label=r'%s' % (name.split("_")[0]))#' ($F_{1}=%.2f$)' % (name.split("_")[0],f))
-    plt.fill_between(base, recs_lower, recs_upper, color="red", alpha=0.2)
-    if (prs2 is not None):
-        recs2 = np.array(recs2)
-        mean_recs2 = recs2.mean(axis=0)
-        std_recs2 = recs2.std(axis=0)
-        recs_upper2 = np.minimum(mean_recs2 + std_recs2, 1)
-        recs_lower2 = np.maximum(mean_recs2 - std_recs2, 0)
-        plt.plot(base, mean_recs2, 'g', alpha=0.8, label='%s' % (name2.split("_")[0]))#' ($F_{1}=%.2f$)' % (name2.split("_")[0],f2))
-        plt.fill_between(base, recs_lower2, recs_upper2, color="green", alpha=0.2)
+    plt.plot(base, mean_recs, 'b', alpha=0.8, label=r'%s (F_%.1f = %.2f)' % (method_name.split("_")[0], beta, f))
+    plt.fill_between(base, recs_lower, recs_upper, color="blue", alpha=0.2)
     plt.plot([0,1], [1,0], linestyle="--", lw=2, color="blue", alpha=0.8)
-    plt.xticks(fontsize=ffsize)
-    plt.yticks(fontsize=ffsize)
-    plt.xlabel('Spécificité (precision)' if (french) else 'Precision', fontsize=ffsize)
-    plt.ylabel('Sensibilité (recall)' if (french) else 'Recall', fontsize=ffsize)
-    plt.title('Courbe sensibilité-spécificité' if (french) else 'Precision-Recall Curve', fontsize=ffsize)
-    plt.legend(loc='upper right', fontsize=ffsize)
-    plt.savefig(plot_folder+"PRC"+("_"+name if (prs2 is None) else ("_"+use_small_dataset))+".pdf",bbox_inches="tight")
+    plt.xticks(fontsize=fsize)
+    plt.yticks(fontsize=fsize)
+    plt.xlabel('Precision', fontsize=fsize)
+    plt.ylabel('Recall', fontsize=fsize)
+    plt.title('Precision-Recall Curve', fontsize=fsize)
+    plt.legend(loc='lower left', fontsize=fsize)
+    plt.savefig(fname,bbox_inches="tight")
     plt.close()
-
-## Boxplots to compare ground truth to predictions
-def boxplots(treatment_scores, scores, ranking_by="mean", fsize=ffsize, msize=5, thres=0., name="boxplots", french=french):
-    assert ranking_by in ["mean", "median"]
-    import matplotlib.pyplot as plt
-    ## Get scores
-    nnames = [x for x in list(treatment_scores.index) if (x in scores.index)]
-    names = [scores.loc[x]["drug_name"] for x in nnames]
-    rewards = treatment_scores.loc[nnames].values
-    ## Order scores
-    if (rewards.shape[1]==1):
-        rewards = rewards.T
-        rewards_list = rewards.tolist()[0]
-        ids = np.argsort(rewards_list).tolist()
-        ids.reverse()
-        sorted_rewards = rewards[:,ids]
-    else:
-        rewards_list = eval("np."+ranking_by)(rewards, axis=1).flatten().tolist()
-        rewards = rewards.T
-    ids = np.argsort(rewards_list).tolist()
-    ids.reverse()
-    sorted_rewards = rewards[:,ids]
-    scores_list = scores[['score']].loc[nnames].values.flatten().tolist()
-    positive = [i+1 for i in range(len(ids)) if (scores_list[ids[i]] > 0)]
-    negative = [i+1 for i in range(len(ids)) if (scores_list[ids[i]] < 0)]
-    ## Compute metrics
-    if (len(np.unique(scores.values[:,1]))>1):
-        res_di = compute_metrics(rewards_list, scores_list, K=[2,5,10], use_negative_class=False, thres=thres)
-    else:
-        res_di = {}
-    ## Plot boxplot
-    fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(10,6))#(12,12))#(50, 15))
-    medianprops = {}#dict(linestyle='-', linewidth=5, color='lightcoral')
-    meanpointprops = {}#dict(marker='.', markersize=1, markerfacecolor='white', alpha=0.)
-    sorted_rewards_list = [rewards_list[i] for i in ids]
-    sorted_ground_truth = [scores_list[i] for i in ids]
-    labels=[names[i] for i in ids]
-    ax.boxplot(sorted_rewards, showmeans=False, vert=True, meanline=False, meanprops=meanpointprops, notch=False, medianprops=medianprops)
-    sorted_rewards_ = [np.median(rewards.T, axis=1).flatten().tolist()[i] for i in ids]
-    ax.plot(range(1, len(names)+1), sorted_rewards_, "k-", label=ranking_by)
-    #ax.plot(range(1,len(names)+1), sorted_rewards_list, 'k-', label=ranking_by)
-    ax.plot(positive, [rewards_list[ids[i-1]] for i in positive], 'gD', label="score > 0", markersize=msize)
-    ax.plot(negative, [rewards_list[ids[i-1]] for i in negative], 'rD', label="score < 0", markersize=msize)
-    ax.set_ylabel("Score", fontsize=fsize)
-    ax.set_xlabel("Drug" if (not french) else "Traitement", fontsize=fsize)
-    ax.set_xticklabels(["%s (%.2f)" % (names[idx], rewards_list[idx]) for idx in ids], rotation=90, fontsize=fsize)
-    plt.yticks(rotation=0)
-    cols=["r" if (i in negative) else ("g" if (i in positive) else "k") for i in range(1, len(names)+1)]
-    for xtick, color in zip(ax.get_xticklabels(), cols):
-        xtick.set_color(color)
-    ax.tick_params(axis='y', which='major', labelsize=fsize)
-    #ax.set_title("Boxplots of rewards from GRN across "+str(treatment_scores.shape[1])+" patient"+("s" if (treatment_scores.shape[1]>1) else "")+"\n(versus known associations/scores for "+str(len(names))+" drugs)", fontsize=fsize)
-    plt.savefig(plot_folder+"boxplot_"+name+".pdf", bbox_inches="tight")
-    plt.close()
-    if (len(np.unique(scores.values[:,1]))>1):
-        print(pd.DataFrame({name: res_di}))
-        pd.DataFrame({name: res_di}).to_csv(file_folder+"results-DR_"+name+".csv")
-        ## Take into account possible variation to patients
-        plot_roc_curve(rewards, scores_list, name, AUC=res_di["AUC"])
-        plot_precision_recall(rewards, scores_list, name, res_di["F"])
-    return rewards, scores_list, name, res_di
-
-def plot_phenotypes():
-    ## Plot control vs patient sample + CD signature
-    import matplotlib.pyplot as plt
-    from sklearn.metrics.pairwise import cosine_similarity
-    plt.figure(figsize=(8,8))
-    xx = np.linspace(np.min(X_pca[:,0]), np.max(X_pca[:,1]), num=500)
-    yy = -a*xx/b
-    plt.scatter(X_pca[:ctrl2.shape[1],0], X_pca[:ctrl2.shape[1],1], c="g", label="Control")
-    plt.scatter(X_pca[ctrl2.shape[1]:,0], X_pca[ctrl2.shape[1]:,1], c="r", label="Patient")
-    ## Plot Frontier
-    plt.plot(yy,-xx,"b-",label="Frontier")
-    plt.plot(xx,yy,"b--",label="CD signature")
-    plt.title("PCA Controls (N=%d), Patients (N=%d), Signature" % (ctrl2.shape[1], ptt2.shape[1]))
-    plt.xlabel("PCA1 (explained variance "+str(np.round(pca.explained_variance_ratio_[0]*100, 1))+"%)")
-    plt.ylabel("PCA2 (explained variance "+str(np.round(pca.explained_variance_ratio_[1]*100, 1))+"%)")
-    plt.legend()
-    plt.savefig(plot_folder+"pca_controls_patients.png", bbox_inches="tight")
-    plt.close()
-
-
-def plot_results():
-    ## PLOT RESULTS (projection & point)
-    plt.figure(figsize=(8,8))
-    X_c_, proj_X_c_, sc_c_ = prediction_score(ctrl2,ctrl2,genes_in_network, return_full=True)
-    X_p_, proj_X_p_, sc_p_ = prediction_score(ptt2, ptt2, genes_in_network, return_full=True)
-    #X_c_,proj_X_c_,X_p_,proj_X_p_ = [pca.transform(scaler.transform(x)) for x in [X_c_,proj_X_c_,X_p_,proj_X_p_]]
-    print("Score mean (control): %.2f\tScore mean (patient): %.2f" % (np.mean(sc_c_), np.mean(sc_p_)))
-    plt.scatter(X_pca[:ctrl2.shape[1],0], X_pca[:ctrl2.shape[1],1], c="g", label="Control")
-    plt.scatter(X_pca[ctrl2.shape[1]:,0], X_pca[ctrl2.shape[1]:,1], c="r", label="Patient")
-    #for i in range(ctrl2.shape[1],X_pca.shape[1]):
-    #    plt.text(X_pca[i,0],X_pca[i,1],str(np.round(sc_c_[i],2)),fontsize=2)
-    ## Should overlap points
-    #plt.scatter(X_c_[:,0], X_c_[:,1], c="m", label="Control points")
-    #plt.scatter(X_p_[:,0], X_p_[:,1], c="y", label="Patient points")
-    ## Should belong to the Frontier
-    plt.scatter(proj_X_c_[:,0], proj_X_c_[:,1], c="c", label="Projection of controls")
-    plt.scatter(proj_X_p_[:,0], proj_X_p_[:,1], c="k", label="Projection of patients")
-    ## Plot Frontier
-    plt.plot(yy,-xx, "b-", label="Frontier")
-    plt.plot(xx,yy, "b--", label="CD Signature")
-    plt.title("PCA Controls (N=%d), Patients (N=%d), Projections" % (ctrl2.shape[1], ptt2.shape[1]))
-    plt.xlabel("PCA1 (explained variance "+str(np.round(pca.explained_variance_ratio_[0]*100, 1))+"%)")
-    plt.ylabel("PCA2 (explained variance "+str(np.round(pca.explained_variance_ratio_[1]*100, 1))+"%)")
-    plt.legend()
-    plt.savefig(plot_folder+"pca_controls_patients_projection.png", bbox_inches="tight")
-    plt.close()
-

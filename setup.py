@@ -41,6 +41,7 @@ setup(name=NAME,
 	"mpbn-sim==0.1",
 	"openpyxl==3.0.10",
 	"quadprog==0.1.11",
+	"seaborn==0.12.1"
     ],
     entry_points={},
 )
