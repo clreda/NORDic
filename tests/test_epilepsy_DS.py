@@ -148,7 +148,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 true = np.ravel(ground_truth_scores.join(scores, how="outer")[ground_truth_scores.columns[0]].loc[signatures.columns].fillna(0).astype(int).values)
 argmax_ncomponents, max_ari = 0, -float("inf")
-ncomponents_lst = [9]#range(2, 21, 1)
+ncomponents_lst = range(2, 21, 1)
 nclusters=len(np.unique(ground_truth_scores.values))
 for ncomponents in tqdm(ncomponents_lst):
     X = PCA(n_components=ncomponents, random_state=0).fit_transform(StandardScaler().fit_transform(signatures.values.T)).T

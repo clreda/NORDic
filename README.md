@@ -22,7 +22,7 @@ Due to the presence of copyrighted databases, the license for this code is [Attr
 ## Installation
 
 ```bash
-pip install NORDic==2.0.0 # latest version
+pip install NORDic # latest version
 ```
 
 ## Pull requests, issues, suggestions?

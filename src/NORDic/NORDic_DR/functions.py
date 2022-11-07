@@ -7,7 +7,22 @@ from joblib import Parallel, delayed
 import NORDic.NORDic_DR.bandits as bandits
 import NORDic.NORDic_DR.utils as utils
 
-def adaptive_testing(network_name, signatures, targets, frontier, states, simu_params, bandit_args, reward_fname=None, quiet=False):
+def adaptive_testing(network_name, signatures, targets, frontier, states, simu_params={}, bandit_args={}, 
+        reward_fname=None, quiet=False):
+    '''
+        Perform adaptive testing and recommends most promising treatments (=maximizing score)
+        @param\tnetwork_name\tPython character string: (relative) path to a network .BNET file
+        @param\tsignatures\tPandas DataFrame: rows/[features] x columns/[drugs to test]
+        @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
+        @param\tfrontier\tPython object with a function "predict" that returns predictions (1: control, or 2: treated) on phenotypes
+        @param\tstates\tPandas DataFrame: rows/[gene] x columns/[patient samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
+        @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
+        @param\tbandit_params\tPython dictionary[default={}]: arguments to the bandit algorithms
+        @param\treward_fname\tPython character string[default=None]: path to a reward matrix rows/[patients] x columns/[drugs]
+        @param\tquiet\tPython bool[default=False]
+        @return\tempirical_rec\tPandas DataFrame: rows/[drugs to test] x column/["Frequency"], the percentage of times 
+        across all simulations at the end of which the considered drug is recommended
+    '''
     assert signatures.shape[1]==targets.shape[1]
     assert all([c==targets.columns[i] for i, c in enumerate(signatures.columns)])
     assert states.shape[0]==targets.shape[0]
@@ -34,7 +49,8 @@ def adaptive_testing(network_name, signatures, targets, frontier, states, simu_p
     np.random.seed(bandit_args.get("seed", 0))
     problem = testing_problem(signatures, problem_args)
 
-    bandit_args.update({"beta_linear": eval("bandits."+bandit_args.get('beta', 'heuristic'))(problem.X, delta, sigma, c), "n": m, 
+    bandit_args.update({
+        "beta_linear": eval("bandits."+bandit_args.get('beta', 'heuristic'))(problem.X, delta, sigma, c), "n": m, 
         "tracking_type": bandit_args.get('tracking_type', 'D'), "learner_name": bandit_args.get('learner', 'AdaHedge'),
         "gain_type": bandit_args.get('gain_type', 'empirical'), "subsample": bandit_args.get('subsample', False), 
         "geometric_factor": bandit_args.get('geometric_factor', 1.3)})
@@ -61,7 +77,7 @@ def adaptive_testing(network_name, signatures, targets, frontier, states, simu_p
     # results 
     empirical_rec = pd.DataFrame(active_arms, columns=["Frequency"], index=signatures.columns).T
     if (not quiet):
-        print("Avg. #samples = %d, avg. runtime %s sec (over %d iterations)" % (np.mean(complexity), np.mean(running_time), bandit_args.get("nsimu", 1)))
+        print("<NORDic DR> Avg. #samples = %d, avg. runtime %s sec (over %d iterations)" % (np.mean(complexity), np.mean(running_time), bandit_args.get("nsimu", 1)))
     return empirical_rec
 
 ################################
@@ -83,6 +99,9 @@ class testing_problem(object):
     def reward(self, arm):
         patient = np.random.choice(range(self.memoization.shape[1]), 1, p=None, replace=True)
         if (not np.isnan(self.memoization[arm, patient])):
-            return self.memoization[arm, patient]
-        return simulate_treatment(self.network_name, self.targets[[self.targets.columns[arm]]], self.frontier, self.states[[patient]], 
-		self.simu_params, quiet=False)[0]
+            return float(self.memoization[arm, patient])
+        result = float(simulate_treatment(self.network_name, self.targets[[self.targets.columns[arm]]], 
+		self.frontier, self.states.iloc[:,patient], 
+		self.simu_params, quiet=False)[0])
+        self.memoization[arm, patient] = result
+        return result

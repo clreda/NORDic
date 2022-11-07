@@ -8,7 +8,7 @@ from setuptools.command.install import install
 from subprocess import check_call
 
 NAME = "NORDic"
-VERSION = "2.0.0"
+VERSION = "2.1.2"
 
 setup(name=NAME,
     version=VERSION,
@@ -22,7 +22,7 @@ setup(name=NAME,
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
     keywords='',
-    description="Network Oriented Repurposing of Drugs (NORDic): network identification & master regulator detection",
+    description="Network Oriented Repurposing of Drugs (NORDic): network identification / master regulator detection / drug effect simulator / drug repurposing",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     packages=find_packages(where="src"),

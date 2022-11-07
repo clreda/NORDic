@@ -38,7 +38,7 @@ def misspecified(X, delta, sigma, c):
         if (str(x) == "None"):
             x = 2*L
         term_lin = (lambda t : 1+np.log(2/float(delta))+(1+1/np.log(2/float(delta)))*0.5*N*np.log(1+t*L**2/(x*N)*np.log(2/float(delta)))+2*c**2*t)
-        term_uns = (lambda t : 2*K*lambert(1/float(2*K)*np.log(2*e/float(delta))+0.5*np.log(8*e*K*np.log(t))))
+        term_uns = (lambda t : 2*K*utils.lambert(1/float(2*K)*np.log(2*e/float(delta))+0.5*np.log(8*e*K*np.log(t))))
         return min(term_lin(t), term_uns(t))
     return f
 
@@ -121,7 +121,7 @@ class Misspecified(object):
         self.na = []
 
     def sample(self, problem, candidates):
-        if (not len(self.na)):
+        if (len(self.na)==0):
             self.na = [0]*(problem.X.shape[1])
         for arm in candidates:
             self.rewards.append(problem.reward(arm))
@@ -166,13 +166,12 @@ class MisLid(Misspecified):
         self.lambda_ = method_args["sigma"]/float(20.)
         assert self.lambda_ > 0
         self.constraint = "L_inf"
-        self.multi_learners = False
-        self.M = 1
         assert self.constraint in ["L_inf", "L1"]
+        self.multi_learners, self.M = 0, 1
         self.cnorm = lambda x : utils.cnorm(x, norm=self.constraint)
         super(MisLid, self).__init__(method_args)
 
-    def stopping_rule(self, quiet=False):#True):
+    def stopping_rule(self, quiet=True):
         if (not quiet):
             print("t="+str(self.t)+" B(t)="+str(self.B)+" thres(t)="+str(self.epsilon)+" stop="+str(self.B > self.epsilon))
         return (self.B > self.epsilon) or (self.t > complexity_limit)
@@ -181,15 +180,25 @@ class MisLid(Misspecified):
         J = utils.argmax_m(means, self.m)
         return J
 
+#    def update(self, problem, candidates, Vinv, b, Vinv_val=None):
+#        return utils.update_misspecified(problem, candidates, Vinv, b, self.c, self.na, self.rewards, Vinv_val=Vinv_val)
+
     def update(self, problem, candidates, Vinv, b, Vinv_val=None):
-        return utils.update_misspecified(problem, candidates, Vinv, b, self.c, self.na, self.rewards, Vinv_val=Vinv_val)
+        candidates.reverse()
+        for ia, a in enumerate(candidates):
+            i_a = -(ia+1)
+            Vinv = utils.sherman_morrison(Vinv, problem.X[:, a].reshape((problem.X.shape[0], 1)))
+            b += self.rewards[i_a]*problem.X[:, a].reshape(b.shape)
+        theta = Vinv.dot(b)
+        means = np.array(theta.T.dot(problem.X)).flatten().tolist()
+        eta = np.zeros((problem.X.shape[1], 1))
+        return Vinv, b, means, theta, eta
 
     def apply(self, problem, precision=1e-7):
-        ## Assumes only Gaussian problems
         self.B, self.epsilon = -float("inf"), 0.
         N, K = problem.X.shape
         means = [0]*K
-        b = np.zeros((K,1))
+        b = np.zeros((N,1))
         learners, sum_w = {}, np.zeros(K)
         stop = False
         L = float(np.max([self.cnorm(problem.X[:,a]) for a in range(K)]))
@@ -200,6 +209,9 @@ class MisLid(Misspecified):
         
         ## Consider a (C-approximate) barycentric spanner
         F = utils.barycentric_spanner(problem.X, C=1, quiet=True)
+        ## Uncomment the next two lines to get regularized version of design matrix instead
+        #F = range(K)
+        #self.T_init = 0
         candidates, maxiter = [], len(F)*(self.T_init+1)
         from scipy.sparse.linalg import eigsh
         get_eigmin = lambda M : eigsh(M, k=1, which="SM")[0][0]
@@ -212,11 +224,12 @@ class MisLid(Misspecified):
                 self.sample(problem, [a])
                 V += problem.X[:,a].dot(problem.X[:,a].T)
             candidates += F
-            detVxId = np.linalg.slogdet(V-self.x*np.eye(N))
-            detVxId = detVxId[0]*detVxId[1]
-            detV = np.linalg.slogdet(V)[0]*np.linalg.slogdet(V)[1]
-            if (np.exp(detVxId) >= 0 and np.exp(detV) > 0):
-                break
+            sign, logdet = np.linalg.slogdet(V-self.x*np.eye(N))
+            detVxId = sign*np.exp(logdet)
+            sign, logdet = np.linalg.slogdet(V)
+            detV = sign*np.exp(logdet)
+            if (detVxId>=0 and detV>0):
+                break    
         if (self.T_init > 0):
             Vinv = np.linalg.pinv(V)
             Vinv, b, means, theta, eta = self.update(problem, candidates, Vinv, b, Vinv_val=Vinv)
@@ -273,9 +286,9 @@ class MisLid(Misspecified):
                 sum_w += w_t
                 learners.update(di_learner)
                 candidate = utils.tracking_rule(w_t, sum_w, self.na, self.t, self.tracking_type if (str(self.tracking_type)!="None") else "S") # default is "S"
-                self.sample(problem, candidate.tolist())
+                self.sample(problem, candidate)
                 # update sum of rewards, estimated parameters and means
-                Vinv, b, means, theta, eta = self.update(problem, candidate.tolist(), Vinv, b)
+                Vinv, b, means, theta, eta = self.update(problem, [candidate], Vinv, b)
             # Stopping rule test
             if (((self.t > stopping_rule_time) and self.subsample) or (not self.subsample)):
                 means_alt, closest, val, alternative_arms = utils.closest_alternative(problem, b, means, theta, eta, self.na,
@@ -283,7 +296,13 @@ class MisLid(Misspecified):
                 self.B = val
                 self.epsilon = self.beta(self.t, self.na, x=self.x)
                 stop = self.stopping_rule(quiet=(self.t % 1000 != 0))  # check stopping rule
+                #stop = self.stopping_rule(quiet=False)
                 stopping_rule_time = max(self.t, stopping_rule_time)*self.geometric_factor
+        import pandas as pd
+        print(pd.DataFrame([
+	        means,
+	        [np.mean(np.array(self.rewards)[np.array(self.samples)==a]) for a in np.unique(self.samples)]
+        ],index=["means", "emp. means"], columns=problem.targets.columns))
         J = self.best_answer(means)
         return J, self.t
 
@@ -303,7 +322,7 @@ class LinGapE(Misspecified):
     def greedy(self, problem, b_t, c_t, Vinv):
         K = problem.X.shape[1]
         direction = problem.X[:, b_t]-problem.X[:, c_t]
-        uncertainty = [float(utils.mahalanobis(direction, utils.sherman_morrison(Vinv, problem.X[:,i]))) for i in range(K)]
+        uncertainty = [float(utils.mahalanobis(direction.reshape((problem.X.shape[0],1)), utils.sherman_morrison(Vinv, problem.X[:,i].reshape((problem.X.shape[0],1))))) for i in range(K)]
         a = utils.randf(uncertainty, 1, np.min)[0]
         return [a]
 
@@ -332,7 +351,7 @@ class LinGapE(Misspecified):
         candidates.reverse()
         for ia, a in enumerate(candidates):
             i_a = -(ia+1)
-            Vinv = utils.sherman_morrison(Vinv, problem.X[:, a])
+            Vinv = utils.sherman_morrison(Vinv, problem.X[:, a].reshape((problem.X.shape[0], 1)))
             b += self.rewards[i_a]*problem.X[:, a].reshape(b.shape)
         theta = Vinv.dot(b)
         means = np.array(theta.T.dot(problem.X)).flatten().tolist()
@@ -346,8 +365,8 @@ class LinGapE(Misspecified):
         b = np.matrix(np.zeros(N)).reshape((N,1)) 
         means = [0]*K
         self.Cbeta = lambda t, n : np.sqrt(2*self.beta(t,n))
-        w = lambda t, c, a, Vinv : float(self.Cbeta(t, self.na[c]+self.na[a])*utils.mahalanobis(problem.X[:,c]-problem.X[:,a], Vinv))
-        w_ind = lambda t, a, Vinv : float(self.Cbeta(t, self.na[a])*utils.mahalanobis(problem.X[:,a], Vinv))
+        w = lambda t, c, a, Vinv : float(self.Cbeta(t, self.na[c]+self.na[a])*utils.mahalanobis((problem.X[:,c]-problem.X[:,a]).reshape((problem.X.shape[0],1)), Vinv))
+        w_ind = lambda t, a, Vinv : float(self.Cbeta(t, self.na[a])*utils.mahalanobis(problem.X[:,a].reshape(problem.X.shape[0],1), Vinv))
         Bidx = lambda t, i, j, Vinv : float(means[i]-means[j]+w(t, i, j, Vinv))
         stop = False
         for _ in range(self.T_init):

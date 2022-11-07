@@ -3,6 +3,8 @@
 import os
 from subprocess import call as sbcall
 import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 LINCS_args = {
         "path_to_lincs": "../lincs/",
@@ -27,7 +29,10 @@ with open(drug_dataset_fname, "r") as f:
 ## 2. Get drug signatures (which will guide drug testing)
 from NORDic.NORDic_DS.get_drug_signatures import drugname2pubchem, compute_drug_signatures_L1000
 
-signature_fname=save_folder+"reduced_signatures.csv"
+n_components=9
+X_fname=save_folder+"reduced_signatures.csv"
+pubchem_fname=save_folder+"pubchemcids_"+drug_dataset_fname.split(dataset_folder)[-1].split(".txt")[0]+".csv"
+signature_fname=save_folder+"signatures_"+drug_dataset_fname.split(dataset_folder)[-1].split(".txt")[0]+".csv"
 if (not os.path.exists(signature_fname)):
     if (not os.path.exists(pubchem_fname)):
         pubchem_df = pd.DataFrame({"PubChemCID": drugname2pubchem(drug_names, LINCS_args)})
@@ -37,6 +42,10 @@ if (not os.path.exists(signature_fname)):
     signatures = compute_drug_signatures_L1000(list(pd.read_csv(pubchem_fname, index_col=0).dropna()["PubChemCID"].astype(int)), LINCS_args)
     signatures.columns = [list(pubchem_df.loc[pubchem_df["PubChemCID"]==p].index)[0] for p in signatures.columns]
     signatures.to_csv(signature_fname)
+    X = PCA(n_components=n_components).fit_transform(StandardScaler().fit_transform(signatures.values.T)).T
+    X = pd.DataFrame(X, index=["PCA%d" % (i+1) for i in range(n_components)], columns=signatures.columns)
+    X.to_csv(X_fname)
+X = pd.read_csv(X_fname, index_col=0)
 signatures = pd.read_csv(signature_fname, index_col=0)
 
 ## 3. Get drug targets (for the simulation)
@@ -87,33 +96,60 @@ SIMU_params = {
 ## Test if the model is almost linear (with heatmap)
 
 BANDIT_args = {
-    'bandit': 'LinGapE', #MisLid #type of algorithm, (greedy) LinGapE is faster but more prone to errors (assumes that the model is linear)
+    'bandit': 'LinGapE', #type of algorithm, (greedy) LinGapE is faster but more prone to errors (assumes that the model is linear)
     'seed': 0,
     'delta': 0.1, #error rate
     'nsimu': 500, #number of repeats
     'm': 4, #number of recommendations to make
 
-    'c': 1, #parameter to tune for MisLid (if the model is linear, set to 0)
+    'c': 0, #nonnegative parameter to tune for MisLid (if the model is linear, set to 0
+    ## To speed up the algorithm, decrease
+    ## To ensure correctness of the recommendation, increase
     'sigma': 1,
     'beta': "heuristic",
-    'epsilon': 0,
+    'epsilon': 0.001,
     'tracking_type': "D",
-    'gain_type': 'empirical',
-    'learner': "AdaHedge",
-    'subsample': 0,
-    'geometric_factor': 1.3,
+    'gain_type': "empirical",
+    'learner': "AdaHedge"
 }
-
-if (not os.path.exists(file_folder+"recommendation.csv")):
-    recommendation = adaptive_testing(solution_fname, signatures, targets, frontier, 
-		patients, SIMU_params, BANDIT_args, reward_fname=save_folder+"scores.csv", quiet=False).T
-    recommendation.to_csv(file_folder+"recommendation.csv")
-recommendation = pd.read_csv(file_folder+"recommendation.csv", index_col=0)
-recommendation = recommendation.loc[recommendation["Frequency"]>0]
 
 ## 6. Compare to ground truth scores (1: treating, -1: mimicking the disease)
 ground_truth_scores = pd.read_csv(dataset_folder+"scores.csv", index_col=1)[["score"]]
 ground_truth_scores.columns = ["Ground Truth"]
+
+drug_columns = [s for s in list(signatures.columns) if (s in ground_truth_scores.index)]
+rewards = pd.read_csv(save_folder+"scores.csv", index_col=0)[drug_columns]
+df = pd.DataFrame(rewards.mean(axis=0).sort_values(ascending=False), columns=["Score"])
+df = df.join(ground_truth_scores, how="inner")
+import numpy as np
+df["Gap"] = [np.nan]+[np.round(a-list(df["Score"])[i+1],3) for i,a in enumerate(list(df["Score"])[:-1])]
+print(df)
+
+## Use a subset of drugs
+drug_columns = [s for s in list(signatures.columns) if (s in ground_truth_scores.index)]
+assert all([(d in signatures.columns and d in targets.columns) for d in drug_columns])
+BANDIT_args.update({'bandit': 'LinGapE', 'nsimu': 1, 'm': 2})
+assert BANDIT_args["m"]<len(drug_columns)
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+## Check that d < K and that features are not collinear when using MisLid
+if ((BANDIT_args["bandit"]=="MisLid") and (len(drug_columns)!=signatures.shape[1])):
+    pca = PCA(n_components=min(X.shape[0],len(drug_columns)))
+    scaler = StandardScaler()
+    sigs = signatures[drug_columns]
+    X = pca.fit_transform(scaler.fit_transform(sigs.values.T)).T
+    X = pd.DataFrame(X, index=["PCA%d" % (i+1) for i in range(X.shape[0])], columns=drug_columns)
+else:
+    X = X[drug_columns]
+
+targets = targets[drug_columns]
+rewards_fname=save_folder+"scores.csv"
+if (not os.path.exists(file_folder+"recommendation.csv")):
+    recommendation = adaptive_testing(solution_fname, X, targets, frontier, 
+		patients, SIMU_params, BANDIT_args, reward_fname=rewards_fname, quiet=False).T
+    recommendation.to_csv(file_folder+"recommendation.csv")
+recommendation = pd.read_csv(file_folder+"recommendation.csv", index_col=0)
+recommendation = recommendation.loc[recommendation["Frequency"]>0]
 
 recommendation = recommendation.join(ground_truth_scores, how="inner")
 print(recommendation)

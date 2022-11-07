@@ -98,8 +98,8 @@ def simulate(network_fname, targets, phenotypes, simu_params={}, nbseed=0, quiet
     '''
         Simulate and score the individual effects of drugs on patient phenotypes, compared to controls
         @param\tnetwork_fname\tPython character string: (relative) path to a network .BNET file
-        @param\ttargets\tPandas DataFrame: rows/[genes+annotation patient/control] x columns/[samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
-        @param\tphenotypes\tPandas DataFrame: rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
+        @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
+        @param\tphenotypes\tPandas DataFrame: rows/[genes+annotation patient/control] x columns/[samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
         The last line "annotation" is 1 (healthy sample) or 2 (patient sample).
         @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
         @param\tnbseed\tPython integer[default=0]
@@ -111,13 +111,17 @@ def simulate(network_fname, targets, phenotypes, simu_params={}, nbseed=0, quiet
     ## Get M30 genes
     with open(network_fname, "r") as f:
         network = str(f.read())
-    genes = [x.split(" <- ")[0] for x in network.split("\n")[:-1]]
+    if (", " in network):
+        genes = [x.split(", ")[0] for x in network.split("\n") if (len(x)>0)]
+    else:
+        genes = [x.split(" <- ")[0] for x in network.split("\n") if (len(x)>0)]
     from random import seed as rseed
     rseed(nbseed)
     np.random.seed(nbseed)
     ## 1. Classification model b/w healthy and patient phenotypes (to classify final attractor states from treated patients)
     dfdata = phenotypes.loc[list(set([g for g in genes if (g in phenotypes.index)]))]
-    frontier = compute_frontier(dfdata, phenotypes.loc["annotation"])
+    samples = phenotypes.loc["annotation"]
+    frontier = compute_frontier(dfdata, samples)
     patients = dfdata[[c for c in dfdata.columns if (phenotypes.loc["annotation"][c]==2)]]
     ## 2. Compute one score per drug and per patients
     if (simu_params.get('thread_count', 1)==1):

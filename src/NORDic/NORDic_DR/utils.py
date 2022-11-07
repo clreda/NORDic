@@ -10,11 +10,26 @@ tracking_types = ["C", "D", "S"]
 ## UTILS       ##
 #################
 
-#' @param x vector
-#' @param norm type of norm ||.||
-#' @returns ||x||_inf
-def cnorm(x, norm="L_inf"):
-    return np.max(np.abs(x))
+#' @param M squared matrix of size (N, N)
+#' @param x vector of size (N, 1)
+#' @returns one-step iterative inversion of matrix (M^{-1}+xx^T)
+def sherman_morrison(M, x):
+    return M-((M.dot(x)).dot(x.T.dot(M))/float(1+mahalanobis(x, M, power=2)))
+
+#' @param M positive definite matrix of size (N, N)
+#' @param x vector of size (N, 1)
+#' @returns Mahalanobis norm of x wrt M
+def mahalanobis(x, M, power=1):
+    assert power in [1,2]
+    return float(np.sqrt(x.T.dot(M.dot(x))) if (power==1) else x.T.dot(M.dot(x)))
+
+#' @param ls Python list of elements
+#' @param m integer
+#' @param f function taking a list as argument
+#' and returning a value of the same type as the elements of input list
+#' @return m random indices i1,i2,...,im of the list which satisfy for all i in i1,i2,...,im, ls[i] == f(ls)
+def randf(ls, m, f):
+    return np.random.choice(np.array(np.argwhere(np.array(ls) == f(ls))).flatten().tolist(), size=m, replace=False, p=None)
 
 #' @param ls Python list of elements with a total order natively implemented in Python
 #' @param m integer
@@ -37,7 +52,9 @@ def argmax_m(ls, m):
 def barycentric_spanner(X, C=1, quiet=True, precision=1e-6):
     N, K = X.shape
     assert K > 0
-    det = lambda M : np.linalg.slogdet(M)[1]
+    def det_(M):
+        sign, logdet = np.linalg.slogdet(M)
+        return sign*np.exp(logdet)
     if (min(N,K)==K):
         return list(range(K)) #result from Awerbuch et al.
     # basis of set of arm features
@@ -49,13 +66,13 @@ def barycentric_spanner(X, C=1, quiet=True, precision=1e-6):
         # replace Fx[:,a] with X[:,s], s in S
         max_det, max_det_id = -float("inf"), None
         for s in S:
-            Xa = np.hstack((X[:,s].reshape((N,1)), Fx[:,other_ids]))
-            dXa = det(Xa)
+            Xa = np.hstack((X[:,s].reshape((X.shape[0],1)), Fx[:,other_ids]))
+            dXa = det_(Xa)
             # keep it linearly independent
             if (dXa > max_det):
                 max_det = dXa
                 max_det_id = s
-        Fx[:,a] = X[:,max_det_id].reshape((N,1))
+        Fx[:,a] = X[:,max_det_id].reshape((X.shape[0],1))
         F[a] = max_det_id
     # transform basis into C-approximate barycentric spanner of size <= d
     done = False
@@ -64,10 +81,10 @@ def barycentric_spanner(X, C=1, quiet=True, precision=1e-6):
         for s in S:
             for a in range(N):
                 other_ids = [u for u in range(N) if (u != a)]
-                det_Xs = det(np.hstack((X[:,s].reshape((N,1)), Fx[:,other_ids]))) # |det(x, X_{-a})|
-                det_Xa = det(Fx) # |det(X_a, X_{-a})|
+                det_Xs = det_(np.hstack((X[:,s].reshape((X.shape[0],1)), Fx[:,other_ids]))) # |det(x, X_{-a})|
+                det_Xa = det_(Fx) # |det(X_a, X_{-a})|
                 if ((det_Xs-C*det_Xa) > precision): # due to machine precision, might loop forever otherwise
-                    Fx[:,a] = X[:,s].reshape((N,1))
+                    Fx[:,a] = X[:,s].reshape((X.shape[0],1))
                     F[a] = s
                     found = True
         done = not found
@@ -76,25 +93,19 @@ def barycentric_spanner(X, C=1, quiet=True, precision=1e-6):
         print("Spanner size d = "+str(len(spanner))+" | K = "+str(K)),
     return F
 
-#' @param M positive definite matrix of size (N, N)
-#' @param x vector of size (N, 1)
-#' @returns Mahalanobis norm of x wrt M
-def mahalanobis(x, M):
-    return float(np.sqrt(x.T.dot(M).dot(x)))
-
-#' @param M squared matrix of size (N, N)
-#' @param x vector of size (N, 1)
-#' @returns one-step iterative inversion of matrix (M^{-1}+xx^T)
-def sherman_morrison(M, x):
-    return M-(M.dot(x.dot(x.T)).dot(M)/float(1+mahalanobis(x, M)**2))
-
-#' @param ls Python list of elements
-#' @param m integer
-#' @param f function taking a list as argument
-#' and returning a value of the same type as the elements of input list
-#' @return m random indices i1,i2,...,im of the list which satisfy for all i in i1,i2,...,im, ls[i] == f(ls)
-def randf(ls, m, f):
-    return np.random.choice(np.array(np.argwhere(np.array(ls) == f(ls))).flatten().tolist(), size=m, replace=False, p=None)
+#' @param x vector
+#' @param norm type of norm ||.||
+#' @returns ||x||
+def cnorm(x, norm="L_inf"):
+    assert norm in ["L_inf", "L2", "L1"]
+    if (norm == "L_inf"):
+        return np.max(np.abs(x))
+    elif (norm == "L2"):
+        return np.linalg.norm(x)
+    elif (norm == "L1"):
+        return np.sum(np.abs(x))
+    else:
+        raise ValueError("Norm not implemented.")
 
 #' @param x input
 #' @returns Lambert's function for negative branch y=-1
@@ -127,9 +138,10 @@ def update_misspecified(problem, candidates, Vinv, b, c, na, rewards, Vinv_val=N
         x_a = problem.X[:, a]
         ## update Vinv
         if (str(Vinv_val) == "None"):
-            Vinv = sherman_morrison(Vinv, x_a)
+            Vinv = sherman_morrison(Vinv, x_a.reshape((x_a.shape[0],1)))
     if (str(Vinv_val) != "None"):
          Vinv = Vinv_val
+
     nb_pulls = np.array(na)
     if (np.min(nb_pulls) < 1e-10):
         nb_pulls = nb_pulls + 1e-10
@@ -147,7 +159,7 @@ def closest_alternative(problem, b, means, theta, eta, w, c, S_t, constraint="L_
     d, K = problem.X.shape
     if subsample:
         all_other_arms = [a for a in range(K) if (a not in S_t)]
-        random_arms = np.random.choice(all_other_arms, d, replace=False)
+        random_arms = np.random.choice(all_other_arms, d, replace=False)  # the size of the sampled arms is here
         other_arms = [a for a in all_other_arms if ((a in alternative_arms) or (a in random_arms))]
     else:
         other_arms = [a for a in range(K) if (a not in S_t)]
@@ -160,9 +172,11 @@ def closest_alternative(problem, b, means, theta, eta, w, c, S_t, constraint="L_
     closest_id = np.unravel_index(all_alts[:, :, -1].argmin(), all_alts[:, :, -1].shape)
     means_alt = all_alts[closest_id[0], closest_id[1], :-1].reshape((K,1))
     val = all_alts[closest_id[0], closest_id[1], -1]
-    closest = [S_t[closest_id[0]], other_arms[closest_id[1]]]   
+    closest = [S_t[closest_id[0]], other_arms[closest_id[1]]]
+    
     closest_arm_in = S_t[closest_id[0]]
     closest_arm_other = other_arms[closest_id[1]]
+
     if (subsample):
         if len(alternative_arms) > d+len(S_t):
             alternative_arms.pop(0)
@@ -170,56 +184,11 @@ def closest_alternative(problem, b, means, theta, eta, w, c, S_t, constraint="L_
             alternative_arms.append(closest_arm_in)
         if closest_arm_other not in alternative_arms:
             alternative_arms.append(closest_arm_other)
+
     return means_alt, closest, val, alternative_arms
 
-#' @param problem Problem instance as described in problems.py
-#' @param Vinv Inverse of design matrix
-#' @param mu estimated model NumPy Array
-#' @param lambda_ alternative model NumPy Array
-#' @param na NumPy Array
-#' @param t Python integer
-#' @param M upper bound on scores
-#' @param c scale of deviation to linearity
-#' @param gain_type Python string character
-#' @x Python float
-#' @return gradients of gains to feed to learner
-def optimistic_gradient(problem, Vinv, mu, lambda_, na, t, M, c, gain_type, x=None):
-    assert gain_type in gain_types
-    X = problem.X
-    N, K = X.shape
-    grads = np.zeros(K)
-    if ((np.array(na) < 1e-10).any()):
-        nb_pulls = np.array(na) + 1e-10
-    else:
-        nb_pulls = np.array(na)
-    for a in range(K):
-        ref_value = (mu-lambda_)[a]
-        L = float(np.max(np.linalg.norm(X, axis=0)))
-        confidence_width = np.log(t) # smaller confidence width than expected theoretically
-        #confidence_wdith = 2*np.log(t)+N*np.log(1+(t*L**2)/N) # theoretical one
-        if (gain_type == "unstructured"):
-            deviation = np.sqrt(2*confidence_width/nb_pulls[a]) # Hoeffding's bounds
-        elif (gain_type =="linear"):
-            deviation = np.sqrt(2*confidence_width)*float(mahalanobis(X[:,a], Vinv)) # bounds in LinGame
-        elif ("misspecified" in gain_type):
-            deviation = np.sqrt(c_kt(problem.X[:,a], problem, [nb_pulls[a]], t, Vinv, M, c, x=x, confidence_width=confidence_width)) # bounds in paper
-        elif (gain_type == "empirical"):
-            deviation = 0.
-        else:
-            raise ValueError("Unimplemented type of gains: '"+gain_type+"'.")
-        # gradient of gains wrt w_a for all a
-        if (ref_value > 0):
-            grads[a] = 0.5*(ref_value+deviation)**2
-            if (gain_type == "aggressive_misspecified"):
-                grads[a] = (ref_value**2+deviation**2)
-        else:
-            grads[a] = 0.5*(ref_value-deviation)**2
-            if (gain_type == "aggressive_misspecified"):
-                grads[a] = (ref_value**2+deviation**2)
-        grads[a] = min(grads[a], confidence_width)
-    return grads
-
 def solve_alternative_quadprog(problem, b, theta_emp, eta_emp, a, i_t, w, epsilon, constraint=None):
+
     assert a != i_t
 
     d, K = problem.X.shape
@@ -245,7 +214,7 @@ def solve_alternative_quadprog(problem, b, theta_emp, eta_emp, a, i_t, w, epsilo
     q[:d] = np.array(A.T.dot(D).dot(mu_emp)).flatten()
     q[d:] = np.array(D.dot(mu_emp)).flatten()
 
-    G[0, :] = np.hstack([A.T.dot(u), u])
+    G[0, :] = np.hstack([A.T.dot(u).reshape((1,d)), u.reshape((1,K))])
     G[1:K+1, d:] = np.identity(K)
     G[K+1:, d:] = -np.identity(K)
 
@@ -266,7 +235,6 @@ def quadprog_solve_qp(P, q, G=None, h=None, A=None, b=None):
     reg_term = 1e-8
     while (np.linalg.det(P+reg_term*np.identity(len(q))) < 0):
         reg_term *= 10
-    #P += 1e-8*np.identity(len(q))
     P += reg_term*np.identity(len(q))
     q /= np.sqrt(cste)
     G /= np.sqrt(cste)
@@ -327,7 +295,7 @@ def tracking_rule(w, sum_w, na, t, tracking_type, forced_exploration=False):
     elif (tracking_type == "D"):
         sampled = randf([float(na[a]-t*w[a]) for a in range(K)], 1, np.min)
     elif (tracking_type == "S"):
-        sampled = np.random.choice(range(K), size=1, p=w)
+        sampled = np.random.choice(range(K), size=1, p=w, replace=False)
     else:
         raise ValueError("Type of tracking rule not implemented.")
     return sampled
@@ -343,8 +311,9 @@ def tracking_rule(w, sum_w, na, t, tracking_type, forced_exploration=False):
 #' @param x optional Python float
 #' @param confidence_width 
 #' @return confidence bound
-def c_kt(direction, problem, na, t, Vinv, M, c, x=None, confidence_width=None):
-    cnorm = lambda x : np.max(np.abs(x)) # ||.||_inf norm
+def c_kt(direction, problem, na, t, Vinv, M, c, x=None, confidence_width=None, cnorm=None):
+    if (str(cnorm)=="None"):
+        cnorm = lambda x : np.max(np.abs(x)) # ||.||_inf norm
     N, K = problem.X.shape
     L = float(np.max(np.linalg.norm(problem.X, axis=0)))
     if (str(x)=="None"):
@@ -360,3 +329,49 @@ def c_kt(direction, problem, na, t, Vinv, M, c, x=None, confidence_width=None):
     Na = sum([1/float(n) for n in na])
     ckt = min(2*T_uns*Na, T_max)
     return min(ckt, 8*c**2+2*T_lin*mahalanobis(direction, Vinv)**2)
+
+#' @param problem Problem instance as described in problems.py
+#' @param Vinv Inverse of design matrix
+#' @param mu estimated model NumPy Array
+#' @param lambda_ alternative model NumPy Array
+#' @param na NumPy Array
+#' @param t Python integer
+#' @param M upper bound on scores
+#' @param c scale of deviation to linearity
+#' @param gain_type Python string character
+#' @x Python float
+#' @return gradients of gains to feed to learner
+def optimistic_gradient(problem, Vinv, mu, lambda_, na, t, M, c, gain_type, x=None):
+    X = problem.X
+    N, K = X.shape
+    grads = np.zeros(K)
+    if ((np.array(na) < 1e-10).any()):
+        nb_pulls = np.array(na) + 1e-10
+    else:
+        nb_pulls = np.array(na)
+    for a in range(K):
+        ref_value = (mu-lambda_)[a]
+        L = float(np.max(np.linalg.norm(X, axis=0)))
+        confidence_width = np.log(t) # smaller confidence width than expected theoretically
+        #confidence_wdith = 2*np.log(t)+N*np.log(1+(t*L**2)/N) # theoretical one
+        if (gain_type == "unstructured"):
+            deviation = np.sqrt(2*confidence_width/nb_pulls[a]) # Hoeffding's bounds
+        elif (gain_type =="linear"):
+            deviation = np.sqrt(2*confidence_width)*float(mahalanobis(X[:,a], Vinv)) # bounds in LinGame
+        elif ("misspecified" in gain_type):
+            deviation = np.sqrt(c_kt(problem.X[:,a], problem, [nb_pulls[a]], t, Vinv, M, c, x=x, confidence_width=confidence_width)) # bounds in paper
+        elif (gain_type == "empirical"):
+            deviation = 0.
+        else:
+            raise ValueError("Unimplemented type of gains: '"+gain_type+"'.")
+        # gradient of gains wrt w_a for all a
+        if (ref_value > 0):
+            grads[a] = 0.5*(ref_value+deviation)**2
+            if (gain_type == "aggressive_misspecified"):
+                grads[a] = (ref_value**2+deviation**2)
+        else:
+            grads[a] = 0.5*(ref_value-deviation)**2
+            if (gain_type == "aggressive_misspecified"):
+                grads[a] = (ref_value**2+deviation**2)
+        grads[a] = min(grads[a], confidence_width)
+    return grads
