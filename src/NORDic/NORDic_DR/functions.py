@@ -7,14 +7,14 @@ from joblib import Parallel, delayed
 import NORDic.NORDic_DR.bandits as bandits
 import NORDic.NORDic_DR.utils as utils
 
-def adaptive_testing(network_name, signatures, targets, frontier, states, simu_params={}, bandit_args={}, 
+def adaptive_testing(network_name, signatures, targets, score, states, simu_params={}, bandit_args={}, 
         reward_fname=None, quiet=False):
     '''
         Perform adaptive testing and recommends most promising treatments (=maximizing score)
         @param\tnetwork_name\tPython character string: (relative) path to a network .BNET file
         @param\tsignatures\tPandas DataFrame: rows/[features] x columns/[drugs to test]
         @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
-        @param\tfrontier\tPython object with a function "predict" that returns predictions (1: control, or 2: treated) on phenotypes
+        @param\tscore\tPython object: scoring of attractors
         @param\tstates\tPandas DataFrame: rows/[gene] x columns/[patient samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
         @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
         @param\tbandit_params\tPython dictionary[default={}]: arguments to the bandit algorithms
@@ -42,7 +42,7 @@ def adaptive_testing(network_name, signatures, targets, frontier, states, simu_p
         "network_name": network_name,
         "reward_fname": reward_fname,
         "targets": targets,
-        "frontier": frontier,
+        "score": score,
         "states": states,
         "simu_params": simu_params,
     }
@@ -101,7 +101,7 @@ class testing_problem(object):
         if (not np.isnan(self.memoization[arm, patient])):
             return float(self.memoization[arm, patient])
         result = float(simulate_treatment(self.network_name, self.targets[[self.targets.columns[arm]]], 
-		self.frontier, self.states.iloc[:,patient], 
+		self.score, self.states.iloc[:,patient], 
 		self.simu_params, quiet=False)[0])
         self.memoization[arm, patient] = result
         return result

@@ -34,8 +34,8 @@ def baseline(signatures, phenotype, is_binary=False):
         PC[PC<0] = -1
         SC[pd.isnull(SC)] = 0
         PC[pd.isnull(PC)] = 0
-    C = SC.join(PC, how="inner")
-    cosscores = pairwise_distances(C[signatures.columns].T,C[phenotype.columns].T, metric="cosine")
+    C = SC.join(PC, how="outer").fillna(0)
+    cosscores = 1-pairwise_distances(C[signatures.columns].T,C[phenotype.columns].T, metric="cosine")
     baseline_df = pd.DataFrame(cosscores, columns=["Cosine Score"], index=signatures.columns)
     return baseline_df
 
@@ -94,13 +94,13 @@ def compute_metrics(rewards, ground_truth, K=[2,5,10], use_negative_class=False,
 ## DRUG SIMULATOR   ##
 ######################
 
-def simulate(network_fname, targets, phenotypes, simu_params={}, nbseed=0, quiet=False):
+def simulate(network_fname, targets, patients, score, simu_params={}, nbseed=0, quiet=False):
     '''
         Simulate and score the individual effects of drugs on patient phenotypes, compared to controls
         @param\tnetwork_fname\tPython character string: (relative) path to a network .BNET file
         @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
-        @param\tphenotypes\tPandas DataFrame: rows/[genes+annotation patient/control] x columns/[samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
-        The last line "annotation" is 1 (healthy sample) or 2 (patient sample).
+        @param\tpatients\tPandas DataFrame: rows/[genes] x columns/[samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
+        @param\tscore\tPython object: scoring of attractors
         @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
         @param\tnbseed\tPython integer[default=0]
         @param\tquiet\tPython bool[default=False]
@@ -122,7 +122,7 @@ def simulate(network_fname, targets, phenotypes, simu_params={}, nbseed=0, quiet
     dfdata = phenotypes.loc[list(set([g for g in genes if (g in phenotypes.index)]))]
     samples = phenotypes.loc["annotation"]
     frontier = compute_frontier(dfdata, samples)
-    patients = dfdata[[c for c in dfdata.columns if (phenotypes.loc["annotation"][c]==2)]]
+    patients = dfdata[[c for c in dfdata.columns if (samples[c]==2)]]
     ## 2. Compute one score per drug and per patients
     if (simu_params.get('thread_count', 1)==1):
         scores = [simulate_treatment(network_fname, targets.loc[[g for g in targets.index if (g in genes)]], frontier, patients[[Patient]], simu_params, quiet=quiet) for Patient in patients.columns]
@@ -150,13 +150,13 @@ def compute_frontier(df, samples, nbseed=0, quiet=False):
         print("<NORD_DS> Accuracy of the model %.2f" % acc)
     return model
 
-def compute_score(f, x0, A, frontier, genes, nb_sims, experiments, repeat=1, exp_name="", quiet=False):
+def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_name="", quiet=False):
     '''
         Compute similarities between any attractor in WT and in mutants, weighted by their probabilities
         @param\tf\tBoolean Network (MPBN) object: the mutated network
         @param\tx0\tMPBN object: initial state
         @param\tA\tAttractor list: list of attractors in mutant network
-        @param\tfrontier\tPython object: model to classify phenotypes
+        @param\tscore\tPython object: scoring of attractors
         @param\tgenes\tPython character string list: list of genes in the model @frontier
         @param\tnb_sims\tPython integer: number of iterations to compute the probabilities
         @param\texperiments\tPython dictionary list: list of experiments (different rates/depths)
@@ -179,17 +179,17 @@ def compute_score(f, x0, A, frontier, genes, nb_sims, experiments, repeat=1, exp
             probs = mpbn_sim.estimate_reachable_attractor_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float).loc[genes]
             probs = np.array([probs[ia]/100. for ia in range(attrs.shape[1])])
-            classification_attrs = (frontier.predict(attrs.values.T)==1).astype(int) #classifies into 1:control, 2:patient
+            classification_attrs = score(attrs)
             drug_score = probs.T.dot(classification_attrs)
             d_scores.append(drug_score)
     return np.mean(d_scores) if (repeat>1) else d_scores[0]
 
-def simulate_treatment(network_name, targets, frontier, state, simu_params={}, quiet=False):
+def simulate_treatment(network_name, targets, score, state, simu_params={}, quiet=False):
     '''
         Compute the score assigned to a drug with targets in @targets[[drug]] in network
         @param\tnetwork_name\tPython character string: filename of the network in .bnet (needs to be pickable)
         @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[columns]
-        @param\tfrontier\tPython object: model to classify phenotypes
+        @param\tscore\tPython object: scoring of attractors
         @param\tstate\tPandas DataFrame: binary patient initial state rows/[genes] x columns/[values in {-1,0,1}]
         @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
         @param\tseednb\tPython integer[default=0]

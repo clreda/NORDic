@@ -19,15 +19,15 @@ def influences2graph(influences, fname, optional=False, compile2png=True, engine
     graph = ["digraph {"]
     for idx in influences.columns:
         if (len(idx)>0):
-            graph += [idx+" [shape=circle,fillcolor=grey,style=filled];"]
+            graph += ["\""+idx+"\" [shape=circle,fillcolor=grey,style=filled];"]
     directed, undirected = ["subgraph D {"], ["subgraph U {"]
     in_undirected = []
-    for x,y in np.argwhere(influences.values != 0).tolist():
+    for x,y in np.argwhere(influences.values!=0).tolist():
         nx, ny = influences.index[x], influences.columns[y]
         sign = influences.values[x,y]
         if ((y,x,sign) in in_undirected):
             continue
-        edge = " ".join([nx, "->",ny])
+        edge = " ".join(["\""+nx+"\"", "->", "\""+ny+"\""])
         edge += " ["
         if (influences.values[y,x]!=0):
             edge += "dir=none,"
@@ -122,7 +122,8 @@ def plot_distributions(profiles, fname="gene_expression_distribution.png", thres
         @param\tthres\tPython float or None[default=None]: binarization threshold
         @return\tNone\t
     '''
-    bp = profiles.iloc[:-3,:].T.apply(pd.to_numeric).boxplot(rot=90, figsize=(25,15))
+    add_rows_profiles = ["annotation", "perturbed", "perturbation", "cell_line", "sigid"]
+    bp = profiles.loc[[g for g in profiles.index if (g not in add_rows_profiles)]].T.apply(pd.to_numeric).boxplot(rot=90, figsize=(25,15))
     if (str(thres)!="None"):
         K = profiles.shape[0]-3
         for t in [thres, 1-thres]:

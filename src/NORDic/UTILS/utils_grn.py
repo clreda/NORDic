@@ -148,8 +148,9 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=Tru
     assert all([x in [-1,1,2] for x in list(ppi["sign"])])
     assert all([x in [0,1] for x in list(ppi["directed"])])
     assert all([x <= 1 and x >= 0 for x in list(ppi["score"])])
-    assert all([col in ['preferredName_A', 'preferredName_B', 'sign', 'directed', 'score'] for col in ppi.columns])
-    assert ppi.shape[1]==5
+    cols = ['preferredName_A', 'preferredName_B', 'sign', 'directed', 'score']
+    assert all([col in cols for col in ppi.columns])
+    assert ppi.shape[1]==len(cols)
     ## 1. Double edges depending on whether they are marked as "directed"
     undirected_edges = ppi.loc[ppi["directed"]==0]
     undirected_edges.columns = ['preferredName_B', 'preferredName_A', 'sign', 'directed', 'score']
@@ -210,7 +211,7 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=Tru
     ppi_accepted.columns = ["Input","Output","SSign"]
     return ppi_accepted
 
-def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None, quiet=False):
+def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None, accept_nonRNA=False, quiet=False):
     '''
         Filters out sign of edges based on gene expression 
         @param\tnetwork_df\tPandas DataFrame: rows/[index] x columns/[["Input", "Output", "SSign"]] interactions
@@ -218,6 +219,7 @@ def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None
         @param\tbeta\tPython integer[default=1]: power applied to the adjacency matrix
         @param\tcor_method\tPython character string[default="pearson"]: type of correlation
         @param\texpr_df\tPandas DataFrame[default=None]: rows/[genes] x columns/[samples] gene expression data
+        @param\taccept_nonRNA\tPython bool[default=False]: if set to False, ignores gene names which are not present in expr_df
         @param\tquiet\tPython bool[default=False]
         @return\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes] signed adjacency matrix with only interactions s.t. corr^beta>=tau
     '''
@@ -237,19 +239,29 @@ def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None
     network = network.fillna(0)
     network[network<0] = -1
     network[(network>0)&(network<2)] = 1
+    network = network.astype(int)
     from copy import deepcopy
-    network_undirected, network_directed = [deepcopy(network) for _ in range(2)] 
-    network_undirected[network_undirected!=2] = 0
-    network_directed[network_directed==2] = 0
+    network_unsigned, network_signed = [deepcopy(network) for _ in range(2)] 
+    network_unsigned[network_unsigned!=2] = 0
+    network_signed[network_signed==2] = 0
     # Correlation matrix
-    df = quantile_normalize(expr_df)
-    df = df.loc[[g for g in network.index if (g in df.index)]]
-    coexpr = np.power(df.T.corr(method=cor_method), beta)
-    coexpr[coexpr.abs()<tau] = 0
-    net_mat = np.multiply(coexpr.values, network_undirected.values)/2
+    if (expr_df is not None):
+        df = quantile_normalize(expr_df)
+        df = df.loc[[g for g in network.index if (g in df.index)]]
+        coexpr = np.power(df.T.corr(method=cor_method), beta)
+        coexpr[coexpr.abs()<tau] = 0
+        if (accept_nonRNA):
+            missing_genes = [g for g in network.index if (g not in df.index)]
+            for g in missing_genes:
+                coexpr[g] = 1
+                coexpr.loc[g] = 1
+            coexpr = coexpr.loc[network.index][network.index]
+    else:
+        coexpr = pd.DataFrame(np.ones(network.shape), index=network.index, columns=network.columns) #default: positive interactions
+    net_mat = np.multiply(coexpr.values, network_unsigned.values)/2
     net_mat = (net_mat>0).astype(float)-(net_mat<0).astype(float)
     net_mat[net_mat==0] = np.nan
-    influences = pd.DataFrame(net_mat+network_directed.values, index=network.index, columns=network.columns)
+    influences = pd.DataFrame(net_mat+network_signed.values, index=network.index, columns=network.columns)
     influences[np.isnan(influences)] = 0
     return influences
 

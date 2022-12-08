@@ -49,6 +49,8 @@ def get_protein_names_from_STRING(gene_list, taxon_id, app_name=None, quiet=Fals
     sleep(1)
     from io import StringIO
     res_df = pd.read_csv(StringIO(results), sep="\t")
+    if ("Error" in res_df.columns):
+        return None
     return res_df[["queryItem", "stringId", "preferredName", "annotation"]]
 
 def get_network_from_STRING(gene_list, taxon_id, min_score=0, app_name=None, quiet=False):

@@ -32,68 +32,71 @@ def profiles2signatures(profiles_df, user_key, path_to_lincs, save_fname, backgr
     selection_min, selection_max = nbackground_limits
     assert selection_min > 0
     assert selection_max >= selection_min
-    cell_lines = list(set([x.split("_")[1] for x in list(profiles_df.loc["sigid"])]))
-    signatures_list = []
+    cell_lines = list(set([x for x in list(profiles_df.loc["cell_line"])]))
+    signatures_list, conditions_spec = [], ["perturbed", "perturbation"]
+    add_rows_profiles = ["annotation", "perturbed", "perturbation", "cell_line", "sigid", "interference_scale"]
     for icell, cell in enumerate(cell_lines):
-        cell_save_fname = save_fname+"_"+cell+".csv"
+        cell_save_fname = save_fname+"_"+cell+"_selection="+selection+".csv"
         ## 1. For each cell line, split control and treated samples into two Pandas DataFrames
-        profiles__df = profiles_df[[profiles_df.columns[ix] for ix, x in enumerate(profiles_df.loc["sigid"]) if (x.split("_")[1]==cell)]]
+        profiles__df = profiles_df[[profiles_df.columns[ix] for ix, x in enumerate(profiles_df.loc["cell_line"]) if (x==cell)]]
         initial_cols = profiles__df.loc["annotation"].apply(pd.to_numeric).values==1
-        final_profiles = profiles__df[profiles__df.columns[~initial_cols]]
-        conditions = list(set(final_profiles.loc["signame"]))
-        initial_profiles = profiles__df[profiles__df.columns[initial_cols]].iloc[:-3,:].apply(pd.to_numeric)
+        final_profiles_df = profiles__df[profiles__df.columns[~initial_cols]]
+        conditions = ["_".join(list(final_profiles_df[idx].loc[conditions_spec])) for idx in final_profiles_df.columns]
+        initial_profiles = profiles__df[profiles__df.columns[initial_cols]].loc[[idx for idx in profiles__df.index if (idx not in add_rows_profiles)]].apply(pd.to_numeric)
         initial_profiles.columns = ["Ctrl_rep%d" % (i+1) for i in range(initial_profiles.shape[1])]
-        final_profiles.columns = [x+"_%d" % (ix+1) for ix, x in enumerate(list(final_profiles.loc["signame"]))]
-        final_profiles = final_profiles.iloc[:-3,:].apply(pd.to_numeric)
+        final_profiles_df.columns = [x+"_%d" % (ix+1) for ix, x in enumerate(conditions)]
+        final_profiles = final_profiles_df.loc[[idx for idx in final_profiles_df.index if (idx not in add_rows_profiles)]].apply(pd.to_numeric)
         assert final_profiles.shape[1]==np.sum(profiles__df.loc["annotation"].apply(pd.to_numeric).values==2)
         assert initial_profiles.shape[1]==np.sum(profiles__df.loc["annotation"].apply(pd.to_numeric).values==1)
-        if (not os.path.exists(cell_save_fname)):
+        if (not quiet):
+            print("<UTILS_EXP> Cell %s (%d/%d)" % (cell, icell+1, len(cell_lines)), end="... ")
+        ## 1'. If required, retrieve background expression data corresponding to the considered cell line
+        if (not os.path.exists(cell_save_fname) and backgroundfile):
+            endpoint = "sigs"
+            method = "filter"
+            params = {
+                "where": {"cell_id": cell, "pert_type": "trt_sh"}, 
+                "fields": ["distil_cc_q75", selection, "pct_self_rank_q25", "distil_id", "brew_prefix"]
+            }
+            request_url = build_url(endpoint, method, params=params, user_key=user_key)
+            response = requests.get(request_url)
+            assert response.status_code == 200
+            data = json.loads(response.text)
+            data = [dt for dt in data if (("distil_id" in dt) and ("distil_cc_q75" in dt) and ("pct_self_rank_q25" in dt))]
+            ## Select only "gold" signatures, as defined by LINCS L1000 
+            ## https://clue.io/connectopedia/glossary#is_gold
+            data = [dt for dt in data if (len(dt["distil_id"])>1)]
+            assert len(data)>0
+            data_gold = [dt for dt in data if ((dt["distil_cc_q75"]>=0.2) and (dt["pct_self_rank_q25"]<=0.05))]
+            if (len(data_gold)>0):
+                data = data_gold
+            ## Select profiles maximizing the "selection" criterion
+            mselection = np.min([dt[selection] for dt in data])
+            max_selection = np.argsort(np.array([dt[selection] if (dt[selection]>=selection_min) else mselection for dt in data]))
+            max_selection = max_selection[-min(selection_max,len(max_selection)):]
+            vals_selection = [dt[selection] for dt in [data[i] for i in max_selection]]
             if (not quiet):
-                print("<UTILS_EXP> Cell %s (%d/%d)" % (cell, icell+1, len(cell_lines)), end="... ")
-            ## 1'. If required, retrieve background expression data corresponding to the considered cell line
-            if (backgroundfile):
-                endpoint = "sigs"
-                method = "filter"
-                params = {
-                        "where": {"cell_id": cell, "pert_type": "trt_sh"}, 
-                        "fields": ["distil_cc_q75", selection, "pct_self_rank_q25", "distil_id", "brew_prefix"]
-                }
-                request_url = build_url(endpoint, method, params=params, user_key=user_key)
-                response = requests.get(request_url)
-                assert response.status_code == 200
-                data = json.loads(response.text)
-                data = [dt for dt in data if (("distil_id" in dt) and ("distil_cc_q75" in dt) and ("pct_self_rank_q25" in dt))]
-                ## Select only "gold" signatures, as defined by LINCS L1000 
-                ## https://clue.io/connectopedia/glossary#is_gold
-                data = [dt for dt in data if ((len(dt["distil_id"])>1) and (dt["distil_cc_q75"]>=0.2) and (dt["pct_self_rank_q25"]<=0.05))]
-                assert len(data)>0
-                ## Select profiles maximizing the "selection" criterion
-                mselection = np.min([dt[selection] for dt in data])
-                max_selection = np.argsort(np.array([dt[selection] if (dt[selection]>=selection_min) else mselection for dt in data]))
-                max_selection = max_selection[-min(selection_max,len(max_selection)):]
-                vals_selection = [dt[selection] for dt in [data[i] for i in max_selection]]
-                if (not quiet):
-                    print("<UTILS_EXP> %d (good) profiles | %d (best) profiles (capped at 50 or min>=%d) (%s max=%.3f, min=%.3f)" % (len(data), len(max_selection), selection_min, selection, np.max(vals_selection), np.min(vals_selection)))
-                bkgrnd = create_restricted_drug_signatures([did for dt in [data[i] for i in max_selection] for did in dt["distil_id"]], [int(g) for g in list(profiles__df.index)[:-3]], path_to_lincs, which_lvl=[3], strict=False)
-                bkgrnd.index = [int(g) for g in bkgrnd.index]
-            ## 2. Aggregate replicates by median values for signature ~ initial condition
-            initial_profile = initial_profiles.median(axis=1)
-            initial_profile = initial_profile.loc[~initial_profile.duplicated()]
-            ## 3. Aggregate values across probes of the same gene
-            final_profile = final_profiles.T
-            final_profile.index = ["_".join(idx.split("_")[:-1]) for idx in final_profile.index]
-            data = final_profile.groupby(level=0).median().T
-            data.columns = conditions
-            data = data.loc[~data.index.duplicated()]
-            data["initial"] = initial_profile.loc[[i for i in data.index if (i in initial_profile.index)]]
-            data.index = data.index.astype(int)
-            if (backgroundfile):
-                data = data.join(bkgrnd, how="inner")
-            data.to_csv(cell_save_fname)
-        data = pd.read_csv(cell_save_fname, index_col=0)
+                print("<UTILS_EXP> %d (good) profiles | %d (best) profiles (capped at 50 or min>=%d) (%s max=%.3f, min=%.3f)" % (len(data), len(max_selection), selection_min, selection, np.max(vals_selection), np.min(vals_selection)))
+            bkgrnd = create_restricted_drug_signatures([did for dt in [data[i] for i in max_selection] for did in dt["distil_id"]], [int(g) for g in list(profiles__df.index) if (g not in add_rows_profiles)], path_to_lincs, which_lvl=[3], strict=False)
+            bkgrnd.index = [int(g) for g in bkgrnd.index]
+            bkgrnd.to_csv(cell_save_fname)
+        elif (backgroundfile):
+            bkgrnd = pd.read_csv(cell_save_fname, index_col=0)
+        ## 2. Aggregate replicates by median values for signature ~ initial condition
+        initial_profile = initial_profiles.median(axis=1)
+        initial_profile = initial_profile.loc[~initial_profile.duplicated()]
+        ## 3. Aggregate values across probes of the same gene
+        final_profile = final_profiles.T
+        final_profile.index = ["_".join(list(final_profiles_df[idx].loc[conditions_spec])) for idx in final_profiles_df.columns]
+        data = final_profile.groupby(level=0).median().T
+        data = data.loc[~data.index.duplicated()]
+        data["initial"] = initial_profile.loc[[i for i in data.index if (i in initial_profile.index)]]
+        data.index = data.index.astype(int)
+        if (backgroundfile):
+            data = data.join(bkgrnd, how="inner")
         ## 4. Binarize profiles
         signatures = binarize_experiments(data, thres=thres, method=bin_method.split("_CD")[0], strict=not ('CD' in bin_method))
-        signatures = signatures[conditions+["initial"]]
+        signatures = signatures[list(set(conditions))+["initial"]]
         if ("_CD" in bin_method):
             for c in conditions:
                 df = pd.concat((final_profiles[[col for col in final_profiles.columns if (c in col)]], initial_profiles), axis=1)
@@ -159,8 +162,7 @@ def get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, sele
                 entrez_id = pert_di[data["pert_iname"]]
                 if (not quiet):
                     print("<UTILS_EXP> %d experiments so far" % len(signatures))
-                signame = "_".join([str(data["pert_iname"]), "OE" if ("_oe" in pert_type) else "KD", data["pert_idose"] if (data["pert_idose"]!="-666") else "NA"])
-                treatment = str(data["pert_iname"])
+                treatment, perturbation = str(data["pert_iname"]), "OE" if ("_oe" in pert_type) else "KD"
                 ## avoid duplicates
                 if (treatment in perturbed_genes and not quiet):
                     print("\t<UTILS_EXP> Duplicated treatment:%s, cell:%s, type:%s" % (treatment, str(data["cell_id"]), str(data["pert_type"])))
@@ -175,11 +177,15 @@ def get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, sele
                 if (not quiet):
                     print("... %d genes, %d profiles" % (sigs.shape[0]-3, sigs.shape[1]))
                 perturbed_genes.append(treatment)
-                sigs.loc["signame"] = [signame]*sigs.shape[1]
+                sigs.loc["perturbed"] = [treatment]*sigs.shape[1]
+                sigs.loc["perturbation"] = [perturbation]*sigs.shape[1]
+                sigs.loc["cell_line"] = [line]*sigs.shape[1]
                 sigs.loc["sigid"] = list(sigs.columns)
                 nexp = len(signatures)+1
                 sigs.columns = ["Exp"+str(nexp)+":"+str(i)+"-rep"+str(ai+1) for ai, i in enumerate(list(sigs.loc["annotation"]))]
                 signatures.append(sigs)
+    if (len(signatures)==0):
+        return pd.DataFrame([], index=pert_inames)
     signatures = signatures[0].join(signatures[1:], how="outer")
     signatures = signatures.loc[~signatures.index.duplicated()]
     return signatures

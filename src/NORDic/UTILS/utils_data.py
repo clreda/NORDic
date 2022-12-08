@@ -34,7 +34,7 @@ def request_biodbnet(probe_list, from_, to_, taxon_id, chunksize=500, quiet=Fals
         args_di = {
             "method":"db2db",
             "format": "row",
-            "inputValues":",".join([x.upper() for x in chunk]),
+            "inputValues":",".join(chunk),
             "input":from_,
             "outputs":to_,
             "taxonId":str(taxon_id),
@@ -88,17 +88,21 @@ def convert_genes_EntrezGene(gene_list, taxon_id, app_name, chunksize=100, missi
         if (not quiet):
             print("<UTILS_DATA> STRING ID -> Gene ID (%d probes)" % len(other_ids))
         res_df = get_protein_names_from_STRING(other_ids, taxon_id, app_name)
-        other_ids = []
         ## if can't be found automatically...
-        for idx in list(res_df["queryItem"]):
-            other_ids.append(missing_genes.get(idx, idx))
-        res_df = request_biodbnet(other_ids, "Gene Symbol and Synonyms", "Gene ID", taxon_id, chunksize=chunksize, quiet=quiet)
-        df_list.append(res_df)
+        if (res_df is not None):
+            other_ids = []
+            for idx in list(res_df["queryItem"]):
+                other_ids.append(missing_genes.get(idx, idx))
+            res_df = request_biodbnet(other_ids, "Gene Symbol and Synonyms", "Gene ID", taxon_id, chunksize=chunksize, quiet=quiet)
+            df_list.append(res_df)
+    if (len(other_ids)>0):
+        df_list.append(pd.DataFrame([], index=other_ids, columns=["Gene ID"]).fillna("-"))
     if (len(df_list)>0):
         probes = pd.concat(tuple(df_list), axis=0)
     else:
         probes = None
         return probes
+    probes = probes.sort_index(ascending=True)
     if (not quiet):
         print("%d probes (successful %d, unsuccessful %d)" % (len(probes), len(probes.loc[probes["Gene ID"]!='-']), len(probes.loc[probes["Gene ID"]=="-"])))
     return probes
@@ -131,10 +135,13 @@ def convert_EntrezGene_LINCSL1000(EntrezGenes, user_key, quiet=False):
                 entrez_ids[ig] = entrezid
                 if (pert_inames[ig]==g):
                     break
-        print("\t".join([g, pert_inames[ig], str(ig+1), str(len(EntrezGenes))]))
+        if (pert_inames[ig] is not None):
+            print("\t".join([g, pert_inames[ig], str(ig+1), str(len(EntrezGenes))]))
     pert_inames_ = [p if (p is not None) else "-" for p in pert_inames]
     entrez_ids_ = [entrez_ids[i] if (pert_inames[i] is not None) else "-" for i in range(len(EntrezGenes))]
     pert_df = pd.DataFrame([pert_inames_, entrez_ids], columns=EntrezGenes, index=["Gene Symbol", "Entrez ID"]).T
+    pert_df = pert_df.sort_values(by="Gene Symbol", ascending=True)
+    pert_df = pert_df.loc[~pert_df.duplicated()]
     return pert_df
 
 def get_all_celllines(pert_inames, user_key, quiet=False):
