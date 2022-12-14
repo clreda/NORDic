@@ -47,7 +47,18 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
             probs = mpbn_sim.estimate_reachable_attractor_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float)
-            probs = np.array([probs[ia]/100. for ia in range(attrs.shape[1])]) 
+            probs = {i: x for i,x in list(probs.items()) if (x>0)}
+            attrs = attrs[[attrs.columns[i] for i in list(probs.keys())]]
+            ## if too many attractors, select the most common ones
+            if (attrs.shape[1]>45000):
+                idx_common = np.argsort([probs[i] for i in range(len(probs))]).tolist()
+                idx_common.reverse()
+                idx_common = idx_common[:45000]
+                attrs = attrs[[attrs.columns[i] for i in idx_common]]
+                probs = {i:probs[i] for i in idx_common}
+                sprobs = sum(list(probs.values()))
+                probs = {i:probs[i]*100/sprobs for i in probs}
+            probs = np.array([probs[ia]/100 for ia in probs])
             attrs_init = pd.DataFrame({"WT_%d"%ia: a for ia, a in enumerate(A_WT)}).replace("*",np.nan).astype(float)
             sims, nb_gene = compare_states(attrs, attrs_init, gene_outputs)
             assert nb_gene == len(gene_outputs)
@@ -99,16 +110,32 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     for i in list(state.loc[state[state.columns[0]]==1].index):
         x0[i] = 1
     ## 3. Get the reachable attractors from initial state in the absence of perturbation ("wild type")
+    experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
     A_WT = [a for a in tqdm(list(f.attractors(reachable_from=x0)))]
+    exp = experiments[0]
+    rates = getattr(mpbn_sim, f"{exp['rates']}_rates")
+    depth = getattr(mpbn_sim, f"{exp['depth']}_depth")
+    rates_args = exp.get("rate_args", {})
+    depth_args = exp.get("depth_args", {})
+    probs_WT = mpbn_sim.estimate_reachable_attractor_probabilities(f, x0, A_WT, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
+    probs_WT = {i: x for i,x in list(probs_WT.items()) if (x>0)}
+    A_WT = [A_WT[i] for i in list(probs_WT.keys())]
     if (not quiet):
-        print("%d wild type attractors (initial state %s)" % (len(A_WT), state.columns[0]))
+        print("%d wild type attractors with proba > 0 (initial state %s)" % (len(A_WT), state.columns[0]))
+    ## if too many attractors, select the most common ones
+    if (len(A_WT)>45000):
+        idx_common_WT = np.argsort([probs_WT[i] for i in range(len(probs_WT))]).tolist()
+        idx_common_WT.reverse()
+        idx_common_WT = idx_common_WT[:45000]
+        A_WT = [A_WT[i] for i in idx_common_WT]
+        if (not quiet):
+            print("> reduced to %d wild type attractors (initial state %s, %d perc. of all attractors)" % (len(A_WT), np.sum([probs_WT[i] for i in idx_common_WT])))
     ## 4. Create the mutated networks
     def patch_model(f, patch):
         f = mpbn.MPBooleanNetwork(f)
         for i, fi in patch.items():
             f[i] = fi
         return f
-    experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
     perts, perts_S = [(state.loc[[g for g in lst if (g in state.index)]]+1)%2 for lst in [gene_list, spreader]]
     mutants = {g: {gx: str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]]) for gx in [g]+spreader} for g in list(perts.index)}
     f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}

@@ -41,7 +41,7 @@ EDGE_args = {
 }
 
 SIG_args = {
-        "bin_thres": 0.26,
+        "bin_thres": 0.5,
         "bin_method": "binary",
 }
 
@@ -58,9 +58,9 @@ BONESIS_args = {
 
 STRING_args.update({"score": 0.31, "beta": 1})
 EDGE_args.update({"tau": 0, "filter": True, "connected": True})
-SIG_args.update({"bin_thres": 0.26}) #0.155
-LINCS_args.update({"thres_iscale": 0}) #0.1
-BONESIS_args.update({"limit": 1, "exact": False, "max_maxclause": 10}) 
+SIG_args.update({"bin_thres": 0.265})
+LINCS_args.update({"thres_iscale": 0})
+BONESIS_args.update({"limit": 100, "exact": False, "max_maxclause":4})
 
 force_experiments=True
 accept_nonRNA=False

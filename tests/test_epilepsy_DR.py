@@ -77,6 +77,7 @@ binary_phenotypes[binary_phenotypes<0] = -1
 binary_phenotypes[binary_phenotypes==0] = 0
 dfdata = binary_phenotypes.loc[list(set([g for g in genes if (g in binary_phenotypes.index)]))]
 frontier = compute_frontier(dfdata, samples, quiet=False)
+score = lambda attrs : (frontier.predict(attrs.values.T)==1).astype(int)  #classifies into 1:control, 2:patient
 patients = dfdata[[c for ic, c in enumerate(dfdata.columns) if (samples[ic]==2)]]
 
 targets = targets.loc[patients.index]
@@ -145,7 +146,7 @@ else:
 targets = targets[drug_columns]
 rewards_fname=save_folder+"scores.csv"
 if (not os.path.exists(file_folder+"recommendation.csv")):
-    recommendation = adaptive_testing(solution_fname, X, targets, frontier, 
+    recommendation = adaptive_testing(solution_fname, X, targets, score, 
 		patients, SIMU_params, BANDIT_args, reward_fname=rewards_fname, quiet=False).T
     recommendation.to_csv(file_folder+"recommendation.csv")
 recommendation = pd.read_csv(file_folder+"recommendation.csv", index_col=0)

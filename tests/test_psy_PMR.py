@@ -13,10 +13,10 @@ LINCS_args = {
 
 data_folder="/media/kali/1b80f30d-2803-4260-a792-9ae206084252/Code/M30/NetworkOrientedRepurposingofDrugs/"
 root_folder="/media/kali/1b80f30d-2803-4260-a792-9ae206084252/Code/M30/MDD/"
-file_folder=root_folder+"MDDFemale_JURKAT/" ##"MDDMale_JURKAT/"
+file_folder=root_folder+"MDDFemale_JURKAT/"
 if ("MDDFemale_JURKAT/" in file_folder):
     sex="F"
-else:
+if ("MDDMale_JURKAT/" in file_folder):
     sex="M"
 module_path=root_folder+"PourClemence/"
 

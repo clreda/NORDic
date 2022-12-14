@@ -8,7 +8,6 @@ import os
 
 data_folder="/media/kali/1b80f30d-2803-4260-a792-9ae206084252/Code/M30/NetworkOrientedRepurposingofDrugs/"
 root_folder="/media/kali/1b80f30d-2803-4260-a792-9ae206084252/Code/M30/MDD/"
-#file_folder=root_folder+"MDDFemale_JURKAT/" ####"MDDMale_onlyRNA/" ### "MDD_MaleBrain/" ## "MDD_MaleJURKAT"
 file_folder=root_folder+"MDDMale_JURKAT/"
 if ("MDDFemale_JURKAT/" in file_folder):
     module_fname=root_folder+"PourClemence/FEMALE_ME_129.txt"
@@ -19,7 +18,6 @@ sbcall("mkdir -p "+file_folder, shell=True)
 
 ## Create network accepted by NORDic
 network = pd.read_csv(module_fname, index_col=0, sep=",")
-#network = network.loc[network["Origin"]=="mRNA"] ####
 network = network[[c for c in network.columns if (c!="Origin")]]
 network.columns = ["preferredName_A", "preferredName_B", "score"]
 network["sign"] = [(-1)**int(network.loc[i]["score"]<0) for i in network.index]
@@ -36,7 +34,7 @@ STRING_credentials = data_folder+"tests/credentials_STRING.txt"
 LINCS_credentials = data_folder+"tests/credentials_LINCS.txt"
 path_to_genes = None
 network_fname = file_folder+"network.tsv"
-cell_lines = ["JURKAT"] #### ["NPC","SHSY-5Y"] ## ["JURKAT"] 
+cell_lines = ["JURKAT"]
 
 ## Parameters
 seed_number=123456
@@ -69,18 +67,6 @@ if ("MDDFemale_JURKAT/" in file_folder):
     SIG_args.update({"bin_thres": 0.27})
     LINCS_args.update({"thres_iscale": 0.2})
     BONESIS_args.update({"limit": 1000, "exact": False, "max_maxclause": 20})
-
-####STRING_args.update({"score": 0, "beta": 1})
-####EDGE_args.update({"tau": 0, "filter": False, "connected": False})
-####SIG_args.update({"bin_thres": 0.125})
-####LINCS_args.update({"thres_iscale": 0})
-####BONESIS_args.update({"limit": 1, "exact": False, "max_maxclause": 10}) 
-
-###STRING_args.update({"score": 0, "beta": 1})
-###EDGE_args.update({"tau": 0, "filter": False, "connected": False})
-###SIG_args.update({"bin_thres": 0.16}) ## 0.165
-###LINCS_args.update({"thres_iscale": 0})
-###BONESIS_args.update({"limit": 200, "exact": False, "max_maxclause": 10}) 
 
 if ("MDDMale_JURKAT" in file_folder):
     STRING_args.update({"score": 0, "beta": 1})

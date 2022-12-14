@@ -119,15 +119,11 @@ def simulate(network_fname, targets, patients, score, simu_params={}, nbseed=0, 
     rseed(nbseed)
     np.random.seed(nbseed)
     ## 1. Classification model b/w healthy and patient phenotypes (to classify final attractor states from treated patients)
-    dfdata = phenotypes.loc[list(set([g for g in genes if (g in phenotypes.index)]))]
-    samples = phenotypes.loc["annotation"]
-    frontier = compute_frontier(dfdata, samples)
-    patients = dfdata[[c for c in dfdata.columns if (samples[c]==2)]]
     ## 2. Compute one score per drug and per patients
     if (simu_params.get('thread_count', 1)==1):
-        scores = [simulate_treatment(network_fname, targets.loc[[g for g in targets.index if (g in genes)]], frontier, patients[[Patient]], simu_params, quiet=quiet) for Patient in patients.columns]
+        scores = [simulate_treatment(network_fname, targets.loc[[g for g in targets.index if (g in genes)]], score, patients[[Patient]], simu_params, quiet=quiet) for Patient in patients.columns]
     else:
-        scores = Parallel(n_jobs=simu_params['thread_count'], backend='loky')(delayed(simulate_treatment)(network_fname, targets.loc[[g for g in targets.index if (g in genes)]], frontier, patients[[Patient]], simu_params, quiet=quiet) for Patient in patients.columns)
+        scores = Parallel(n_jobs=simu_params['thread_count'], backend='loky')(delayed(simulate_treatment)(network_fname, targets.loc[[g for g in targets.index if (g in genes)]], score, patients[[Patient]], simu_params, quiet=quiet) for Patient in patients.columns)
     scores = pd.DataFrame(scores, index=patients.columns, columns=targets.columns)
     return scores
 
@@ -178,7 +174,18 @@ def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_na
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
             probs = mpbn_sim.estimate_reachable_attractor_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float).loc[genes]
-            probs = np.array([probs[ia]/100. for ia in range(attrs.shape[1])])
+            probs = {i: x for i,x in list(probs.items()) if (x>0)}
+            attrs = attrs[[attrs.columns[i] for i in list(probs.keys())]]
+            ## if too many attractors, select the most common ones
+            if (attrs.shape[1]>45000):
+                idx_common = np.argsort([probs[i] for i in range(len(probs))]).tolist()
+                idx_common.reverse()
+                idx_common = idx_common[:45000]
+                attrs = attrs[[attrs.columns[i] for i in idx_common]]
+                probs = {i:probs[i] for i in idx_common}
+                sprobs = sum(list(probs.values()))
+                probs = {i:probs[i]*100/sprobs for i in probs}
+            probs = np.array([probs[ia]/100 for ia in probs])
             classification_attrs = score(attrs)
             drug_score = probs.T.dot(classification_attrs)
             d_scores.append(drug_score)
@@ -216,6 +223,6 @@ def simulate_treatment(network_name, targets, score, state, simu_params={}, quie
     f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
     ## 4. Get the reachable attractors from initial state in the presence of mutations ("effect during drug exposure")
     ## 5. Estimate probabilities of attractors from Mutants and compute score
-    effects = [0 if (t not in f_mutants) else compute_score(f_mutants[t], x0, [a for a in tqdm(list(f_mutants[t].attractors(reachable_from=x0)))], frontier, genes, nb_sims, experiments, exp_name="Drug %s (%d/%d) in state %s" % (t, it+1, targets.shape[1], state.columns[0]), quiet=quiet) for it, t in enumerate(targets.columns)]
+    effects = [0 if (t not in f_mutants) else compute_score(f_mutants[t], x0, [a for a in tqdm(list(f_mutants[t].attractors(reachable_from=x0)))], score, genes, nb_sims, experiments, exp_name="Drug %s (%d/%d) in state %s" % (t, it+1, targets.shape[1], state.columns[0]), quiet=quiet) for it, t in enumerate(targets.columns)]
     assert len(effects)==targets.shape[1]
     return effects

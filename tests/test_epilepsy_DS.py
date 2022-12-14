@@ -7,6 +7,7 @@ import os
 from subprocess import call as sbcall
 from copy import deepcopy
 from tqdm import tqdm
+import numpy as np
 
 LINCS_args = {
         "path_to_lincs": "../lincs/",
@@ -18,11 +19,14 @@ LINCS_args = {
 ## Download epilepsy-related data
 from download_Refractory_Epilepsy_Data import get_EPILEPSY_phenotypes, file_folder, path_to_phenotypes, dataset_folder
 get_EPILEPSY_phenotypes(LINCS_args["path_to_lincs"])
+file_folder="refractory_epilepsy2/"
 
 from NORDic.NORDic_DS.get_drug_signatures import drugname2pubchem, compute_drug_signatures_L1000
 from NORDic.UTILS.LINCS_utils import binarize_via_CD
-from NORDic.NORDic_DS.functions import baseline, compute_metrics, simulate
+from NORDic.NORDic_DS.functions import baseline, compute_metrics, simulate, compute_frontier
 from NORDic.NORDic_DS.get_drug_targets import retrieve_drug_targets
+
+from NORDic.UTILS.utils_state import binarize_experiments ##
 
 seed_number=0
 solution_fname=file_folder+"solution.bnet"
@@ -62,25 +66,17 @@ signatures = pd.read_csv(signature_fname, index_col=0)
 ## 2. Get differential phenotype
 phenotypes = pd.read_csv(path_to_phenotypes, index_col=0)
 if (not os.path.exists(diffpheno_fname)):
-    differential_phenotype = binarize_via_CD(phenotypes.loc[[idx for idx in phenotypes.index if (idx!="annotation")]], samples=list(phenotypes.loc["annotation"]), binarize=0, nperm=int(1e4))
+    dfsdata = phenotypes.loc[[idx for idx in phenotypes.index if (idx!="annotation")]]
+    differential_phenotype = binarize_via_CD(dfsdata, samples=list(phenotypes.loc["annotation"]), binarize=0, nperm=int(1e4))
     differential_phenotype.to_csv(diffpheno_fname)
 differential_phenotype = pd.read_csv(diffpheno_fname, index_col=0)
 
 print(signatures.join(differential_phenotype, how="inner").head())
 
-## 3. Ground truth scores (1: treating, -1: mimicking the disease)
-ground_truth_scores = pd.read_csv(dataset_folder+"scores.csv", index_col=1)[["score"]]
-ground_truth_scores.columns = ["Ground Truth"]
-
-## 4. Compute scores
-scores = baseline(signatures, differential_phenotype, is_binary=True)
-scores = scores.join(ground_truth_scores, how="inner")
+## 3. Compute scores
+scores = baseline(signatures, differential_phenotype, is_binary=False)
 scores = scores.sort_values(by="Cosine Score", ascending=False)
 print(scores.head())
-
-## 5. Evaluate the accuracy
-res_di = compute_metrics(scores["Cosine Score"], scores["Ground Truth"], K=[2,5,10], thres=0.5, nperms=100)
-print(pd.DataFrame({"Baseline": res_di}))
 
 ############################
 ## SIMULATOR              ##
@@ -89,7 +85,11 @@ print(pd.DataFrame({"Baseline": res_di}))
 ## All MINERVA maps are listed at https://minerva.pages.uni.lu/doc/
 ## To download the data from DrugBank, register (for free) to DrugBank and download the complete database (full_database.xml) and protein database
 target_args = {
-    "DrugBank": {"path_to_drugbank": "../DrugBank/", "drug_fname": "COMPLETE DATABASE/full database.xml", "target_fname": "PROTEIN IDENTIFIERS/Drug Target Identifiers/all.csv"},
+    "DrugBank": {
+        "path_to_drugbank": "../DrugBank/", 
+        "drug_fname": "COMPLETE DATABASE/full database.xml", 
+        "target_fname": "PROTEIN IDENTIFIERS/Drug Target Identifiers/all.csv"
+    },
     "LINCS": LINCS_args,
 }
 
@@ -106,6 +106,11 @@ SIMU_params = {
 ## 1. Get drug targets
 targets = retrieve_drug_targets(file_folder, drug_names, TARGET_args=target_args, gene_list=genes, quiet=False)
 targets = targets.drop_duplicates() # restrict to genes in M30
+
+from numpy import nan
+targets[targets==0] = nan
+targets[targets<0] = 0
+targets[targets>0] = 1
 print(targets.head())
 
 ## 2. Get binary patient/control phenotypes
@@ -113,24 +118,33 @@ binary_phenotypes = deepcopy(phenotypes)
 binary_phenotypes[binary_phenotypes>0] = 1
 binary_phenotypes[binary_phenotypes<0] = -1
 binary_phenotypes[binary_phenotypes==0] = 0
-binary_phenotypes.loc["annotation"] = phenotypes.loc["annotation"]
+binary_phenotypes.loc["annotation"] = phenotypes.loc["annotation"].astype(int)
 print(binary_phenotypes.head())
 
+with open(solution_fname, "r") as f:
+    network = str(f.read())
+if (", " in network):
+    genes = [x.split(", ")[0] for x in network.split("\n") if (len(x)>0)]
+else:
+    genes = [x.split(" <- ")[0] for x in network.split("\n") if (len(x)>0)]
+
+## Model/score to identify attractors
+dfdata = binary_phenotypes.loc[list(set([g for g in genes if (g in binary_phenotypes.index)]))]
+samples = binary_phenotypes.loc["annotation"]
+patients = dfdata[[c for c in dfdata if (samples[c]==2)]]
+frontier = compute_frontier(dfdata, samples)
+score = lambda attrs : (frontier.predict(attrs.values.T)==1).astype(int)  #classifies into 1:control, 2:patient
+
 ## 3. Score the effect of each drug in each patient phenotype using the network
-scores_fname = file_folder+"scores.csv"
+scores_fname = file_folder+"scores_targets.csv"
 if (not os.path.exists(scores_fname)):
-    scores = simulate(solution_fname, targets, binary_phenotypes, simu_params=SIMU_params, nbseed=0)
+    scores = simulate(solution_fname, targets, patients, score, simu_params=SIMU_params, nbseed=0)
     scores.to_csv(scores_fname)
 scores_all = pd.read_csv(scores_fname, index_col=0).T
-scores = pd.DataFrame(scores_all.mean(axis=1), columns=["Simulator Score"])
-scores_ = scores.join(ground_truth_scores, how="inner")
-scores_ = scores_.sort_values(by="Simulator Score", ascending=False)
-print(scores_.head())
 
-## 4. Evaluate the accuracy
-beta=1
-res_di = compute_metrics(scores_["Simulator Score"], scores_["Ground Truth"], K=[2,5,10], beta=beta, thres=0.5, nperms=100)
-print(pd.DataFrame({"Method": res_di}))
+scores = pd.DataFrame(scores_all.mean(axis=1), columns=["Simulator Score"])
+scores = scores.sort_values(by="Simulator Score", ascending=False)
+print(scores.head())
 
 ############################
 ## VISUALIZATION          ##

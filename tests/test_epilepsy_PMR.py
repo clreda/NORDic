@@ -13,6 +13,7 @@ LINCS_args = {
 ## Download epilepsy-related data
 from download_Refractory_Epilepsy_Data import get_EPILEPSY_initial_states, file_folder, path_to_initial_states
 get_EPILEPSY_initial_states(LINCS_args["path_to_lincs"])
+file_folder="refractory_epilepsy3/" ## "refractory_epilepsy/"
 
 from NORDic.NORDic_PMR.functions import greedy
 from NORDic.UTILS.utils_state import binarize_experiments
@@ -37,6 +38,7 @@ df = df.loc[~df.index.duplicated()]
 ## 3. Aggregate and binarize initial states
 states = binarize_experiments(df, thres=0.5, method="binary").astype(int)
 states.columns = ["State%d" % i for i in range(states.shape[1])]
+states = states[states.columns[:10]] ##
 ## 4. Convert to an accepted format for GRNs
 grn_fname=file_folder+"grn.bnet"
 if (not os.path.exists(grn_fname)):
