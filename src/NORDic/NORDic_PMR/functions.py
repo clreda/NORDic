@@ -105,7 +105,7 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     f = mpbn.load(network_name)
     ## 2. Create the initial profile
     if (not quiet):
-        print("\t<NORD_PMR> Initial state %s" % state.columns[0])
+        print("\t<NORD_PMR> Initial state %s (gene(s):%s)" % (state.columns[0], gene_list[0]))
     x0 = f.zero()
     for i in list(state.loc[state[state.columns[0]]==1].index):
         x0[i] = 1
@@ -164,10 +164,16 @@ def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, i
     if (simu_params.get('thread_count', 1)==1):
         sprds_multistate = [spread(network_name, spreader, gene_list, states[[col]], gene_outputs, simu_params, seednb=im_params.get("seed", 0)) for col in states.columns]
     else:
-        sprds_multistate = Parallel(n_jobs=simu_params['thread_count'], backend='loky')(delayed(spread)(network_name, spreader, gene_list, states[[col]], gene_outputs, simu_params, seednb=im_params.get("seed", 0)) for col in states.columns)
+        if (states.shape[1]>1):
+            sprds_multistate = Parallel(n_jobs=simu_params['thread_count'], backend='loky')(delayed(spread)(network_name, spreader, gene_list, states[[col]], gene_outputs, simu_params, seednb=im_params.get("seed", 0)) for col in states.columns)
+        else:
+            sprds_multistate = Parallel(n_jobs=simu_params['thread_count'], backend='loky')(delayed(spread)(network_name, spreader, [gene], states[[col]], gene_outputs, simu_params, seednb=im_params.get("seed", 0)) for col in states.columns for gene in gene_list)
     ## Aggregate the values across the set of initial states
     ## Genes which are not measured in the states are assigned value 0
-    spds = [(gmean([(s[ig]+1) for s in sprds_multistate])-1) for ig, g in enumerate(gene_list)]
+    if (states.shape[1]>1):
+        spds = [(gmean([(s[ig]+1) for s in sprds_multistate])-1) for ig, g in enumerate(gene_list)]
+    else:
+        spds = [sprds_multistate[ig][0] for ig, g in enumerate(gene_list)]
     return spds
 
 #######################################

@@ -5,6 +5,7 @@ import os
 from subprocess import call as sbcall
 from glob import glob
 import pandas as pd
+import numpy as np
 
 LINCS_args = {
         "path_to_lincs": "../lincs/",
@@ -62,7 +63,42 @@ SIMU_params = {
 ## Test for master regulator detection ##
 #########################################
 
-S, spreads = greedy(grn_fname, k, states, IM_params, SIMU_params, save_folder=file_folder)
+#S, spreads = greedy(grn_fname, k, states, IM_params, SIMU_params, save_folder=file_folder)
+
+##https://stackoverflow.com/questions/312443/how-do-i-split-a-list-into-equally-sized-chunks
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i+n]
+
+n_gene,n_state=njobs,1
+spreads_df = []
+for it, state in enumerate(list(range(states.shape[1]))):
+    spreads_state, gene_lst_state = [], []
+    for ig, gene_lst in enumerate(chunks(genes, n_gene)):
+        if (not os.path.exists("spreads_ngene=%d-_nstate=%d.csv" % (ig*n_gene, it*n_state))):
+            print((gene_lst, ig, state))
+            IM_params = {
+                "seed": seed_number,
+                "gene_inputs": gene_lst, # genes to be perturbed
+                "gene_outputs": gene_outputs # genes to be observed
+            }
+            S, spreads = greedy(grn_fname, k, states[[states.columns[state]]], IM_params, SIMU_params, save_folder=file_folder)
+            sbcall("mv %s/application_regulators.csv spreads_ngene=%d-_nstate=%d.csv" % (file_folder, ig*n_gene, it*n_state), shell=True)
+            sbcall("rm -f "+file_folder+"application_regulators.json", shell=True)
+        else:
+            spreads = pd.read_csv("spreads_ngene=%d-_nstate=%d.csv" % (ig*n_gene, it*n_state), index_col=0)
+        spreads_state += list(spreads[spreads.columns[0]])
+        gene_lst_state += list(spreads.index)
+    spreads_df.append(pd.DataFrame(spreads_state, index=gene_lst_state, columns=[states.columns[state]]))
+from scipy.stats.mstats import gmean
+spreads = spreads_df[0].join(spreads_df[1:], how="outer")
+gmeans = [(gmean([(sg+1) for sg in list(spreads.loc[g])])-1) for g in spreads.index]
+spreads = pd.DataFrame(gmeans, index=spreads.index, columns=["result"])
+vals = list(spreads[spreads.columns[0]])
+ids_max = np.argwhere(np.array(vals)==np.max(vals))
+S = [genes[x[0]] for x in ids_max]
+spreads.columns = ["["+(", ".join(["["+genes[x[0]]+"]" for x in ids_max]))+"]"]
 
 print("ANSWER:\n%s" % str(S))
 

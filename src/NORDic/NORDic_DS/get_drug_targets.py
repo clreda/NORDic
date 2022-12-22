@@ -9,6 +9,7 @@ import numpy as np
 import os
 from tqdm import tqdm
 from functools import reduce
+from time import sleep
 
 from NORDic.NORDic_DS.get_drug_signatures import drugname2pubchem, pubchem2drugname
 from NORDic.UTILS.LINCS_utils import get_user_key, build_url, post_request
@@ -98,8 +99,10 @@ def retrieve_drug_targets(file_folder, drug_names, TARGET_args={}, gene_list=[],
     targets_df = reduce(lambda x,y: np.add(x,y), targets_list)
     is_inhibitor = np.vectorize(lambda x : "-" in x)
     targets_df[is_inhibitor(targets_df.values)] = "-1"
+    is_activator = np.vectorize(lambda x : "+" in x)
+    targets_df[is_activator(targets_df.values)] = "1"
     targets_df[targets_df==""] = "0"
-    targets_df[(targets_df!="0")&(targets_df!="-1")] = "1"
+    targets_df[(targets_df!="0")&(targets_df!="-1")&(targets_df!="1")] = "-1"#"1"
     targets_df = targets_df.astype(int)
     if (len(gene_list)>0):
         targets_df = targets_df.loc[gene_list]
@@ -126,6 +129,7 @@ def get_targets_MINERVA(drug_names, quiet=False):
     target_lst = [[]]*len(drug_names)
     for idi, drug_name in tqdm(enumerate(drug_names)):
         for project_id in tqdm(project_ids):
+            sleep(0.01)
             response = requests.get(base_url+project_id+"/drugs:search?query="+drug_name, headers=headers)
             ### 2. Omit results with zero map elements, these are drug targets not in the map
             if (response.status_code!=200):
@@ -210,6 +214,7 @@ def get_targets_LINCS(drug_names, path_to_lincs, credentials, selection=None, ns
             continue
         params = {"where": {"pubchem_cid": pubchem_cids[drug_name]}, "fields": ["target"]}
         url_perts = build_url("perts", method="filter", params=params, user_key=user_key)
+        sleep(0.01)
         data = post_request(url_perts, quiet=quiet)
         if (len(data)>0):
             targets = data[0]["target"]

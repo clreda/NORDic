@@ -18,7 +18,7 @@ from download_Refractory_Epilepsy_Data import get_EPILEPSY_phenotypes, file_fold
 get_EPILEPSY_phenotypes(LINCS_args["path_to_lincs"])
 
 solution_fname=file_folder+"solution.bnet"
-drug_dataset_fname=dataset_folder+"small_drug_dataset.txt"
+drug_dataset_fname=dataset_folder+"small_drug_dataset.txt" ## DO IT ON THE WHOLE SUBSET?
 file_folder, save_folder=file_folder+"DR/", file_folder+"DS/"
 sbcall("mkdir -p "+file_folder, shell=True)
 
