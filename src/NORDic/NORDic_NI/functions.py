@@ -542,7 +542,7 @@ def import_all_solutions(solution_fname, quiet=False):
             nsol = np.max(cols)+1
             sol_ls.append(pd.DataFrame(solutions.T.values, index=solutions.columns, columns=cols))
     except:
-        print("'"+fname+"' not loaded.")
+        raise ValueError("'"+fname+"' not loaded.")
     nsol -= 1
     if (len(sol_ls)>1):
         solutions = sol_ls[0].join(sol_ls[1:], how="outer")
