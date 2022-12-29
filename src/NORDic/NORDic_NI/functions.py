@@ -21,7 +21,7 @@ from NORDic.UTILS.utils_plot import plot_influence_graph, plot_signatures, influ
 from NORDic.UTILS.utils_grn import get_grfs_from_solution
 from NORDic.NORDic_NI.cytoscape_style import style_file
 
-def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False):
+def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False, preserve_network_sign=True):
     '''
         Generates or retrieves the optimal network model
         @param\tfile_folder\tPython character string: path to which files should be saved
@@ -43,7 +43,7 @@ def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_a
         @param\taccept_nonRNA\tPython bool[default=False]: if set to False, ignores gene names which cannot be converted to EntrezIDs or which are not present in LINCS L1000
         @return\tsolution\tPython character string: optimal model selected by the procedure
     '''
-    solution_fname, nsol = solution_generation(file_folder, taxon_id, path_to_genes=path_to_genes, disgenet_args=disgenet_args, network_fname=network_fname, string_args=string_args, experiments_fname=experiments_fname, lincs_args=lincs_args, edge_args=edge_args, sig_args=sig_args, bonesis_args=bonesis_args, seed=seed, njobs=njobs, force_experiments=force_experiments, accept_nonRNA=accept_nonRNA)
+    solution_fname, nsol = solution_generation(file_folder, taxon_id, path_to_genes=path_to_genes, disgenet_args=disgenet_args, network_fname=network_fname, string_args=string_args, experiments_fname=experiments_fname, lincs_args=lincs_args, edge_args=edge_args, sig_args=sig_args, bonesis_args=bonesis_args, seed=seed, njobs=njobs, force_experiments=force_experiments, accept_nonRNA=accept_nonRNA, preserve_network_sign=preserve_network_sign)
 
     if (nsol==0):
         return None
@@ -61,7 +61,7 @@ def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_a
 
     return solution
 
-def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False):
+def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False,preserve_network_sign=True):
     '''
         Generates or retrieves the optimal network model
         @param\tfile_folder\tPython character string: path to which files should be saved
@@ -83,7 +83,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         @return\tsolution\tPython character string: optimal model selected by the procedure
     '''
     sbcall("mkdir -p "+file_folder, shell=True)
-    solution_fname=file_folder+("SOLUTIONS-%d_binthres=%.3f_score=%.2f_maxclause=%d" % (bonesis_args.get("limit", 1), sig_args.get("bin_thres", 0.5), string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
+    solution_fname=file_folder+("SOLUTIONS-%d_binthres=%.3f_thresiscale=%.3f_score=%.2f_maxclause=%d" % (bonesis_args.get("limit", 1), lincs_args.get("thres_iscale", 0.), sig_args.get("bin_thres", 0.5), string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
     solution_fname_ls, solution_ls = glob(solution_fname+"_*.zip"), []
     #####################################
     ## RETRIEVE EXISTING RESULTS       ##
@@ -403,26 +403,32 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     print("2. Build topological constraints from filtered edges using gene expression data... ", end=" ...")
 
     influences_fname = file_folder+"INFLUENCES_"+"-".join(cell_lines[:4])+"_tau="+str(edge_args.get("tau", 0))+"_beta="+str(edge_args.get("beta", 1))+"_score_thres="+str(score_thres)+".csv"
+    expr_df = None if (profiles is None) else profiles.loc[[g for g in profiles.index if (g not in add_rows_profiles)]].apply(pd.to_numeric)
+    expr_df=expr_df if (not pd.isnull(expr_df.values).all()) else None
     if (not os.path.exists(influences_fname) and (network_fname is None or edge_args.get("tau", False))):
-        expr_df = None if (profiles is None) else profiles.loc[[g for g in profiles.index if (g not in add_rows_profiles)]].apply(pd.to_numeric)
-        influences = build_influences(network_df, edge_args.get("tau", 0), beta=edge_args.get("beta", 1), cor_method=edge_args.get("cor_method", "pearson"), expr_df=expr_df if (not pd.isnull(expr_df.values).all()) else None, accept_nonRNA=accept_nonRNA)
+        influences = build_influences(network_df, edge_args.get("tau", 0), beta=edge_args.get("beta", 1), cor_method=edge_args.get("cor_method", "pearson"), expr_df=expr_df, accept_nonRNA=accept_nonRNA)
         influences.to_csv(influences_fname)
     elif (not os.path.exists(influences_fname)):
-        network_df.index = ["-".join(list(map(str, list(network_df.loc[idx][["Input","Output"]])))) for idx in network_df.index]
-        influences = network_df.groupby(level=0).max()
-        network_df.index = range(network_df.shape[0])
-        influences = influences.pivot_table(index="Input",columns="Output",values="SSign", fill_value=0)
-        missing_index = [g for g in influences.columns if (g not in influences.index)]
-        if (len(missing_index)>0):
-            missing_index_df = pd.DataFrame([], index=missing_index, columns=influences.columns).fillna(0)
-            influences = pd.concat((influences, missing_index_df), axis=0)
-        missing_columns = [g for g in influences.index if (g not in influences.columns)]
-        if (len(missing_columns)>0):
-            missing_columns_df = pd.DataFrame([], index=influences.index, columns=missing_columns).fillna(0)
-            influences = pd.concat((influences, missing_columns_df), axis=1)
-        assert influences.shape[0]==influences.shape[1]
-        influences[influences<0] = -1
-        influences[influences>0] = 1
+        if (preserve_network_sign or (expr_df is None)):
+            ## use the sign given by the score in the existing network
+            network_df.index = ["-".join(list(map(str, list(network_df.loc[idx][["Input","Output"]])))) for idx in network_df.index]
+            influences = network_df.groupby(level=0).max()
+            network_df.index = range(network_df.shape[0])
+            influences = influences.pivot_table(index="Input",columns="Output",values="SSign", fill_value=0)
+            missing_index = [g for g in influences.columns if (g not in influences.index)]
+            if (len(missing_index)>0):
+                missing_index_df = pd.DataFrame([], index=missing_index, columns=influences.columns).fillna(0)
+                influences = pd.concat((influences, missing_index_df), axis=0)
+            missing_columns = [g for g in influences.index if (g not in influences.columns)]
+            if (len(missing_columns)>0):
+                missing_columns_df = pd.DataFrame([], index=influences.index, columns=missing_columns).fillna(0)
+                influences = pd.concat((influences, missing_columns_df), axis=1)
+            assert influences.shape[0]==influences.shape[1]
+            influences[influences<0] = -1
+            influences[influences>0] = 1
+        else:
+            ## compute the sign based on the gene pairwise correlation on expression data
+            influences = build_influences(network_df, 0, beta=edge_args.get("beta", 1), cor_method=edge_args.get("cor_method", "pearson"), expr_df=expr_df, accept_nonRNA=accept_nonRNA)
         influences.to_csv(influences_fname)
     influences = pd.read_csv(influences_fname, index_col=0, header=0)
     if (not pd.isnull(profiles.values).all() is not None):
@@ -479,7 +485,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         nb_undetermined_genes = signatures.loc[pd.isnull(signatures.mean(axis=1, skipna=True))].shape[0]+nb_absent_genes
         nexps, ncells, ngenes = len(set([c for c in signatures.columns if ("initial" not in c)])), len(set([c for c in signatures.columns if ("initial" in c)])), signatures.shape[0]
 
-        plot_signatures(signatures, fname=file_folder+"signatures_binthres="+str(sig_args.get("bin_thres",0.5)))
+        plot_signatures(signatures, fname=file_folder+"signatures_binthres="+str(sig_args.get("bin_thres",0.5))+"_thresiscale="+str(lincs_args.get("thres_iscale",0.)))
 
         print(("... %d experiments on %d cell lines and %d/%d genes (Frobenius norm signature matrix: %.3f, %d possibly constant genes: %.1f" % (nexps, ncells, ngenes, len(model_genes), fnorm, nb_constant_genes, nb_constant_genes*100/len(model_genes)))+"%, "+str(nb_undetermined_genes)+" genes with undetermined status")
     else:

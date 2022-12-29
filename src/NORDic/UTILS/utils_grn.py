@@ -213,7 +213,7 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=Tru
 
 def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None, accept_nonRNA=False, quiet=False):
     '''
-        Filters out sign of edges based on gene expression 
+        Filters out and signs of edges based on gene expression 
         @param\tnetwork_df\tPandas DataFrame: rows/[index] x columns/[["Input", "Output", "SSign"]] interactions
         @param\ttau\tPython float: threshold on genepairwise expression correlation
         @param\tbeta\tPython integer[default=1]: power applied to the adjacency matrix
@@ -247,17 +247,17 @@ def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None
     # Correlation matrix
     if (expr_df is not None):
         df = quantile_normalize(expr_df)
-        df = df.loc[[g for g in network.index if (g in df.index)]]
+        df = df.loc[[g for g in list(network.index) if (g in df.index)]]
         coexpr = np.power(df.T.corr(method=cor_method), beta)
         coexpr[coexpr.abs()<tau] = 0
         if (accept_nonRNA):
-            missing_genes = [g for g in network.index if (g not in df.index)]
+            missing_genes = [g for g in list(network.index) if (g not in df.index)]
             for g in missing_genes:
                 coexpr[g] = 1
                 coexpr.loc[g] = 1
-            coexpr = coexpr.loc[network.index][network.index]
+            coexpr = coexpr.loc[list(network.index)][list(network.index)]
     else:
-        coexpr = pd.DataFrame(np.ones(network.shape), index=network.index, columns=network.columns) #default: positive interactions
+        coexpr = pd.DataFrame(np.ones(network.shape), index=list(network.index), columns=list(network.index)) #default: positive interactions
     net_mat = np.multiply(coexpr.values, network_unsigned.values)/2
     net_mat = (net_mat>0).astype(float)-(net_mat<0).astype(float)
     net_mat[net_mat==0] = np.nan

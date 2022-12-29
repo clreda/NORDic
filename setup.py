@@ -8,7 +8,7 @@ from setuptools.command.install import install
 from subprocess import check_call
 
 NAME = "NORDic"
-VERSION = "2.2.2"
+VERSION = "2.2.3"
 
 setup(name=NAME,
     version=VERSION,
