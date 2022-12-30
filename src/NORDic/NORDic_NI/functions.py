@@ -83,7 +83,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         @return\tsolution\tPython character string: optimal model selected by the procedure
     '''
     sbcall("mkdir -p "+file_folder, shell=True)
-    solution_fname=file_folder+("SOLUTIONS-%d_binthres=%.3f_thresiscale=%s_score=%.2f_maxclause=%d" % (bonesis_args.get("limit", 1), str(lincs_args.get("thres_iscale", 0.)), sig_args.get("bin_thres", 0.5), string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
+    solution_fname=file_folder+("SOLUTIONS-%d_binthres=%.3f_thresiscale=%s_score=%.2f_maxclause=%d" % (bonesis_args.get("limit", 1), sig_args.get("bin_thres", 0.5), str(lincs_args.get("thres_iscale", 0.)), string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
     solution_fname_ls, solution_ls = glob(solution_fname+"_*.zip"), []
     #####################################
     ## RETRIEVE EXISTING RESULTS       ##

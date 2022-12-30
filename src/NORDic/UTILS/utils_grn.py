@@ -235,8 +235,9 @@ def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None
         network = pd.concat((network, missing_columns_df), axis=1)
     assert network.shape[0]==network.shape[1]
     network = network[network.index]
+    network = network.fillna(3)
     network[network==0] = 2
-    network = network.fillna(0)
+    network[network==3] = 0
     network[network<0] = -1
     network[(network>0)&(network<2)] = 1
     network = network.astype(int)
