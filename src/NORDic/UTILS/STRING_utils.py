@@ -278,10 +278,10 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
     if (not quiet):
         print("... Solve conflicts on direction")
     is_unsigned = lambda sign : ((sign==2).all() or ((sign==-1).any() and (sign==1).any()))
-    #if several different signs are reported, if both signs are present, consider it unsigned
+    #for a fixed directed edge, if several different signs are reported, if both signs are present, consider it unsigned
     solve_conflicts_sign = {x: int(network.loc[x]["sign"]) if ("numpy.int64" in str(type(network.loc[x]["sign"]))) else (2 if (is_unsigned(network.loc[x]["sign"])) else (-1)**int((network.loc[x]["sign"]==-1).all())) for x in network.index}
     if (not quiet):
-        print("... Solve conflicts on sign")
+        print("... Solve conflicts on sign for directed edges")
     network = network.loc[~network.index.duplicated(keep="first")] #keep the duplicate with highest score
     network["directed"] = [solve_conflicts_directed[x] for x in network.index]
     network["sign"] = [solve_conflicts_sign[x] for x in network.index]
@@ -302,6 +302,19 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
     network["directed"] = directed
     if (not quiet):
         print("... Remove multiple undirected edges")
+    #for a fixed UNDIRECTED edge, if several different signs are reported, if both signs are present, consider it unsigned
+    network.index = ["--".join(list(sorted([network.loc[x]["preferredName_A"],network.loc[x]["preferredName_B"]]))) for x in network.index] 
+    solve_conflicts_sign_undirected = {x: int(network.loc[x]["sign"]) if ((network.loc[x]["directed"]!=0).any() or ("numpy.int64" in str(type(network.loc[x]["sign"])))) else (2 if (is_unsigned(network.loc[x]["sign"])) else (-1)**int((network.loc[x]["sign"]==-1).all())) for x in network.index}
+    if (not quiet):
+        print("... Solve conflicts on sign for undirected edges")
+    for ix, x in enumerate(network.index):
+        values = list(network.iloc[ix,:].values.flatten()) 
+        values[list(network.columns).index("sign")] = int(solve_conflicts_sign_undirected[x])
+        values[list(network.columns).index("directed")] = int(values[list(network.columns).index("directed")])
+        values[list(network.columns).index("score")] = float(values[list(network.columns).index("score")])
+        network.loc[x] = values
+    if (not quiet):
+        print("... Aggregate info once again")
     network.index = range(network.shape[0])
     network.sort_values(by="score", ascending=False)
     return network

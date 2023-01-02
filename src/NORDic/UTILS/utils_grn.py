@@ -12,6 +12,7 @@ import os
 from glob import glob
 from tqdm import tqdm
 from subprocess import call as sbcall
+from copy import deepcopy
 
 from NORDic.UTILS.utils_state import quantile_normalize
 
@@ -151,28 +152,38 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=Tru
     cols = ['preferredName_A', 'preferredName_B', 'sign', 'directed', 'score']
     assert all([col in cols for col in ppi.columns])
     assert ppi.shape[1]==len(cols)
+    ppi = ppi[['preferredName_B', 'preferredName_A', 'sign', 'directed', 'score']]
+    ## Remove duplicate edges (preserve the duplicates with highest score)
+    ppi.index = ["--".join(x) for x in zip(ppi["preferredName_A"], ppi["preferredName_B"])]
+    ppi = ppi.sort_values(by="score", ascending=False)
+    ppi = ppi.loc[~ppi.index.duplicated(keep="first")]
+    ppi = ppi[["preferredName_A","preferredName_B", 'sign', 'directed', 'score']]
+    ppi.index = range(ppi.shape[0])
+    Ntotal_edges = ppi.shape[0]
     ## 1. Double edges depending on whether they are marked as "directed"
     undirected_edges = ppi.loc[ppi["directed"]==0]
+    Nundirected_edges = undirected_edges.shape[0]
     undirected_edges.columns = ['preferredName_B', 'preferredName_A', 'sign', 'directed', 'score']
     undirected_edges = undirected_edges[['preferredName_A', 'preferredName_B', 'sign', 'directed', 'score']]
+    assert all([c==['preferredName_A', 'preferredName_B', 'sign', 'directed', 'score'][i] for i, c in enumerate(undirected_edges.columns)])
+    assert undirected_edges.loc[undirected_edges.index[0]]['preferredName_B']==ppi.loc[ppi["directed"]==0].loc[ppi.loc[ppi["directed"]==0].index[0]]['preferredName_A']
     ppi = pd.concat((ppi, undirected_edges),axis=0)[["preferredName_A","preferredName_B","sign","score"]]
     ppi.index = range(ppi.shape[0])
+    assert ppi.shape[0]==Ntotal_edges+Nundirected_edges
     ## 2. Double edges depending on whether they have a specific sign
     nonmonotonic_edges = ppi.loc[ppi["sign"]==2]
+    Nnonmonotonic_edges = nonmonotonic_edges.shape[0]
+    ppi_sign_sum = sum([abs(x) for x in list(ppi["sign"])])
     nonmonotonic_edges = pd.concat((nonmonotonic_edges[[c for c in nonmonotonic_edges.columns if (c!="sign")]], pd.DataFrame([[-1]]*nonmonotonic_edges.shape[0], index=nonmonotonic_edges.index, columns=["sign"])), axis=1)
     nonmonotonic_edges = nonmonotonic_edges[["preferredName_A","preferredName_B","sign","score"]]
-    ppi["sign"] = [1 if (s==2) else s for s in list(ppi["sign"])]
     ppi = pd.concat((ppi, nonmonotonic_edges), axis=0)
+    ppi["sign"] = [1 if (s==2) else s for s in list(ppi["sign"])]
     ppi.index = range(ppi.shape[0])
+    assert ppi.shape[0]==Ntotal_edges+Nundirected_edges+Nnonmonotonic_edges
+    assert ppi["sign"].abs().sum().sum()==ppi_sign_sum
     ## 3. Concatenate columns "score" and "sign" as score in [0,1]
     ppi["sscore"] = np.multiply(ppi["score"], ppi["sign"])
-    ppi = ppi[["preferredName_A","preferredName_B","sscore", "score"]]
-    ## 4. Remove duplicate edges (preserve the duplicates with highest score)
-    ppi.index = ["-".join(x) for x in zip(ppi["preferredName_A"], ppi["preferredName_B"], ppi["sscore"].astype(str))]
-    ppi = ppi.sort_values(by="score", ascending=False)
-    ppi = ppi[~ppi.index.duplicated(keep="first")]
     ppi = ppi[["preferredName_A","preferredName_B","sscore"]]
-    ppi.index = range(ppi.shape[0])
     if (connected):
         components = get_weakly_connected(ppi, list(set(list(ppi["preferredName_A"])+list(ppi["preferredName_B"]))))
         main_component = components[0]
@@ -213,7 +224,7 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=Tru
 
 def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None, accept_nonRNA=False, quiet=False):
     '''
-        Filters out and signs of edges based on gene expression 
+        Filters out (and signs of unsigned) edges based on gene expression 
         @param\tnetwork_df\tPandas DataFrame: rows/[index] x columns/[["Input", "Output", "SSign"]] interactions
         @param\ttau\tPython float: threshold on genepairwise expression correlation
         @param\tbeta\tPython integer[default=1]: power applied to the adjacency matrix
@@ -235,16 +246,16 @@ def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None
         network = pd.concat((network, missing_columns_df), axis=1)
     assert network.shape[0]==network.shape[1]
     network = network[network.index]
-    network = network.fillna(3)
-    network[network==0] = 2
-    network[network==3] = 0
-    network[network<0] = -1
-    network[(network>0)&(network<2)] = 1
+    network = network.fillna(-666) #missing value
+    network[network==0] = 2 #means that the edge is present both as activatory and inhibitory
+    network[network==-666] = 0
+    network[network<0] = -1 #only inhibitory
+    network[(network>0)&(network<2)] = 1 #only activatory
     network = network.astype(int)
-    from copy import deepcopy
     network_unsigned, network_signed = [deepcopy(network) for _ in range(2)] 
     network_unsigned[network_unsigned!=2] = 0
-    network_signed[network_signed==2] = 0
+    network_unsigned = network_unsigned/2 #1 if unsigned edge exists, 0 otherwise
+    network_signed[network_signed==2] = 0 #1 if signed activatory edge exists, -1 if signed inhibitory edge exists, 0 otherwise
     # Correlation matrix
     if (expr_df is not None):
         df = quantile_normalize(expr_df)
@@ -259,11 +270,12 @@ def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None
             coexpr = coexpr.loc[list(network.index)][list(network.index)]
     else:
         coexpr = pd.DataFrame(np.ones(network.shape), index=list(network.index), columns=list(network.index)) #default: positive interactions
-    net_mat = np.multiply(coexpr.values, network_unsigned.values)/2
-    net_mat = (net_mat>0).astype(float)-(net_mat<0).astype(float)
-    net_mat[net_mat==0] = np.nan
+    assert all([coexpr.shape[i]==s for i,s in enumerate(network_unsigned.shape)])
+    assert all([coexpr.index[i]==s for i,s in enumerate(network_unsigned.index)])
+    assert all([coexpr.columns[i]==s for i,s in enumerate(network_unsigned.columns)])
+    net_mat = np.multiply((-1)**(coexpr.values<0).astype(int), network_unsigned.values).astype(float)#equal to 1 if strong correlation and activatory, -1 if strong correlation and inhibitory, 0 otherwise
     influences = pd.DataFrame(net_mat+network_signed.values, index=network.index, columns=network.columns)
-    influences[np.isnan(influences)] = 0
+    assert not pd.isnull(influences).any().any()
     return influences
 
 def create_grn(influences, exact=False, max_maxclause=3, quiet=False):
@@ -459,7 +471,7 @@ def save_grn(solution, fname, sep="<-", quiet=False, max_show=5, write=True):
     sol = solution.to_dict()
     print_sol = [" ".join([str(x) for x in [gene, sep, sol[gene]]]) for gene in sol if (len(gene)>0)]
     if (not quiet):
-        print("\n".join(print_sol[:max_show]+["..." if (len(print_sol)>max_show) else ""]))
+        print("\n"+("\n".join(print_sol[:max_show]+["..." if (len(print_sol)>max_show) else ""])))
     print_sol = "\n".join(print_sol)
     if (write):
         with open(fname+".bnet", "w+") as f:

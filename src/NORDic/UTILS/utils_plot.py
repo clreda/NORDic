@@ -51,11 +51,11 @@ def influences2graph(influences, fname, optional=False, compile2png=True, engine
         sbcall(engine+" -Tpng "+dotfile+" > "+filename+" && rm -f "+dotfile, shell=True)
     return None
 
-def plot_influence_graph(network_df, input_col, output_col, sign_col, fname="graph.png", optional=True):
+def plot_influence_graph(network_df, input_col, output_col, sign_col, direction_col=None, fname="graph.png", optional=True):
     '''
         Converts a network into a PNG picture
         @param\tnetwork_df\tPandas DataFrame: rows/[index] x columns/[@input_col,@output_col,@sign_col]
-        @param\tinput_col,output_col,sign_col\tPython character string: columns of @network_df
+        @param\tinput_col,output_col,sign_col,direction_col\tPython character string: columns of @network_df
         @param\tfname\tPython character string[default="graph.png"]: file name for PNG picture
         @param\toptional\tPython bool[default=True]: should edges be plotted as dashed lines?
         @return\tNone\t
@@ -65,23 +65,32 @@ def plot_influence_graph(network_df, input_col, output_col, sign_col, fname="gra
     influences = influences.fillna(0)
     influences[influences<0] = -1
     influences[(influences>0)&(influences<2)] = 1
-    for g in influences.index:
-        if (g not in influences.columns):
-            influences[g] = 0
-    for g in influences.columns:
-        if (g not in influences.index):
-            influences.loc[g] = 0
+    missing_cols = [g for g in influences.index if (g not in influences.columns)]
+    influences = pd.concat((influences, pd.DataFrame([], index=influences.index, columns=missing_cols).fillna(0)), axis=1)
+    missing_idxs = [g for g in influences.columns if (g not in influences.index)]
+    influences = pd.concat((influences, pd.DataFrame([], index=missing_idxs, columns=influences.columns).fillna(0)), axis=0)
+    infl_mat = influences.values
+    if (direction_col is not None):
+        for x in network_df.index:
+            is_directed = bool(network_df.loc[x][direction_col])
+            if (not is_directed):
+                inp = list(influences.index).index(str(network_df.loc[x]["preferredName_A"]))
+                out = list(influences.columns).index(str(network_df.loc[x]["preferredName_B"]))
+                infl_mat[inp, out] = int(network_df.loc[x][sign_col])
+                infl_mat[out, inp] = infl_mat[inp, out]
+    influences = pd.DataFrame(infl_mat, index=influences.index, columns=influences.columns)
     influences = influences.astype(int)
     influences.index = influences.index.astype(str)
     influences.columns = influences.columns.astype(str)
     influences2graph(influences, fname, optional=optional)
     return None
 
-def plot_signatures(signatures, width=10, height=10, max_show=50, fname="signatures"):
+def plot_signatures(signatures, perturbed_genes=None, width=10, height=10, max_show=50, fname="signatures"):
     '''
         Print signatures
         @param\tsignatures\tPandas DataFrame: rows/[genes] x columns/[signature IDs]
-        @param\twidth, height\tPython integer[default=10,default=10]: dimensions of image
+        @param\tperturbed_genes\tPython character string list[default=None]: list of gene names perturbed in the signatures
+        @param\twidth, height\tPython integer[default=10]: dimensions of image
         @param\tmax_show\tPython integer[default=50]: maximum number of genes shown (as only the @max_show genes with highest variance across signatures are plotted)
         @param\tfname\tPython character string[default="signatures"]: path of resulting PNG image
         @return\tNone\t
@@ -94,11 +103,10 @@ def plot_signatures(signatures, width=10, height=10, max_show=50, fname="signatu
     sigs[pd.isnull(sigs)] = 0 
     max_genes = np.argsort(np.var(sigs.values, axis=1))[-max_show:]
     max_genes = sigs.index[max_genes]
-    selected_genes = list(set([y for y in [s.split("_")[0] for s in signatures.columns] if (y != "initial")]))
-    for g in selected_genes:
+    for g in perturbed_genes:
         if (g not in sigs.index):
             sigs.loc[g] = 0
-    max_genes = selected_genes+[g for g in max_genes if (g not in selected_genes)]
+    max_genes = perturbed_genes+[g for g in max_genes if (g not in perturbed_genes)]
     sigs_ = sigs.loc[max_genes]
     fig, ax = plt.subplots(figsize=(width,height))
     cmap = colors.ListedColormap(['red', 'black', 'green'])

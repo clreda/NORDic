@@ -218,6 +218,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     if (force_experiments and (experiments_fname is None)):
         assert len(cell_lines)>0
 
+    pert_df = None
     if (experiments_fname is None):
         ## Convert gene names in EntrezGene IDs
         entrezgene_fname=file_folder+"ENTREZGENES.csv"
@@ -316,13 +317,13 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             ## 'cell_line' experiment UNIQUE identifier, common to samples from the same experiment
             ## 'sigid' sample unique identifier from LINCS L1000 (can be filled with NaNs)
             ## /!\ SHOULD ALREADY BE BINARIZED
-            assert "annotation" in list(profiles.index) and all([v in [1, 2] for v in profiles.loc["annotation"]])
+            assert "annotation" in list(profiles.index) and all([v in ["1", "2"] for v in list(profiles.loc["annotation"])])
             assert "perturbed" in list(profiles.index)
-            assert "perturbation" in list(profiles.index) and all([v in ["KD", "OE"] for v in profiles.loc["perturbation"]])
+            assert "perturbation" in list(profiles.index) and all([v in ["KD", "OE", "None"] for v in list(profiles.loc["perturbation"])])
             assert "cell_line" in list(profiles.index)
             assert "sigid" in list(profiles.index)
-            assert all([v in [0,1,np.nan] for v in list(np.unique(profiles.values))])
-            profiles = profiles[[c for c in profiles.columns if ((profiles.loc["perturbed"][c] in pert_inames) and (profiles.loc["cell_line"][c] in cell_lines))]]
+            assert all([v in ["0","1",np.nan] for v in list(profiles.loc[[g for g in model_genes if (g in profiles.index)]].values.flatten())])
+            profiles = profiles[[c for c in profiles.columns if ((profiles.loc["perturbed"][c] in model_genes+["None"]) and (profiles.loc["cell_line"][c] in cell_lines))]]
             profiles = profiles.loc[[g for g in list(profiles.index) if (g in model_genes+add_rows_profiles)]]
         profiles.to_csv(profiles_fname)
 
@@ -339,7 +340,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     assert (not force_experiments) or ((profiles is not None) and profiles.shape[0]-len(add_rows_profiles)>0)
 
     ## Write down the list of missing genes in profiles
-    if ((profiles is not None) and (pert_df.shape[0]>ngenes)):
+    if ((profiles is not None) and (pert_df is not None) and (pert_df.shape[0]>ngenes)):
         with open(file_folder+"missing_genes_in_profiles.txt", "w") as f:
             missing_genes = [g for g in pert_inames if (g not in list(profiles.index))]
             f.write("\n".join(missing_genes))
@@ -367,12 +368,12 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     ## Ensure that all considered edges are unique
     network = network.drop_duplicates(keep="first")
     print("... %d unique edges involving genes both in experiments (%d genes in total)" % (network.shape[0], len(model_genes)))
-    plot_influence_graph(network, "preferredName_A","preferredName_B","sign",file_folder+"network",True)
+    plot_influence_graph(network, "preferredName_A", "preferredName_B", "sign", "directed", file_folder+"network", True)
 
     score_thres = 0 if (string_args is None) else string_args.get("score", 0)
     edges_file = file_folder+"EDGES_score=%f.tsv" % (score_thres)
     if (not os.path.exists(edges_file) and ((network["sign"]==2).any() or (network["directed"]==0).any())):
-        network_df = get_genes_interactions_from_PPI(network, connected=(edge_args is None and edge_args.get("connected", True)), score=score_thres, filtering=(edge_args is not None and edge_args.get("filter", False)))
+        network_df = get_genes_interactions_from_PPI(network, connected=(edge_args is not None and edge_args.get("connected", True)), score=score_thres, filtering=(edge_args is not None and edge_args.get("filter", True)))
         network_df.to_csv(edges_file, sep="\t", index=None)
     elif (not os.path.exists(edges_file)):
         network_df = deepcopy(network)
@@ -439,7 +440,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     influences_df = influences.melt(ignore_index=False)
     influences_df["id"] = influences_df.index
     influences_df = influences_df[influences_df["value"]!=0]
-    plot_influence_graph(influences_df, "id", "variable", "value", influences_fname.split(".csv")[0], optional=True)
+    plot_influence_graph(influences_df, "id", "variable", "value", None, influences_fname.split(".csv")[0], optional=True)
 
     ###################################
     ## BUILD DYNAMICAL CONSTRAINTS   ##
@@ -462,7 +463,9 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             profiles.index = profiles_index
             signatures.index = [pert_inames[list(pert_df["Entrez ID"]).index(e)] for e in signatures.index]
         else:
-            signatures = profiles.loc[[g for g in profiles.index if (g not in add_rows_profiles)]]
+            conditions = ["_".join([profiles.loc[v][c] for v in ["perturbed","perturbation","cell_line"]]) if (profiles.loc["annotation"][c]=="2") else "initial_"+profiles.loc["cell_line"][c] for c in profiles.columns]
+            signatures = profiles.loc[[g for g in profiles.index if (g not in add_rows_profiles)]].apply(pd.to_numeric)
+            signatures.columns = conditions
         signatures.to_csv(sigs_fname)
     elif (pd.isnull(profiles.values).all()):
         signatures = pd.DataFrame([], index=model_genes, columns=["0","1"])
@@ -473,7 +476,6 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     else:
         signatures = pd.read_csv(sigs_fname, index_col=0, header=0).dropna(how="all")
 
-    print(signatures)
     if (not pd.isnull(signatures.values).all()):
         signatures_copy = deepcopy(signatures)
         signatures_copy[signatures_copy==0] = -1
@@ -485,7 +487,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         nb_undetermined_genes = signatures.loc[pd.isnull(signatures.mean(axis=1, skipna=True))].shape[0]+nb_absent_genes
         nexps, ncells, ngenes = len(set([c for c in signatures.columns if ("initial" not in c)])), len(set([c for c in signatures.columns if ("initial" in c)])), signatures.shape[0]
 
-        plot_signatures(signatures, fname=file_folder+"signatures_binthres="+str(sig_args.get("bin_thres",0.5))+"_thresiscale="+str(lincs_args.get("thres_iscale",0.)))
+        plot_signatures(signatures, perturbed_genes=list(set(list(profiles.loc["perturbed"]))), fname=file_folder+"signatures_binthres="+str(sig_args.get("bin_thres",0.5))+"_thresiscale="+str(lincs_args.get("thres_iscale",0.)))
 
         print(("... %d experiments on %d cell lines and %d/%d genes (Frobenius norm signature matrix: %.3f, %d possibly constant genes: %.1f" % (nexps, ncells, ngenes, len(model_genes), fnorm, nb_constant_genes, nb_constant_genes*100/len(model_genes)))+"%, "+str(nb_undetermined_genes)+" genes with undetermined status")
     else:
