@@ -8,7 +8,7 @@ from setuptools.command.install import install
 from subprocess import check_call
 
 NAME = "NORDic"
-VERSION = "2.2.5"
+VERSION = "2.2.6"
 
 setup(name=NAME,
     version=VERSION,
@@ -32,13 +32,13 @@ setup(name=NAME,
         "clingo>=5.6.1",
         "graphviz>=0.20.1",
         "bonesis>=0.4.91",
+        "mpbn>=2.0",
         "matplotlib>=3.3.4",
         "scikit_learn>=1.1.2",
         "scipy>=1.6.2",
         "qnorm>=0.5.1",
         "tqdm>=4.62.3",
         "cmapPy>=4.0.1",
-	"mpbn-sim>=0.1",
 	"openpyxl>=3.0.10",
 	"quadprog>=0.1.11",
 	"seaborn>=0.12.1"

@@ -78,7 +78,7 @@ def plot_influence_graph(network_df, input_col, output_col, sign_col, direction_
                 out = list(influences.columns).index(str(network_df.loc[x]["preferredName_B"]))
                 infl_mat[inp, out] = int(network_df.loc[x][sign_col])
                 infl_mat[out, inp] = infl_mat[inp, out]
-    influences = pd.DataFrame(infl_mat, index=influences.index, columns=influences.columns)
+    influences = pd.DataFrame(infl_mat, index=influences.index, columns=influences.columns).loc[influences.index][influences.index]
     influences = influences.astype(int)
     influences.index = influences.index.astype(str)
     influences.columns = influences.columns.astype(str)

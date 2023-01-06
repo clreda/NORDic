@@ -52,16 +52,17 @@ def get_protein_names_from_STRING(gene_list, taxon_id, app_name=None, version="1
     from io import StringIO
     res_df = pd.read_csv(StringIO(results), sep="\t")
     if ("Error" in res_df.columns):
+        print("<STRING_utils> Error from STRING: %s" % str(res_df["ErrorMessage"]))
         return None
     return res_df[["queryItem", "stringId", "preferredName", "annotation"]]
 
-def get_image_from_STRING(my_genes, taxon_id, file_name="network.png", scores=0, network_flavor="evidence", network_type="functional", app_name=None, version="11.5", quiet=False):
+def get_image_from_STRING(my_genes, taxon_id, file_name="network.png", min_score=0, network_flavor="evidence", network_type="functional", app_name=None, version="11.5", quiet=False):
     '''
         Retrieves protein IDs in STRING associated with input genes in the correct species
         @param\tgenes_list\tPython character list: list of gene symbols
         @param\ttaxon_id\tPython integer: taxon ID from NCBI
         @param\tfile_name\tPython character string[default="network.png"]: image file name
-        @param\tscores\tPython float[default=0]: confidence lower threshold (in [0,1])
+        @param\tmin_score\tPython float[default=0]: confidence lower threshold (in [0,1])
         @param\tnetwork_flavor\tPython character string[default="evidence"]: show links related to ["confidence", "action", "evidence"]
         @param\tnetwork_type\tPython character string[default="functional"]: show "functional" or "physical" network
         @param\tapp_name\tPython character string
@@ -70,6 +71,7 @@ def get_image_from_STRING(my_genes, taxon_id, file_name="network.png", scores=0,
     '''
     assert app_name
     assert taxon_id
+    assert min_score>=0 and min_score<=1
     assert network_flavor in ["confidence", "action", "evidence"]
     assert network_type in ["functional", "physical"]
     if (not quiet):
@@ -82,7 +84,7 @@ def get_image_from_STRING(my_genes, taxon_id, file_name="network.png", scores=0,
         "add_white_nodes": 15, # add 15 white nodes to my protein 
         "network_flavor": network_flavor, 
         "network_type": network_type, 
-        "required_score": score*1000,
+        "required_score": int(min_score*1000),
         "hide_disconnected_nodes": 1,
         "hide_node_labels": 0,
         "show_query_node_labels": 0,
@@ -100,7 +102,7 @@ def get_network_from_STRING(gene_list, taxon_id, min_score=0, network_type="func
         Retrieves undirected and unsigned interactions from the STRING database
         @param\tgene_list\tPython character string list: list of gene symbols
         @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tmin_score\tPython integer[default=0]: minimum STRING combined edge score in [0,1000]
+        @param\tmin_score\tPython integer[default=0]: minimum STRING combined edge score in [0,1]
         @param\tnetwork_type\tPython character string[default="functional"]: returns "functional" or "physical" network
         @param\tadd_nodes\tPython integer[default=0]: add nodes *in the closest interaction neighborhood* involved with the genes in @gene_list if set to 1
         @param\tapp_name\tPython character string
@@ -110,7 +112,7 @@ def get_network_from_STRING(gene_list, taxon_id, min_score=0, network_type="func
     '''
     assert app_name
     assert taxon_id
-    assert min_score >= 0 and min_score <= 1000
+    assert min_score >= 0 and min_score <= 1
     results = get_protein_names_from_STRING(gene_list, taxon_id, app_name=app_name, version=version, quiet=quiet)
     id_di = {}
     my_genes = []
@@ -126,7 +128,7 @@ def get_network_from_STRING(gene_list, taxon_id, min_score=0, network_type="func
     params = {
         "identifiers" : "%0d".join(my_genes), # your protein
         "species" : taxon_id, # species NCBI identifier 
-        "required_score" : min_score, # in 0 - 1000, 0 : get all edges
+        "required_score" : int(min_score*1000), # in 0 - 1000, 0 : get all edges
         "network_type": network_type,
         "add_nodes": add_nodes,
         "show_query_node_labels": 0,
@@ -152,7 +154,7 @@ def get_interactions_partners_from_STRING(gene_list, taxon_id, min_score=0, netw
         Retrieves undirected and unsigned interactions from the STRING database
         @param\tgene_list\tPython character string list: list of gene symbols
         @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tmin_score\tPython integer[default=0]: minimum STRING combined edge score in [0,1000]
+        @param\tmin_score\tPython integer[default=0]: minimum STRING combined edge score in [0,1]
         @param\tnetwork_type\tPython character string[default="functional"]: returns "functional" or "physical" network
         @param\tlimit\tPython integer[default=5]: limits the number of interaction partners retrieved per protein (most confident interactions come first)
         @param\tapp_name\tPython character string
@@ -162,7 +164,7 @@ def get_interactions_partners_from_STRING(gene_list, taxon_id, min_score=0, netw
     '''
     assert app_name
     assert taxon_id
-    assert min_score >= 0 and min_score <= 1000
+    assert min_score >= 0 and min_score <= 1
     results = get_protein_names_from_STRING(gene_list, taxon_id, app_name=app_name, version=version, quiet=quiet)
     id_di = {}
     my_genes = []
@@ -179,7 +181,7 @@ def get_interactions_partners_from_STRING(gene_list, taxon_id, min_score=0, netw
         "identifiers" : "%0d".join(my_genes), # your protein
         "species" : taxon_id, # species NCBI identifier 
         "limit" : limit, # limits the number of interaction partners retrieved per protein
-        "required_score" : min_score, # in 0 - 1000, 0 : get all edges
+        "required_score" : int(min_score*1000), # in 0 - 1000, 0 : get all edges
         "network_type": network_type,
         "caller_identity" : app_name # your app name
     }
@@ -203,7 +205,7 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
         Retrieves (un)directed and (un)signed physical interactions from the STRING database
         @param\tgene_list\tPython character string list: list of genes
         @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tmin_score\tPython integer[default=0]: in [0,1000] STRING combined score
+        @param\tmin_score\tPython integer[default=0]: in [0,1] STRING combined score
         @param\tapp_name\tPython character string
         @param\tfile_folder\tPython character string[default=None]: where to save the file from STRING (if None, the file is not saved)
         @param\tversion\tPython character string[default="v11.0"]: STRING database version
@@ -214,6 +216,7 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
     assert version!="11.5"
     assert app_name
     assert taxon_id
+    assert min_score<=1 and min_score>=0
     protein_action_fname = (file_folder if (file_folder) else "")+"protein_action_v"+version+".tsv"
     species = str(taxon_id)
     ftype ="protein.actions"
@@ -232,7 +235,7 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
         if (not quiet):
             print("Downloaded online")
         df = pd.read_csv(StringIO(sbcheck_output("wget -qO- \""+STRING_url+"\" | gzip -d -c", shell=True).decode("utf-8")), sep="\t")
-    df = df.loc[df["score"]>=min_score]
+    df = df.loc[df["score"]>=int(min_score*1000)]
     df["score"] /= 1000
     res_df = get_protein_names_from_STRING(gene_list, taxon_id, app_name=app_name, quiet=quiet)
     res_df.index = res_df["stringId"]

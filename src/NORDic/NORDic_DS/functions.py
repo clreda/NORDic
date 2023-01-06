@@ -5,7 +5,7 @@ import numpy as np
 
 from joblib import Parallel, delayed
 import mpbn
-import mpbn_sim
+import mpbn.simulation as mpbn_sim
 from tqdm import tqdm
 
 from sklearn.metrics import pairwise_distances
@@ -111,10 +111,7 @@ def simulate(network_fname, targets, patients, score, simu_params={}, nbseed=0, 
     ## Get M30 genes
     with open(network_fname, "r") as f:
         network = str(f.read())
-    if (", " in network):
-        genes = [x.split(", ")[0] for x in network.split("\n") if (len(x)>0)]
-    else:
-        genes = [x.split(" <- ")[0] for x in network.split("\n") if (len(x)>0)]
+    genes = [x.split(", ")[0] for x in network.split("\n") if (len(x)>0)]
     from random import seed as rseed
     rseed(nbseed)
     np.random.seed(nbseed)
@@ -172,7 +169,7 @@ def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_na
             depth_args = exp.get("depth_args", {})
             if (not quiet):
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
-            probs = mpbn_sim.estimate_reachable_attractor_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
+            probs = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float).loc[genes]
             probs = {i: x for i,x in list(probs.items()) if (x>0)}
             attrs = attrs[[attrs.columns[i] for i in list(probs.keys())]]

@@ -9,7 +9,7 @@ import random
 from joblib import Parallel, delayed
 
 import mpbn
-import mpbn_sim
+import mpbn.simulation as mpbn_sim
 from tqdm import tqdm
 import gc
 
@@ -45,7 +45,7 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
             depth_args = exp.get("depth_args", {})
             if (not quiet):
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
-            probs = mpbn_sim.estimate_reachable_attractor_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
+            probs = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float)
             probs = {i: x for i,x in list(probs.items()) if (x>0)}
             attrs = attrs[[attrs.columns[i] for i in list(probs.keys())]]
@@ -117,7 +117,7 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     depth = getattr(mpbn_sim, f"{exp['depth']}_depth")
     rates_args = exp.get("rate_args", {})
     depth_args = exp.get("depth_args", {})
-    probs_WT = mpbn_sim.estimate_reachable_attractor_probabilities(f, x0, A_WT, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
+    probs_WT = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A_WT, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
     probs_WT = {i: x for i,x in list(probs_WT.items()) if (x>0)}
     A_WT = [A_WT[i] for i in list(probs_WT.keys())]
     if (not quiet):

@@ -166,7 +166,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             app_name = get_app_name_STRING(string_args["credentials"])
             network = get_network_from_STRING(model_genes, 
                             taxon_id,
-                            min_score=0, 
+                            min_score=string_args.get("score", 0), 
                             app_name=app_name,
                             quiet=True
             )
@@ -583,7 +583,7 @@ def select_optimal_model(sols, weights, file_folder):
     ## * Maximizer of general topological criterion (GTP)
     GTPs = [general_topological_parameter(solution2influences(sols[c]), weights) for c in sols.columns]
     GTP_df = pd.DataFrame([GTPs], index=["GTP"], columns=sols.columns)
-    print(GTP_df)
+    print(GTP_df.head())
     GTP_df.to_csv(file_folder+"GPT.csv")
     max_criterion_solution = sols[sols.columns[np.argmax(GTPs)]]
     max_criterion_influences = solution2influences(max_criterion_solution)

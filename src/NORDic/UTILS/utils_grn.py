@@ -421,7 +421,8 @@ def load_grn(fname):
         Loads GRN as MPBN class element
     '''
     BN = mpbn.MPBooleanNetwork(fname)
-    solution = pd.Series([x.split(" <- ")[-1] for x in str(BN).split("\n")], index=[x.split(" <- ")[0] for x in str(BN).split("\n")])
+    sep=" <- " if (" <- " in str(BN)) else ", "
+    solution = pd.Series([x.split(sep)[-1] for x in str(BN).split("\n")], index=[x.split(sep)[0] for x in str(BN).split("\n")])
     return solution
 
 def get_minimal_edges(R, maximal=False):
@@ -444,7 +445,7 @@ def get_grfs_from_solution(solution):
     '''
     sol_dict, grfs = solution.to_dict(), {}
     for gene in sol_dict:
-        grf = "".join("".join(" ".join(" ".join(str(sol_dict[gene]).split("|")).split("&")).split("(")).split(")"))
+        grf = "".join("".join(" ".join(" ".join(str(sol_dict[gene]).split(", ")[-1].split("|")).split("&")).split("(")).split(")"))
         if (len(str(grf))==0):
             continue
         regulators = {}
@@ -457,7 +458,7 @@ def get_grfs_from_solution(solution):
         grfs.setdefault(gene, regulators)
     return grfs
 
-def save_grn(solution, fname, sep="<-", quiet=False, max_show=5, write=True):
+def save_grn(solution, fname, sep=", ", quiet=False, max_show=5, write=True):
     '''
         Write and/or print .bnet file
         @param\tsolution\tPandas Series: rows/[genes] contains gene regulatory functions (GRF)
@@ -469,7 +470,7 @@ def save_grn(solution, fname, sep="<-", quiet=False, max_show=5, write=True):
         @return\tNone\t
     '''
     sol = solution.to_dict()
-    print_sol = [" ".join([str(x) for x in [gene, sep, sol[gene]]]) for gene in sol if (len(gene)>0)]
+    print_sol = ["".join([str(x) for x in [gene, sep, sol[gene]]]) for gene in sol if (len(gene)>0)]
     if (not quiet):
         print("\n"+("\n".join(print_sol[:max_show]+["..." if (len(print_sol)>max_show) else ""])))
     print_sol = "\n".join(print_sol)
