@@ -244,7 +244,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         symbols_fname=file_folder+"SYMBOLS.csv"
         if (not os.path.exists(symbols_fname)):
             user_key = get_user_key(lincs_args["credentials"])
-            pert_df = convert_EntrezGene_LINCSL1000(list(probes["Gene ID"]), user_key)
+            pert_df = convert_EntrezGene_LINCSL1000(file_folder, list(probes["Gene ID"]), user_key)
             pert_df.to_csv(symbols_fname)
         pert_df = pd.read_csv(symbols_fname, index_col=0)
 
@@ -278,10 +278,10 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             user_key = get_user_key(lincs_args["credentials"])
             pert_di = pert_df[["Entrez ID","Gene Symbol"]].to_dict()["Entrez ID"]
             if (not os.path.exists(full_profiles_fname)):
-                full_profiles = get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, selection, user_key, path_to_lincs, thres_iscale=thres_iscale, nsigs=nsigs, quiet=False)
+                full_profiles = get_experimental_constraints(file_folder, cell_lines, pert_types, pert_di, taxon_id, selection, user_key, path_to_lincs, thres_iscale=thres_iscale, nsigs=nsigs, quiet=False)
                 full_profiles.to_csv(full_profiles_fname)
             else:
-                full_profiles = pd.read_csv(full_profiles_fname, index_col=0)
+                full_profiles = pd.read_csv(full_profiles_fname, index_col=0, low_memory=False)
 
             if (full_profiles.shape[1]==0):
                 profiles = None
@@ -327,7 +327,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             profiles = profiles.loc[[g for g in list(profiles.index) if (g in model_genes+add_rows_profiles)]]
         profiles.to_csv(profiles_fname)
 
-    profiles = pd.read_csv(profiles_fname, index_col=0)
+    profiles = pd.read_csv(profiles_fname, index_col=0, low_memory=False)
     if (not pd.isnull(profiles.values).all()):
         nconds = len(set(["_".join([profiles.loc[v][c] for v in ["perturbed","perturbation","cell_line"]]) for c in profiles.columns]))
     else:

@@ -316,7 +316,7 @@ def select_best_sig(params, filters, user_key, selection="distil_ss", nsigs=2, s
     method = "filter"
     request_url = build_url(endpoint, method, params=params, user_key=user_key)
     ## GET EXPERIMENTS MATCHING THE PARAMS
-    data = post_request(request_url, quiet=True)
+    data = post_request(request_url, quiet=True, pause_time=0.3)
     ## 1. Test if enough signatures were found
     if (nsigs > 0 and (len(data) == 0 or (same_plate and all([len(d["distil_id"]) < nsigs for d in data])) or (not same_plate and sum([len(d["distil_id"]) for d in data]) < nsigs))):
         raise ValueError("<LINCS> (1) No (enough) signatures (%d instead of min. %d) retrieved via LINCS L1000 API.\n%s\n" % (sum([len(d["distil_id"]) for d in data]), nsigs, request_url))

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import requests
 import json
 import os
+import pickle
 
 from NORDic.UTILS.LINCS_utils import *
 from NORDic.UTILS.utils_state import binarize_experiments
@@ -108,9 +109,10 @@ def profiles2signatures(profiles_df, user_key, path_to_lincs, save_fname, backgr
     signatures_df = signatures_list[0].join(signatures_list[1:], how="outer")
     return signatures_df
 
-def get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, selection, user_key, path_to_lincs, thres_iscale=None, nsigs=2, quiet=False):
+def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, taxon_id, selection, user_key, path_to_lincs, thres_iscale=None, nsigs=2, quiet=False):
     '''
     Retrieve experimental profiles from the provided cell lines, perturbation types, list of genes, in the given species (taxon ID)
+    @param\tfile_folder\tPython character string: folder where to store intermediary results
     @param\tcell_lines\tPython character string list: cell lines present in LINCS L1000
     @param\tpert_types\tPython character string list: types of perturbations as supported by LINCS L1000
     @param\tpert_di\tPython dictionary (keys=Python character string, values=Python integer): associates HUGO gene symbols to their EntrezGene IDs
@@ -149,8 +151,16 @@ def get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, sele
             ## /!\ restriction due to limit=1000 in LINCS L1000 requests
             #data_pert_ = post_request(request_url, quiet=True)
             #data_pert_ = [dt for dt in data_pert_ if ((dt["pert_iname"] in pert_inames) and (len(dt["distil_id"])>=nsigs))]
-            data_pert_ = []
+            data_pert_fname = file_folder+"data_pert_cellline=%s_perttype=%s.pck" % (line, pert_type)
+            if (not os.path.exists(data_pert_fname)):
+                data_pert_, seen_genes = [], []
+            else:
+                with open(data_pert_fname, "rb") as f:
+                    results = pickle.load(f)
+                data_pert_, seen_genes = results["data_pert"], results["seen_genes"]
             for ig, gene in enumerate(pert_inames):
+                if (gene in seen_genes):
+                    continue
                 if (not quiet):
                     print("<UTILS_EXP> Gene %d/%d Cell %d/%d Type %d/%d" % (ig+1, len(pert_inames), il+1, len(cell_lines), ip+1, len(pert_types_)))
                 p = {'where': {"pert_type": pert_type, "cell_id": line, "pert_iname": gene}, "fields": params["fields"]}
@@ -158,6 +168,17 @@ def get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, sele
                 if (len(res_pert_)>0 and not quiet):
                     print("\t<UTILS_EXP> (%s,%s,%s): %d" % (gene, line, pert_type, len(res_pert_)))
                 data_pert_ += [dt for dt in res_pert_ if (len(dt["distil_id"])>=nsigs)]
+                seen_genes.append(gene)
+                with open(data_pert_fname, "wb") as f:
+                    pickle.dump({"data_pert": data_pert_, "seen_genes": seen_genes}, f)
+            with open(data_pert_fname, "rb") as f:
+                results = pickle.load(f)
+            data_pert_ = results["data_pert"]
+            sigs_fname = file_folder+"sigs_cellline=%s_perttype=%s.csv" % (line, pert_type)
+            if (os.path.exists(sigs_fname)):
+                sigs = pd.read_csv(sigs_fname, index_col=0)
+                signatures = [sigs[[c for c in sigs.columns if (sigs.loc["perturbed"][c]==gene)]] for gene in list(sigs.T["perturbed"])]
+                perturbed_genes = list(set(list(sigs.loc["perturbed"])))
             for data in data_pert_:
                 entrez_id = pert_di[data["pert_iname"]]
                 if (not quiet):
@@ -183,6 +204,10 @@ def get_experimental_constraints(cell_lines, pert_types, pert_di, taxon_id, sele
                 sigs.loc["sigid"] = list(sigs.columns)
                 nexp = len(signatures)+1
                 sigs.columns = ["Exp"+str(nexp)+":"+str(i)+"-rep"+str(ai+1) for ai, i in enumerate(list(sigs.loc["annotation"]))]
+                if (len(signatures)==0):
+                    sigs.to_csv(sigs_fname)
+                else:
+                    signatures[0].join(signatures[1:], how="outer").to_csv(sigs_fname)
                 signatures.append(sigs)
     if (len(signatures)==0):
         return pd.DataFrame([], index=pert_inames)

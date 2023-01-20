@@ -9,6 +9,7 @@ import os
 from glob import glob
 import io
 import requests
+import pickle
 
 from NORDic.UTILS.STRING_utils import get_protein_names_from_STRING
 from NORDic.UTILS.LINCS_utils import build_url, post_request, lincs_api_url
@@ -107,18 +108,28 @@ def convert_genes_EntrezGene(gene_list, taxon_id, app_name, chunksize=100, missi
         print("%d probes (successful %d, unsuccessful %d)" % (len(probes), len(probes.loc[probes["Gene ID"]!='-']), len(probes.loc[probes["Gene ID"]=="-"])))
     return probes
 
-def convert_EntrezGene_LINCSL1000(EntrezGenes, user_key, quiet=False):
+def convert_EntrezGene_LINCSL1000(file_folder, EntrezGenes, user_key, quiet=False):
     '''
     Converts EntrezIDs to Gene Symbols present in LINCS L1000
+    @param\tfile_folder\tPython character string: path to folder of intermediate results
     @param\tEntrezGenes\tPython character string list: list of EntrezGene IDs
     @param\tuser_key\tPython character string: LINCS L1000 user key
     @param\tquiet\tPython bool[default=False]
     @return\tPandas\tPandas DataFrame: rows/[EntrezID] x columns/["Gene Symbol","Entrez ID"] ("-" if they do not exist)
     '''
     assert user_key
-    pert_inames = [None]*len(EntrezGenes)
-    entrez_ids = [None]*len(EntrezGenes)
+    gene_file = file_folder+"entrezGene_LINCSL1000.pck"
+    if (not os.path.exists(gene_file)):
+        pert_inames = [None]*len(EntrezGenes)
+        entrez_ids = [None]*len(EntrezGenes)
+        seen_genes = []
+    else:
+        with open(gene_file, "rb") as f:
+            results = pickle.load(f)
+        pert_inames, entrez_ids, seen_genes = results["pert_inames"], results["entrez_ids"], results["seen_genes"]
     for ig, g in enumerate(EntrezGenes):
+        if (g in seen_genes):
+                continue
         if (not quiet):
             print("<UTILS_DATA> Entrez ID -> LINCS L1000 (%d/%d)" % (ig+1,len(EntrezGenes)))
         endpoint="genes"
@@ -127,7 +138,7 @@ def convert_EntrezGene_LINCSL1000(EntrezGenes, user_key, quiet=False):
         for entrezid in all_entrezid:
             params = {"where":{"entrez_id": str(entrezid)},"fields":["gene_symbol"]}
             request_url = build_url(endpoint, method, params, user_key=user_key)
-            data = post_request(request_url, quiet=True, pause_time=0)
+            data = post_request(request_url, quiet=True, pause_time=0.3)
             if (len(data)==0):
                 continue
             else:
@@ -137,6 +148,9 @@ def convert_EntrezGene_LINCSL1000(EntrezGenes, user_key, quiet=False):
                     break
         if (pert_inames[ig] is not None):
             print("\t".join([g, pert_inames[ig], str(ig+1), str(len(EntrezGenes))]))
+        seen_genes.append(g)
+        with open(gene_file, "wb") as f:
+            pickle.dump({"pert_inames":pert_inames, "entrez_ids": entrez_ids, "seen_genes": seen_genes}, f)
     pert_inames_ = [p if (p is not None) else "-" for p in pert_inames]
     entrez_ids_ = [entrez_ids[i] if (pert_inames[i] is not None) else "-" for i in range(len(EntrezGenes))]
     pert_df = pd.DataFrame([pert_inames_, entrez_ids], columns=EntrezGenes, index=["Gene Symbol", "Entrez ID"]).T
