@@ -73,11 +73,53 @@ def compare_states(x, y, genes=None):
     dists_pos[np.isnan(dists_pos)] = 0
     dists_neg[np.isnan(dists_neg)] = 0
     dists = np.power(np.multiply(dists_pos,dists_neg), 0.5) # geometric mean
-    ## numerical approximations
+    ## Numerical approximations
     dists[np.isclose(dists, 0)] = 0
     dists[np.isclose(dists, 1)] = 1
     sims = 1-dists
     return sims, N
+
+############ finetuning of binarization threshold
+
+def finetune_binthres(df, samples, network_fname, mutation, step=0.005, maxt=0.5, mint=0, score_binthres=lambda itc,ita_c,ita_t:(1-itc)*ita_c*ita_t, njobs=1, verbose=True):
+    '''
+        Select the binarization threshold (in function @binarize_experiments) which maximize the dissimilarity interconditions and the similarity intracondition
+        @param\tdf\t
+        @param\tsamples\t
+        @param\tnetwork_fname\t
+        @param\tmutation\t
+        @param\tstep\t
+        @param\tmaxt\t
+        @param\tmint\t
+        @param\tscore_binthres\t
+        @param\tnjobs\t
+        @param\tverbose\t
+        @returns\tmax_thres\t
+    '''
+    assert mint>=0 and maxt<=0.5
+    with open(network_fname, "r") as f:
+        gene_list = [x.split(", ")[0] for x in f.read().split("\n") if (len(x)>0)]
+    gene_outputs = [g for g in gene_list if (g not in mutation)]
+    max_thres, max_score = None, -float("inf")
+    scale=float("0."+("0"*(len(str(step).split(".")[-1])-1))+"1")
+    for bt in [x*scale for x in range(int(mint/scale),int(maxt/scale)+1,int(step/scale))]:
+        if (bt>maxt):
+            break
+        df_b = binarize_experiments(df, thres=bt, method="binary", strict=True, njobs=njobs)
+        cp = df_b[[s for s in samples if (samples[s]=="control")]]
+        tps = df_b[[s for s in samples if (samples[s]=="treated")]]
+        sims_interconditions, _ = compare_states(cp, tps, gene_outputs)
+        sims_intractrl, _ = compare_states(cp, cp, gene_outputs)
+        sims_intratps, _ = compare_states(tps, tps, gene_outputs)
+        sc = score_binthres(np.max(sims_interconditions), np.min(sims_intractrl), np.min(sims_intratps))
+        #sc = score_binthres(np.max(sims_interconditions), np.max(sims_intractrl), np.max(sims_intratps))
+        if (sc > max_score):
+            max_thres, max_score = bt, sc
+        if (verbose):
+            print("BinThres=%.3f\tMax.sim CTRL||TRT: %.3f\tMin.sim CTRL||CTRL: %.3f\tMin.sim TRT||TRT: %.3f\tScore: %.3f"%(bt, np.max(sims_interconditions), np.min(sims_intractrl), np.min(sims_intratps), sc))
+    if (verbose):
+        print("Final bin_thres value: %.3f (score %.3f)" % (max_thres, max_score))
+    return max_thres
 
 ## Tests
 if __name__ == "__main__":

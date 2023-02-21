@@ -13,6 +13,7 @@ from glob import glob
 from tqdm import tqdm
 from subprocess import call as sbcall
 from copy import deepcopy
+from sklearn.linear_model import LogisticRegression as Logit
 
 from NORDic.UTILS.utils_state import quantile_normalize
 
@@ -522,3 +523,74 @@ def infer_network(BO, njobs=1, fname="solutions", use_diverse=True, limit=50, ni
         if (not os.path.exists(fname+"_"+str(niter+1)+".zip")):
             nsolutions.append(save_solutions(bnetworks, fname+"_"+str(niter+1)+".zip", limit))
     return nsolutions
+
+def get_genes_downstream(network_fname, gene):
+    '''
+        Get the list of genes downstream of a gene in a network
+        @param\tnetwork_fname\tPython character string: path to the .BNET file associated with the network
+        @param\tgene\tPython character string: gene name in the network
+        @return\tlst_downstream\tPython character string list: list of nodes downstream of @gene
+    '''   
+    with open(network_fname, "r") as f:
+        grf_list = f.read().split("\n")
+    grfs = dict([x.split(", ") for x in grf_list if (len(x)>0)]) 
+    set_downstream = set([])
+    if (gene not in grfs):
+        return []
+    while (True):
+        l = len(set_downstream)
+        for g in grfs:
+            if (any(x in grfs[g] for x in set_downstream.union({gene}))):
+                set_downstream = set_downstream.union({g})
+        if (l==len(set_downstream)):
+            break
+    return list(set_downstream)
+
+def get_genes_most_variable(control_profiles, treated_profiles, p=0.8):
+    '''
+        Get the list of genes which contribute most to the variation between two conditions (in the @pth percentile of change)
+        @param\tcontrol_profiles\tPandas DataFrame: rows/[genes] x columns/[samples] profiles from condition 1
+        @param\ttreated_profiles\tPandas DataFrame: rows/[genes] x columns/[samples] profiles from condition 1
+        @param\tp\tPython float: 100*p th percentile to consider 
+        @return\tlst_genes\tPython character string list: list of nodes which contribute most to the variation between conditions
+    '''  
+    assert p>=0 and p<=1
+    model = Logit(penalty="l1",solver="saga",fit_intercept=False,random_state=0,max_iter=1000,n_jobs=njobs)
+    df = control_profiles.join(treated_profiles, how="inner").fillna(0.5)
+    X = df.T.values
+    y = np.ravel(np.array([0]*control_profiles.shape[1]+[1]*treated_profiles.shape[1]))
+    model.fit(X, y)
+    q = np.quantile(np.abs(model.coef_.flatten()), p)
+    genes = {g: model.coef_[0,ig] for ig, g in enumerate(list(df.index)) if (abs(model.coef_[0,ig])>q)}
+    return list(genes.keys())
+
+def reconnect_network(network_fname):
+    '''
+        Write the network with all isolated nodes (no ingoing/outgoing edges) filtered out
+        @param\tnetwork_fname\tPython character string: path to the .BNET associated with the network
+        @return\tfname\tPython character string: path to the .BNET associated with the reconnected network
+    '''  
+    with open(network_fname, "r") as f:
+        network = pd.DataFrame({"Solution": dict([["_".join(g.split("-")) for g in x.split(", ")] for x in f.read().split("\n") if (len(x)>0)])})
+    influences = solution2influences(network["Solution"])
+    assert influences.shape[0]==influences.shape[1]
+    assert all([influences.index[i]==influences.columns[i] for i in range(influences.shape[0])])
+    influences = influences.loc[(influences.abs().sum(axis=1)>0)&(influences.abs().sum(axis=0)>0)]
+    gene_list = list(influences.index)
+    network_connected = network.loc[gene_list]
+    def get_all_genes(network):
+        all_genes = list(network.index)
+        for idx in network.index:
+            grf = str(network.loc[idx]["Solution"])
+            for symb in ["!","&","|","(",")"]:
+                grf = " ".join(grf.split(symb))
+            gene_lst = [g for g in grf.split(" ") if (g not in [" ", "0","1"] and len(g)>0)]
+            all_genes += gene_lst
+        return list(set(all_genes))
+    full_lst = get_all_genes(network_connected)
+    network_connected = network.loc[full_lst].to_dict()["Solution"]
+    network_connected = "\n".join([", ".join(["_".join(g.split("-")) for g in [x,y]]) for x,y in network_connected.items()])
+    network_fname_connected = network_fname.split(".bnet")[0]+"_connected.bnet"
+    with open(network_fname_connected, "w") as f:
+        f.write(network_connected) 
+    return network_fname_connected

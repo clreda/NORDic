@@ -1,5 +1,5 @@
 # Network Oriented Repurposing of Drugs (NORDic)
-(c) Clémence Réda, 2022.
+(c) Clémence Réda, 2023.
 
 [NORDic](https://github.com/clreda/NORDic) is an open-source package which allows to focus on a network-oriented approach to identify regulatory mechanisms linked to a disease, master regulators, and to simulate drug effects on a network, and adaptively test drugs to perform drug repurposing. As such, it is comprised of four distinct parts:
 - **NORDic NI** identifies a disease-associated gene regulatory network (as a *Boolean network*) with its dynamics from several biological sources.
@@ -10,6 +10,13 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7239047.svg)](https://doi.org/10.5281/zenodo.7239047)
 
 To learn how to use the different methods, please check out the associated Jupyter notebooks.
+
+## Note about using functions from UTILS/utils_sim.py
+
+You will need to install MaBoSS 
+```bash
+conda install -c colomoto -y -q maboss
+```
 
 ## Citation
 

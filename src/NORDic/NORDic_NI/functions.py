@@ -166,6 +166,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             app_name = get_app_name_STRING(string_args["credentials"])
             network = get_network_from_STRING(model_genes, 
                             taxon_id,
+                            network_type=string_args.get("network_type", "functional"),
                             min_score=string_args.get("score", 0), 
                             app_name=app_name,
                             quiet=True

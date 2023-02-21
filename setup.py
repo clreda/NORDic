@@ -8,7 +8,7 @@ from setuptools.command.install import install
 from subprocess import check_call
 
 NAME = "NORDic"
-VERSION = "2.2.7"
+VERSION = "2.3.0"
 
 setup(name=NAME,
     version=VERSION,
@@ -41,7 +41,9 @@ setup(name=NAME,
         "cmapPy>=4.0.1",
 	"openpyxl>=3.0.10",
 	"quadprog>=0.1.11",
-	"seaborn>=0.12.1"
+	"seaborn>=0.12.1",
+	"omnipath>=1.0.6",
+	"maboss>=0.8.4"
     ],
     entry_points={},
 )
