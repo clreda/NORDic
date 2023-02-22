@@ -24,8 +24,6 @@ If you use NORDic in published research, please cite the following preliminary w
 
 > Réda, C., & Delahaye-Duriez, A. (2022). Prioritization of Candidate Genes Through Boolean Networks. In *International Conference on Computational Methods in Systems Biology* (pp. 89-121). Springer, Cham.
 
-Due to the presence of copyrighted databases, the license for this code is [Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
-
 ## Installation
 
 ```bash
