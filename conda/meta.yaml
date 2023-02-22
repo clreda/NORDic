@@ -1,0 +1,54 @@
+{% set name = "NORDic" %}
+{% set version = "9999" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  path: "../"
+
+build:
+  script: python -m pip install --no-deps --ignore-installed .
+  noarch: python
+
+requirements:
+  host:
+    - pip
+    - python >=3.5
+
+  run:
+    - bonesis >=0.4.91
+    - clingo >=5.6.1
+    - cmappy >=4.0.1
+    - graphviz >=0.20.1
+    - maboss >=0.8.4
+    - matplotlib >=3.3.4
+    - mpbn >=2.0
+    - omnipath
+    - openpyxl >=3.0.10
+    - qnorm >=0.5.1
+    - quadprog >=0.1.11
+    - scikit-learn >=1.1.2
+    - scipy >=1.6.2
+    - seaborn >=0.12.1
+    - tqdm >=4.62.3
+
+test:
+  imports:
+    - NORDic
+    - NORDic.NORDic_DR
+    - NORDic.NORDic_DS
+    - NORDic.NORDic_NI
+    - NORDic.NORDic_PMR
+    - NORDic.UTILS
+
+about:
+  home: https://github.com/clreda/NORDic
+  license: MIT
+  license-file: LICENSE
+  summary: "Network Oriented Repurposing of Drugs (NORDic): network identification / master regulator detection / drug effect simulator / drug repurposing"
+
+extra:
+  recipe-maintainers:
+    - clreda

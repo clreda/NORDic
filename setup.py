@@ -1,20 +1,14 @@
-#!/usr/bin/env python
-
-import atexit
-import os
-import sys
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-from subprocess import check_call
 
 NAME = "NORDic"
-VERSION = "2.3.0"
+VERSION = "9999"
 
 setup(name=NAME,
     version=VERSION,
     author="Clémence Réda",
     author_email="clemence.reda@inserm.fr",
     url="https://github.com/clreda/NORDic",
+    license_files = ('LICENSE'),
     classifiers=[
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering",

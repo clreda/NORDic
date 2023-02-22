@@ -79,8 +79,6 @@ def compare_states(x, y, genes=None):
     sims = 1-dists
     return sims, N
 
-############ finetuning of binarization threshold
-
 def finetune_binthres(df, samples, network_fname, mutation, step=0.005, maxt=0.5, mint=0, score_binthres=lambda itc,ita_c,ita_t:(1-itc)*ita_c*ita_t, njobs=1, verbose=True):
     '''
         Select the binarization threshold (in function @binarize_experiments) which maximize the dissimilarity interconditions and the similarity intracondition
