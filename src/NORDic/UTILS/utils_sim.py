@@ -267,7 +267,7 @@ class MPBN_SIM(BN_SIM):
         self.attrs = attrs_df
         return attrs_df
 
-    def generate_trajectories(self, params={}, outputs=None):
+    def generate_trajectories(self, params={}, outputs=None, show_plot=True):
         rseed(self.seednb)
         npseed(self.seednb)
         nsims = params.get('sample_count', 1000)
@@ -317,7 +317,8 @@ class MPBN_SIM(BN_SIM):
             trajectories = [y for x in parallel(delayed(generate_trajectory)(s, self.network, params, self.initial_states, noutputs) for s in seeds) for y in x]
         trajectories = pd.DataFrame(trajectories, index=range(nsims*max_time), columns=["step","state","count"])
         probs = pd.pivot_table(trajectories, values="count", index="step", columns="state", aggfunc='count').fillna(0)/nsims
-        plot_trajectory(probs)
+        if (show_plot):
+            plot_trajectory(probs)
         table = pd.DataFrame([list(probs.loc[max_time-1])], index=["prob"], columns=["{"+",".join([g+"=1" for g in c.split(" -- ")])+"}" if (c!="<nil>") else c for c in probs.columns])
         table = table[[c for c in table.columns if (float(table.loc["prob"][c])!=0)]]
         return table
