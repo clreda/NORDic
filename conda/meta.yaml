@@ -6,7 +6,7 @@ package:
   version: "{{ version }}"
 
 source:
-  path: "../"
+  url: "../dist/{{ name }}-{{ version }}.tar.gz"
 
 build:
   script: python -m pip install --no-deps --ignore-installed .
@@ -15,7 +15,7 @@ build:
 requirements:
   host:
     - pip
-    - python >=3.5
+    - python
 
   run:
     - bonesis >=0.4.91

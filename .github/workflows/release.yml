@@ -34,6 +34,7 @@ jobs:
     - uses: s-weigand/setup-conda@v1
     - name: prepare
       run: |
+        python setup.py sdist bdist_wheel
         conda install -y anaconda-client conda-build conda-verify conda-libmamba-solver
         conda config --set solver libmamba
         conda config --set channel_priority flexible
