@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8"]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
 
     steps:
       - uses: actions/checkout@v3
@@ -20,7 +20,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools wheel
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Test with pytest
+      - name: Test NI (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
-          pytest tests/tests.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          pytest tests/tests_NI.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+      - name: Test PMR (CCHS) with pytest
+        run: |
+          pip install pytest pytest-cov
+          pytest tests/tests_PMR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+      - name: Test DS (CCHS) with pytest
+        run: |
+          pip install pytest pytest-cov
+          pytest tests/tests_DS.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+      - name: Test DR (CCHS) with pytest
+        run: |
+          pip install pytest pytest-cov
+          pytest tests/tests_DR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
