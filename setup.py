@@ -19,7 +19,7 @@ setup(name=NAME,
     description="Network Oriented Repurposing of Drugs (NORDic): network identification / master regulator detection / drug effect simulator / drug repurposing",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    packages=find_packages(),
+    packages=find_packages(where="src"),
     package_dir={'':"src"},
     python_requires='>=3.8.5',
     install_requires=[
