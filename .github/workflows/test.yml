@@ -20,6 +20,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          conda install -c colomoto -y -q maboss
           pip install --use-pep517 -e . 
           python -c "import NORDic; print('OK')"
       - name: Test NI (CCHS) with pytest
