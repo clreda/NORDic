@@ -23,9 +23,8 @@ jobs:
           pip install -e .
       - name: Test NI (CCHS) with pytest
         run: |
-          pip install -e .
           pip install pytest pytest-cov
-          pytest -m pytest tests/tests_NI.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          python -m pytest tests/tests_NI.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
       - name: Test PMR (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
