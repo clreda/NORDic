@@ -1,6 +1,5 @@
 #coding: utf-8
 
-import NORDic
 import pandas as pd
 from multiprocessing import cpu_count
 import os
@@ -66,7 +65,7 @@ experiments_content["initial_SHSY5Y"] = [1,1,1,1,0,0,"Cell","1","None","None","S
 experiments_content.to_csv(file_folder+"experiments.csv")
 
 ## Network identification
-from NORDic.NORDic_NI.functions import network_identification
+from src.NORDic.NORDic_NI.functions import network_identification
 solution = network_identification(file_folder, taxon_id, path_to_genes=None, 
     network_fname=file_folder+"network.tsv", experiments_fname=file_folder+"experiments.csv", 
     disgenet_args=DISGENET_args, string_args=STRING_args, edge_args=EDGE_args, lincs_args=LINCS_args, 

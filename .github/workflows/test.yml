@@ -1,4 +1,4 @@
-name: NORDic test
+name: NORDic post-pushing testing
 
 on: [push]
 

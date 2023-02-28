@@ -1,8 +1,5 @@
 #coding: utf-8
 
-## Run all the code in NORDic/notebooks/NORDic CoLoMoTo.ipynb
-
-import NORDic
 import pandas as pd
 from multiprocessing import cpu_count
 import os
@@ -35,12 +32,12 @@ targets.to_csv(file_folder+"targets.csv")
 dfdata = states.loc[[i for i in states.index if (i != "annotation")]]
 samples = states.loc["annotation"]
 
-from NORDic.NORDic_DS.functions import compute_frontier
+from src.NORDic.NORDic_DS.functions import compute_frontier
 ## compute_frontier fits a SVM model to the data
 frontier = compute_frontier(dfdata, samples)
 score = lambda attrs : (frontier.predict(attrs.values.T)==1).astype(int)
 
-from NORDic.NORDic_DS.functions import simulate
+from src.NORDic.NORDic_DS.functions import simulate
 scores = simulate(file_folder+"solution.bnet", targets, patients, score, simu_params=SIMU_params, nbseed=seed_number)
 
 assert scores.shape[0]==patients.shape[1]

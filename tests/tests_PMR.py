@@ -1,6 +1,5 @@
 #coding: utf-8
 
-import NORDic
 import pandas as pd
 from multiprocessing import cpu_count
 import os
@@ -53,7 +52,7 @@ patients = pd.DataFrame(patients)
 patients = patients.loc[[i for i in patients.index if (i != "annotation")]]
 
 ## Prioritization of Master Regulators
-from NORDic.NORDic_PMR.functions import greedy
+from src.NORDic.NORDic_PMR.functions import greedy
 S, spreads = greedy(file_folder+"solution.bnet", k, patients, IM_params, SIMU_params, save_folder=file_folder)
 assert spreads.shape[0]==6
 assert np.max(spreads.values)==spreads.loc[S[0][0]][str(S)]
