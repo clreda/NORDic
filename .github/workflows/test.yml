@@ -25,7 +25,7 @@ jobs:
       - name: Test NI (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
-          python -m src/tests/tests_NI.py
+          python -m tests/tests_NI.py
       - name: Test PMR (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
