@@ -10,6 +10,7 @@ import numpy as np
 
 file_folder="ToyOndine/"
 seed_number=12345
+SIMU_params = {'nb_sims': 1000, 'rates': "fully_asynchronous", 'thread_count': njobs, 'depth': "constant_unitary"}
 
 np.random.seed(seed_number)
 with open(file_folder+"solution.bnet", "r") as f:
