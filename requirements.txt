@@ -13,3 +13,5 @@ quadprog>=0.1.11
 seaborn>=0.12.1
 omnipath>=1.0.6
 maboss>=0.8.4
+pandas>=1.5.1
+numpy>=1.22.4
