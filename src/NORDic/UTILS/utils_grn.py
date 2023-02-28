@@ -524,11 +524,12 @@ def infer_network(BO, njobs=1, fname="solutions", use_diverse=True, limit=50, ni
             nsolutions.append(save_solutions(bnetworks, fname+"_"+str(niter+1)+".zip", limit))
     return nsolutions
 
-def get_genes_downstream(network_fname, gene):
+def get_genes_downstream(network_fname, gene, n=-1):
     '''
         Get the list of genes downstream of a gene in a network
         @param\tnetwork_fname\tPython character string: path to the .BNET file associated with the network
         @param\tgene\tPython character string: gene name in the network
+        @param\tn\tPython integer[default=-1]: number of recursions (if<0, recursively get all downstream genes)
         @return\tlst_downstream\tPython character string list: list of nodes downstream of @gene
     '''   
     with open(network_fname, "r") as f:
@@ -537,13 +538,15 @@ def get_genes_downstream(network_fname, gene):
     set_downstream = set([])
     if (gene not in grfs):
         return []
-    while (True):
+    count_n = 0
+    while ((n<0) or (count_n<n)):
         l = len(set_downstream)
         for g in grfs:
             if (any(x in grfs[g] for x in set_downstream.union({gene}))):
                 set_downstream = set_downstream.union({g})
         if (l==len(set_downstream)):
             break
+        count_n += 1
     return list(set_downstream)
 
 def get_genes_most_variable(control_profiles, treated_profiles, p=0.8):
