@@ -10,6 +10,7 @@ import numpy as np
 
 file_folder="ToyOndine/"
 seed_number=12345
+njobs=min(5,max(1,cpu_count()-2))
 SIMU_params = {'nb_sims': 1000, 'rates': "fully_asynchronous", 'thread_count': njobs, 'depth': "constant_unitary"}
 
 np.random.seed(seed_number)
