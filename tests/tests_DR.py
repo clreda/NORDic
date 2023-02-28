@@ -1,10 +1,7 @@
 #coding: utf-8
 
-import sys, os
-testdir = os.path.dirname(__file__)
-srcdir = '../src/'
-sys.path.insert(0, os.path.abspath(os.path.join(testdir, srcdir)))
-
+import NORDic
+import os
 import pandas as pd
 from multiprocessing import cpu_count
 import numpy as np
@@ -29,13 +26,13 @@ targets = pd.read_csv(file_folder+"targets.csv", index_col=0)
 ## Define the function which determines whether a state is closer to controls/patients
 dfdata = states.loc[[i for i in states.index if (i != "annotation")]]
 samples = states.loc["annotation"]
-from src.NORDic.NORDic_DS.functions import compute_frontier
+from NORDic.NORDic_DS.functions import compute_frontier
 ## compute_frontier fits a SVM model to the data
 frontier = compute_frontier(dfdata, samples)
 score = lambda attrs : (frontier.predict(attrs.values.T)==1).astype(int)
 
 ## Drug Repurposing through adaptive testing
-from src.NORDic.NORDic_DR.functions import adaptive_testing
+from NORDic.NORDic_DR.functions import adaptive_testing
 
 BANDIT_args = {
     'bandit': 'LinGapE', 

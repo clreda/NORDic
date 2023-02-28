@@ -28,14 +28,12 @@ jobs:
       - name: Test NI (CCHS)
         run: |
           cd tests/ && python -m tests_NI
-      - name: Test PMR (CCHS) with pytest
+      - name: Test PMR (CCHS)
         run: |
-          pip install pytest pytest-cov
-          pytest -m pytest tests/tests_PMR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
-      - name: Test DS (CCHS) with pytest
+          cd tests/ && python -m tests_PMR
+      - name: Test DS (CCHS)
         run: |
-          pip install pytest pytest-cov
-          pytest -m pytest tests/tests_DS.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          cd tests/ && python -m tests_DS
       - name: Test DR (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
