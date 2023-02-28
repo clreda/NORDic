@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 import seaborn as sns
 
-def influences2graph(influences, fname, optional=False, compile2png=True, engine=["sfdp","dot"][1]):
+def influences2graph(influences, fname, optional=False, compile2png=True, engine=["sfdp","dot"][0]):
     '''
         Plots a network by conversion to a DOT file and then to PNG
         @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes], contains {-1,1,2}
