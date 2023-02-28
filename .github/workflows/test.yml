@@ -21,10 +21,11 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install -e .
+          python -c "import NORDic"
       - name: Test NI (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
-          python -m pytest tests/tests_NI.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          pytest -m pytest src/tests/tests_NI.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
       - name: Test PMR (CCHS) with pytest
         run: |
           pip install pytest pytest-cov

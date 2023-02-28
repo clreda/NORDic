@@ -1,0 +1,60 @@
+{
+    "file_folder": "refractory_epilepsy/",
+    "taxon_id": 9606,
+    "path_to_genes": "Refractory_Epilepsy_Data/S1_Delahayeetal2016_M30genes.txt",
+    "disgenet_args": {
+        "credentials": "credentials_DISGENET.txt",
+        "disease_cids": [
+            "C0014544"
+        ],
+        "min_score": 0,
+        "min_ei": 0,
+        "min_dsi": 0.25,
+        "min_dpi": 0
+    },
+    "string_args": {
+        "credentials": "credentials_STRING.txt",
+        "score": 0.31,
+        "version": "v10.5",
+        "beta": 1
+    },
+    "lincs_args": {
+        "path_to_lincs": "../lincs/",
+        "credentials": "credentials_LINCS.txt",
+        "cell_lines": [
+            "NPC",
+            "SHSY5Y"
+        ],
+        "pert_types": [
+            "trt_sh",
+            "trt_oe",
+            "trt_xpr"
+        ],
+        "selection": "distil_ss",
+        "thres_iscale": 0,
+        "nsigs": 2
+    },
+    "edge_args": {
+        "beta": 1,
+        "tau": 0,
+        "cor_method": "pearson",
+        "filter": true,
+        "connected": true
+    },
+    "sig_args": {
+        "bin_thres": 0.265,
+        "bin_method": "binary"
+    },
+    "bonesis_args": {
+        "exp_ids": [],
+        "use_diverse": true,
+        "limit": 100,
+        "niterations": 1,
+        "exact": false,
+        "max_maxclause": 4
+    },
+    "weights": null,
+    "seed": 0,
+    "network_fname": null,
+    "njobs": 10
+}
