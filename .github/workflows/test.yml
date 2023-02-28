@@ -25,10 +25,9 @@ jobs:
           conda install -c colomoto -y -q maboss
           pip install --use-pep517 -e . 
           python -c "import NORDic; print('OK')"
-      - name: Test NI (CCHS) with pytest
+      - name: Test NI (CCHS)
         run: |
-          pip install pytest pytest-cov
-          cd tests/ && python -m tests_NI.py
+          cd tests/ && python -m tests_NI
       - name: Test PMR (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
