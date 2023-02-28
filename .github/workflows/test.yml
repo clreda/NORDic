@@ -34,7 +34,6 @@ jobs:
       - name: Test DS (CCHS)
         run: |
           cd tests/ && python -m tests_DS
-      - name: Test DR (CCHS) with pytest
+      - name: Test DR (CCHS) 
         run: |
-          pip install pytest pytest-cov
-          pytest -m pytest tests/tests_DR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+           cd tests/ && python -m tests_DR
