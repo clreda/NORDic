@@ -24,16 +24,16 @@ jobs:
       - name: Test NI (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
-          pytest tests/tests_NI.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          pytest -m pytest tests/tests_NI.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
       - name: Test PMR (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
-          pytest tests/tests_PMR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          pytest -m pytest tests/tests_PMR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
       - name: Test DS (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
-          pytest tests/tests_DS.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          pytest -m pytest tests/tests_DS.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
       - name: Test DR (CCHS) with pytest
         run: |
           pip install pytest pytest-cov
-          pytest tests/tests_DR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          pytest -m pytest tests/tests_DR.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
