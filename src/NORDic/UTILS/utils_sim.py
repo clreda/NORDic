@@ -279,7 +279,7 @@ class MPBN_SIM(BN_SIM):
         max_time = params.get("max_time", 1000)
         noutputs = [g for g in (self.gene_list if (len(outputs)==0) else outputs) if (g not in self.all_mutants)]
         seeds = choice(range(int(max(1e4,nsims))), size=nsims)
-        name_state = lambda s : " -- ".join(list(sorted([g for g in s if ((s[g]==1) and (g in noutputs))]))) if (any([(s[g]==1) and (g in noutputs) for g in s])) else "<nil>"
+        name_state = lambda s : " -- ".join(list(sorted([g for g in s if ((s[g]==1) and (g in noutputs))]))) if (any([(s[g]==1) and (g in noutputs) for g in s])) else "{<nil>==1}"
         #@delayed
         #@wrap_non_picklable_objects
         def generate_trajectory(snb, net, params, istates, noutputs):

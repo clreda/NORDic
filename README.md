@@ -91,4 +91,4 @@ This code is under [OSI-approved](https://opensource.org/licenses/) [MIT license
 
 ## Community guidelines with respect to contributions, issue reporting, and support
 
-[Pull requests](https://github.com/clreda/NORDic/pulls) and [issue flagging](https://github.com/clreda/NORDic/issues) are welcome, and can be made through the GitHub interface. Support can be provided by reaching out to clemence.reda [at]() inserm.fr. However, please note that contributors and users **must** abide by the [Code of Conduct](https://raw.githubusercontent.com/clreda/NORDic/main/CODE OF CONDUCT).
+[Pull requests](https://github.com/clreda/NORDic/pulls) and [issue flagging](https://github.com/clreda/NORDic/issues) are welcome, and can be made through the GitHub interface. Support can be provided by reaching out to clemence.reda [at]() inserm.fr. However, please note that contributors and users **must** abide by the [Code of Conduct](https://raw.githubusercontent.com/clreda/NORDic/main/CODE%20OF%20CONDUCT).
