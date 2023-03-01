@@ -17,9 +17,8 @@ import maboss
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 
-from NORDic.UTILS.utils_state import compare_states
-from NORDic.UTILS.utils_state import binarize_experiments
-from NORDic.UTILS.utils_grn import solution2influences, get_weakly_connected, create_grn
+from NORDic.UTILS.utils_state import compare_states, binarize_experiments
+from NORDic.UTILS.utils_grn import solution2influences, create_grn
 
 import mpbn
 import mpbn.simulation as mpbn_sim
@@ -116,7 +115,7 @@ def test(enumerator, seednb, njobs, network_fname, control_profile, treated_prof
 class BN_SIM(object):
     def __init__(self, seednb=0,njobs=None):
         self.seednb = seednb
-        self.initial_states = None
+        self.initial = None
         self.mutation_permanent = {}
         self.mutation_transient = {}
         self.all_mutants = []
@@ -198,7 +197,7 @@ class BN_SIM(object):
 
     def up_to_attractors(self, network_fname, initial, final, mutation_permanent={}, mutation_transient={}, verbose=True):
         self.update_network(network_fname, initial, final, mutation_permanent, mutation_transient, verbose=verbose)
-        attrs = self.enumerate_attractors()
+        attrs = self.enumerate_attractors(verbose)
         if (verbose):
             print("Enumerated %d attractors" % attrs.shape[1])
         return attrs
@@ -218,7 +217,7 @@ class BN_SIM(object):
     def enumerate_attractors(self, verbose=False):
         raise NotImplemented
 
-    def generate_trajectories(self, params=None, outputs=None):
+    def generate_trajectories(self, params={}, outputs=[]):
         raise NotImplemented
 
 ############ MPBN VERSION
@@ -239,7 +238,7 @@ class MPBN_SIM(BN_SIM):
             x0[i] = int(initial.loc[i][initial.columns[0]])
         for g, gval in self.mutation_transient.items():
             x0[g] = int(gval)
-        self.initial_states = x0
+        self.initial = x0
 
     def add_transient_mutation(self, mutation):
         pass
@@ -251,23 +250,28 @@ class MPBN_SIM(BN_SIM):
     def enumerate_attractors(self, max_attrs=-1, verbose=True):
         random.seed(self.seednb)
         np.random.seed(self.seednb)
-        #attrs_gen = self.network.fixedpoints(reachable_from=self.initial_states)
-        attrs_gen = self.network.attractors(reachable_from=self.initial_states)
+        #attrs_gen = self.network.fixedpoints(reachable_from=self.initial)
+        if (verbose):
+            attrs_gen = self.network.attractors(reachable_from=self.initial)
+        else:
+            with capture() as out:
+                attrs_gen = self.network.attractors(reachable_from=self.initial)
         if (max_attrs>0):
             attrs = [None]*max_attrs
-            for ia, a in tqdm(enumerate(attrs_gen)):
+            idt = lambda x : x
+            for ia, a in (tqdm if (verbose) else idt)(enumerate(attrs_gen)):
                 self.attrs.append(a)
                 attrs[ia] = pd.DataFrame({"Attr%d"%ia: a})
                 if (max_attrs>0 and (ia==max_attrs-1)):
                     break
         else:
-            self.attrs = [a for a in tqdm(attrs_gen)]
+            self.attrs = [a for a in (tqdm if (verbose) else idt)(attrs_gen)]
             attrs = [pd.DataFrame({"Attr%d"%ia: a}) for ia, a in enumerate(self.attrs)]
         attrs_df = attrs[0].join(attrs[1:], how="outer")
         self.attrs = attrs_df
         return attrs_df
 
-    def generate_trajectories(self, params={}, outputs=None, show_plot=True):
+    def generate_trajectories(self, params={}, outputs=[], show_plot=True):
         rseed(self.seednb)
         npseed(self.seednb)
         nsims = params.get('sample_count', 1000)
@@ -310,11 +314,11 @@ class MPBN_SIM(BN_SIM):
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.show()
         if ((njobs==1) or (nsims==1)):
-            trajectories = [y for s in seeds for y in generate_trajectory(s, self.network, params, self.initial_states, noutputs)]
+            trajectories = [y for s in seeds for y in generate_trajectory(s, self.network, params, self.initial, noutputs)]
         else:
             set_loky_pickler()
             parallel = Parallel(n_jobs=njobs, backend='loky')
-            trajectories = [y for x in parallel(delayed(generate_trajectory)(s, self.network, params, self.initial_states, noutputs) for s in seeds) for y in x]
+            trajectories = [y for x in parallel(delayed(generate_trajectory)(s, self.network, params, self.initial, noutputs) for s in seeds) for y in x]
         trajectories = pd.DataFrame(trajectories, index=range(nsims*max_time), columns=["step","state","count"])
         probs = pd.pivot_table(trajectories, values="count", index="step", columns="state", aggfunc='count').fillna(0)/nsims
         if (show_plot):
@@ -353,7 +357,7 @@ class BONESIS_SIM(BN_SIM):
         data_exps = data_df[["exp"]].dropna().to_dict()
         data_exps.update(data_df[["init"]].dropna().to_dict())
         self.network = BoNesis(self.grn, data_exps)
-        #self.state = initial_.to_dict()["initial"]
+        self.initial = initial_.to_dict()["initial"]
         #self.network = list(BoNesis(self.grn, data_exps).boolean_networks())[0]
 
     def add_transient_mutation(self, mutation):
@@ -362,24 +366,23 @@ class BONESIS_SIM(BN_SIM):
     def add_permanent_mutation(self, mutation):
         pass
 
-    def enumerate_attractors(self, strict=True, verbose=True):
+    def enumerate_attractors(self, verbose=True):
         #attrs = pd.DataFrame({"Attr%d"%i : attr for i, attr in enumerate(self.network.attractors(reachable_from=self.state))})
         #return attrs
         if (len(self.mutation_permanent)==0):
             final_FP = self.network.fixed(~self.network.obs("exp"))
             ~self.network.obs("init") >= final_FP
-            if (strict):
-                ~self.network.obs("exp") >> "fixpoints" ^ {self.network.obs("exp")} #ensure that exclusively self-loops
         else:
             with self.network.mutant(self.mutation_permanent) as m:
                 final_FP = m.fixed(~m.obs("exp"))
                 ~m.obs("init") >= final_FP
-                if (strict):
-                    ~m.obs("exp") >> "fixpoints" ^ {m.obs("exp")} #ensure that exclusively self-loops
-        #with capture() as out:
-        #    BNs = list(self.network.boolean_networks(limit=1, njobs=self.njobs))
-        BNs = list(self.network.boolean_networks(limit=1, njobs=self.njobs))
-        nsol = len([bn for bn in tqdm(BNs)])
+        if (verbose):
+            BNs = list(self.network.boolean_networks(limit=1, njobs=self.njobs))
+            nsol = len([bn for bn in tqdm(BNs)])
+        else:
+            with capture() as out:
+                BNs = list(self.network.boolean_networks(limit=1, njobs=self.njobs))
+            nsol = len([bn for bn in BNs])
         if (nsol>0):
             attrs = pd.DataFrame({"Attr%d" % self.nattr: self.network.data["exp"]})
         else:
@@ -389,7 +392,7 @@ class BONESIS_SIM(BN_SIM):
         self.attrs = attrs
         return attrs
 
-    def generate_trajectories(self, params=None, outputs=None):
+    def generate_trajectories(self, params={}, outputs=[]):
         raise NotImplemented
 
 ############ MABOSS VERSION
@@ -421,12 +424,12 @@ class MABOSS_SIM(BN_SIM):
         assert initial.shape[1]==1
         for g in self.network.nodes:
             p_g = 0.5 if (g not in initial.dropna().index) else float(initial.loc[g][initial.columns[0]])
-            self.network.set_istate(g, {0: 1.-p_g, 1: p_g})
+            self.network.set_istate(g, [1.-p_g, p_g]) ## 0: prb(g==0 in initial state), 1: prb(g==1 in initial state)
         for g, p_g in self.mutation_transient.items():
-            self.network.set_istate(g, {0: 1.-p_g, 1: p_g})
+            self.network.set_istate(g, [1.-p_g, p_g])
         self.initial = initial.copy().T
         for g, gval in self.mutation_transient.items():
-            self.initial[g] = gval
+            self.initial[g] = float(gval)
         self.initial = self.initial.T
 
     def add_transient_mutation(self, mutation):
@@ -450,7 +453,7 @@ class MABOSS_SIM(BN_SIM):
         self.attrs = attrs
         return attrs
 
-    def generate_trajectories(self, params={}, outputs=None):
+    def generate_trajectories(self, params={}, outputs=[]):
         self.network.param.update(self.params if (len(params)==0) else params)
         self.network.set_outputs([g for g in (self.gene_list if (len(outputs)==0) else outputs) if (g not in self.network.mutations)])
         sbcall("mkdir -p "+self.folder+"/models/",shell=True)

@@ -7,6 +7,7 @@ import omnipath as op
 
 from NORDic.UTILS.STRING_utils import get_interactions_from_STRING, get_network_from_STRING
 from NORDic.UTILS.utils_data import request_biodbnet
+from NORDic.UTILS.utils_grn import get_weakly_connected
 
 import contextlib
 @contextlib.contextmanager
@@ -74,7 +75,7 @@ def determine_edge_threshold(network, core_gene_set, quiet=True):
                 m = (M+m)//2
                 break
         t = t_array[m]
-    assert len(components)==1 and len([g for g in components[0] if (g in core_gene_set)])==len(main_component)
+    assert len([g for g in components[0] if (g in core_gene_set)])==len(main_component)
     return t
 
 def merge_network_PPI(network, PPI, quiet=True):
@@ -181,8 +182,24 @@ def remove_isolated(network, quiet=False):
     return network_trimmed.sort_values(by="score", ascending=False)
 
 def aggregate_networks(file_folder, gene_list, taxon_id, min_score, network_type, app_name, version_net="11.5", version_act="11.0", quiet=0):
-    network = get_network_from_STRING(gene_list, taxon_id, min_score, network_type, 0, app_name, version_net, quiet)
-    PPI = get_interactions_from_STRING(gene_list, taxon_id, min_score, True, version_act, app_name, file_folder)
+    '''
+        This function performs the following pipeline to build a prior knowledge network based on a subset of genes
+	- Retrieve protein actions and predicted PPIs from STRING
+	- Merge the two networks while solving all inconsistencies (duplicates, paradoxes, etc.) in signs, directions, scores
+	- Determine the greatest threshold on the edge score which allows all of the core gene set to be connected (binary search)
+	- Trim out edges which scores are below the threshold, and remove all isolated nodes
+        @param\tfile_folder\tPython character string: relative path where to store files
+        @param\tgene_list\tPython character string list: list of core gene symbols to preserve in the network
+        @param\ttaxon_id\tPython integer: NCBI taxonomy ID
+        @param\tmin_score\tPython integer: minimum score on edges retrieved from the STRING database
+        @param\tapp_name\tPython character string: Identifier for STRING requests
+        @param\tversion_net\tPython character string[default="11.5"]: Number of version for interaction data in the STRING database. To avoid compatibility issues, it is strongly advised not to change this parameter
+        @param\tversion_act\tPython character string[default="11.0"]: Number of version for protein action data in the STRING database. To avoid compatibility issues, it is strongly advised not to change this parameter
+        @param\tquiet\tPython bool[default=None]: 
+        @return\tfinal_network\tPandas DataFrame: rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
+    '''
+    network = get_network_from_STRING(gene_list, taxon_id, min_score=min_score, network_type=network_type, add_nodes=0, app_name=app_name, version=version_net, quiet=quiet)
+    PPI = get_interactions_from_STRING(gene_list, taxon_id, min_score=min_score, strict=False, version=version_act, app_name=app_name, file_folder=file_folder)
     final_network = merge_network_PPI(network, PPI)
     genes = list(set(list(final_network["preferredName_A"])+list(final_network["preferredName_B"])))
     threshold = determine_edge_threshold(final_network, genes)
