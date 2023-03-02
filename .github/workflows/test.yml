@@ -12,16 +12,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Set up Python ${{ matrix.python-version }} using Conda
+        uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python-version }}
           miniforge-version: latest
           use-mamba: true
           mamba-version: "*"
-      - name: Setup Graphviz
+          channels: colomoto
+      - name: Set up Graphviz
         uses: ts-graphviz/setup-graphviz@v1
-      - name: Install dependencies and NORDic
+      - name: Install dependencies and build NORDic
         run: |
           python -m pip install --upgrade pip
           pip install -r pip/requirements.txt
@@ -35,5 +36,4 @@ jobs:
         run: |
           conda install -c colomoto -y -q maboss
           MaBoSS -h
-          python -c "import maboss; print('MaBoSS is successfully installed and importable in Python.')"
           cd tests/ && python -m tests_sim
