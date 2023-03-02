@@ -33,6 +33,7 @@ jobs:
       - name: Test SIM (CCHS) 
         shell: bash -l {0}
         run: |
-          mamba install -c colomoto -y -q maboss
+          conda install -c colomoto -y -q maboss
+          MaBoSS -h
           python -c "import maboss; print('MaBoSS is successfully installed and importable in Python.')"
           cd tests/ && python -m tests_sim
