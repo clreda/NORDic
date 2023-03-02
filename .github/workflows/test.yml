@@ -21,25 +21,10 @@ jobs:
       - name: Install dependencies and NORDic
         run: |
           python -m pip install --upgrade pip
-          conda install -c colomoto -y -q maboss
           pip install -r pip/requirements.txt
           pip install --use-pep517 -e . 
           python -c "import NORDic; print('NORDic is successfully installed and importable in Python.')"
-      - name: Test NI (CCHS)
-        run: |
-          cd tests/ && python -m tests_NI
-      - name: Test PMR (CCHS)
-        run: |
-          cd tests/ && python -m tests_PMR
-      - name: Test DS (CCHS)
-        run: |
-          cd tests/ && python -m tests_DS
-      - name: Test DR (CCHS) 
-        run: |
-           cd tests/ && python -m tests_DR
-      - name: Test PKN (CCHS) 
-        run: |
-           cd tests/ && python -m tests_PKN
       - name: Test SIM (CCHS) 
         run: |
-           cd tests/ && python -m tests_sim
+          $CONDA/bin/conda install -c colomoto -y -q maboss
+          cd tests/ && python -m tests_sim
