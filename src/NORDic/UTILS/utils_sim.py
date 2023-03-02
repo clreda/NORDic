@@ -279,7 +279,7 @@ class MPBN_SIM(BN_SIM):
         max_time = params.get("max_time", 1000)
         noutputs = [g for g in (self.gene_list if (len(outputs)==0) else outputs) if (g not in self.all_mutants)]
         seeds = choice(range(int(max(1e4,nsims))), size=nsims)
-        name_state = lambda s : " -- ".join(list(sorted([g for g in s if ((s[g]==1) and (g in noutputs))]))) if (any([(s[g]==1) and (g in noutputs) for g in s])) else "{<nil>==1}"
+        name_state = lambda s : " -- ".join(list(sorted([g for g in s if ((s[g]==1) and (g in noutputs))]))) if (any([(s[g]==1) and (g in noutputs) for g in s])) else "<nil>"
         #@delayed
         #@wrap_non_picklable_objects
         def generate_trajectory(snb, net, params, istates, noutputs):
@@ -372,10 +372,12 @@ class BONESIS_SIM(BN_SIM):
         if (len(self.mutation_permanent)==0):
             final_FP = self.network.fixed(~self.network.obs("exp"))
             ~self.network.obs("init") >= final_FP
+            ~self.network.obs("exp") >> "fixpoints" ^ {self.network.obs("exp")};
         else:
             with self.network.mutant(self.mutation_permanent) as m:
                 final_FP = m.fixed(~m.obs("exp"))
                 ~m.obs("init") >= final_FP
+                ~m.obs("exp") >> "fixpoints" ^ {m.obs("exp")};
         if (verbose):
             BNs = list(self.network.boolean_networks(limit=1, njobs=self.njobs))
             nsol = len([bn for bn in tqdm(BNs)])
@@ -462,7 +464,7 @@ class MABOSS_SIM(BN_SIM):
         result = self.network.run(workdir=self.folder+"/")
         result.plot_trajectory()
         table = result.get_last_states_probtraj()
-        table.columns = ["{"+",".join([cc+"=1" for cc in list(sorted(c.split(" -- ")))])+"}"for c in table.columns]
+        table.columns = ["{"+",".join([cc+"=1" for cc in list(sorted(c.split(" -- ")))])+"}" if (c!="<nil>") else c for c in table.columns]
         table.index = ["prob"]
         sbcall("rm -rf "+self.folder+"/",shell=True)
         return table
