@@ -6,6 +6,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    defaults:
+        shell: bash -l {0}
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
@@ -23,7 +25,6 @@ jobs:
       - name: Set up Graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Install dependencies and build NORDic
-        shell: bash -l {0}
         run: |
           conda activate test
           conda install -c colomoto -y -q maboss
@@ -33,10 +34,20 @@ jobs:
           pip install --use-pep517 -e . 
           python -c "import NORDic; print('NORDic has been successfully installed and importable in Python.')"
       - name: Test NI (CCHS)
-        shell: bash -l {0}
         run: |
           cd tests/ && python -m tests_NI
+      - name: Test PMR (CCHS)
+        run: |
+          cd tests/ && python -m tests_PMR
+      - name: Test DS (CCHS)
+        run: |
+          cd tests/ && python -m tests_DS
+      - name: Test DR (CCHS) 
+        run: |
+          cd tests/ && python -m tests_DR
+      - name: Test PKN (CCHS)
+        run: |
+          cd tests/ && python -m tests_PKN
       - name: Test SIM (CCHS) 
-        shell: bash -l {0}
         run: |
           cd tests/ && python -m tests_sim
