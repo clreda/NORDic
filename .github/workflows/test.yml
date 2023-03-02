@@ -25,6 +25,7 @@ jobs:
       - name: Install dependencies and build NORDic
         shell: bash -l {0}
         run: |
+          mamba init
           mamba activate test
           mamba install -c colomoto -y -q maboss
           MaBoSS -h && echo "MaBoSS has been successfully installed."
