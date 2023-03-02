@@ -16,6 +16,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          miniforge-version: latest
+          use-mamba: true
+          mamba-version: "*"
       - name: Setup Graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Install dependencies and NORDic
@@ -28,6 +31,8 @@ jobs:
         run: |
           cd tests/ && python -m tests_NI
       - name: Test SIM (CCHS) 
+        shell: bash -l {0}
         run: |
-          $CONDA/bin/conda install -c colomoto -y -q maboss
+          mamba install -c colomoto -y -q maboss
+          python -c "import maboss; print('MaBoSS is successfully installed and importable in Python.')"
           cd tests/ && python -m tests_sim

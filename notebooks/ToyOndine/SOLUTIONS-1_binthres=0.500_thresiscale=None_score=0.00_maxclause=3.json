@@ -1,0 +1,41 @@
+{
+    "file_folder": "ToyOndine/",
+    "taxon_id": 9606,
+    "path_to_genes": null,
+    "disgenet_args": {
+        "credentials": "../tests/credentials_DISGENET.txt",
+        "disease_cids": [
+            "C1275808"
+        ]
+    },
+    "string_args": {
+        "credentials": "../tests/credentials_STRING.txt",
+        "score": 0
+    },
+    "lincs_args": {
+        "path_to_lincs": "../lincs/",
+        "credentials": "../tests/credentials_LINCS.txt",
+        "cell_lines": [
+            "NPC",
+            "SHSY5Y"
+        ],
+        "thres_iscale": null
+    },
+    "edge_args": {
+        "tau": 0,
+        "filter": true,
+        "connected": true
+    },
+    "sig_args": {
+        "bin_thres": 0.5
+    },
+    "bonesis_args": {
+        "limit": 1,
+        "exact": true,
+        "max_maxclause": 3
+    },
+    "weights": null,
+    "seed": 123456,
+    "network_fname": "ToyOndine/network.tsv",
+    "njobs": 10
+}
