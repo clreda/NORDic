@@ -27,7 +27,7 @@ for g in ['BDNF', 'EDN3']: #... except for 'BDNF' and 'EDN3'
 from NORDic.UTILS.utils_sim import MABOSS_SIM
 
 initial = pd.DataFrame(pd.Series(x0), columns=["initial"])
-params = {'sample_count': 10000, 'max_time': 20}
+params = {'sample_count': 10000, 'max_time': 100}
 nee = MABOSS_SIM(seednb,njobs)
 nee.update_network(network_fname, initial, verbose=False)
 probs = nee.generate_trajectories(params=params, outputs=[]) ## generate trajectories
@@ -37,7 +37,7 @@ assert np.isclose(probs.loc["prob"]["<nil>"],1)
 from NORDic.UTILS.utils_sim import MPBN_SIM
 
 initial = pd.DataFrame(pd.Series(x0), columns=["initial"])
-params = {'sample_count': 10000, 'max_time': 20}
+params = {'sample_count': 10000, 'max_time': 100}
 nee = MPBN_SIM(seednb,njobs)
 nee.update_network(network_fname, initial, verbose=False) ## no mutations, initial state x0
 probs = nee.generate_trajectories(params=params, outputs=[]) ## generate trajectories
