@@ -23,9 +23,6 @@ affiliations:
    index: 3
 date: 1 March 2023
 bibliography: paper.bib
-
-aas-doi: 10.1007/978-3-031-15034-0_5 
-aas-journal: International Conference on Computational Methods in Systems Biology 2022 
 ---
 
 # Introduction
