@@ -98,7 +98,7 @@ network is usually underdetermined, as there is too few of experiments and measu
 Module **NORDic Network Identification (NI)** addresses these issues in an automated and user-controllable manner, by performing information extraction from large online 
 sources of biological data, and data quality filtering according to user-selected parameters which control every step of the process. As such, the hope is that **NORDic** 
 makes the generation of disease-specific Boolean networks easier, reproducible, even in the absence of previously curated experiments and prior knowledge networks. The 
-pipeline implemented in **NORDic** was applied to epilepsy in a preliminary work [@Reda2:2022].
+pipeline implemented in **NORDic** was applied to epilepsy in a preliminary work [@Reda22022].
 
 ## Prioritization of master regulators in Boolean networks
 
@@ -113,7 +113,7 @@ is, regulatory effects which trickle down the network, beyond the targets direct
 
 Module **NORDic PMR** detects master regulators in a Boolean network, given examples of gene activity profiles from patients. In contrast to prior works, the score assigned to 
 (groups of) master regulators takes into account the network topology as well as its dynamics with respect to the diseased profiles. The approach, based on a machine learning 
-algorithm solving the influence maximization problem [@Kempe2003], is described in [@Reda2:2022].
+algorithm solving the influence maximization problem [@Kempe2003], is described in [@Reda22022].
 
 ## Novel approaches for scoring drug effects & repurposing drugs
 
