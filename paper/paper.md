@@ -10,11 +10,9 @@ tags:
 authors:
   - name: Clémence Réda
     orcid: 0000-0003-3238-0258
-    equal-contrib: true
     affiliation: 1 
   - name: Andrée Delahaye-Duriez
     orcid:  0000-0003-4324-7372
-    equal-contrib: false 
     affiliation: "1, 2, 3"
 affiliations:
  - name: Université Paris Cité, Neurodiderot, Inserm, F-75019 Paris
