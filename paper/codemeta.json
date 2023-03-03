@@ -1,0 +1,30 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+    {
+      "@id": "http://orcid.org/0000-0003-3238-0258",
+      "@type": "Person",
+      "email": "clemence.reda@inserm.fr",
+      "name": "Clémence Réda",
+      "affiliation": "Université Paris Cité, Neurodiderot"
+    },
+    {
+      "@id": "http://orcid.org/0000-0003-4324-7372",
+      "@type": "Person",
+      "email": "andree.delahaye@inserm.fr",
+      "name": "Andrée Delahaye-Duriez",
+      "affiliation": "Université Paris Cité, Neurodiderot; Université Sorbonne Paris Nord; Hôpital Jean Verdier"
+    }
+  ],
+  "identifier": "https://doi.org/10.5281/zenodo.7239047",
+  "codeRepository": "https://github.com/clreda/nordic",
+  "datePublished": "2023-03-03",
+  "dateModified": "2023-03-03",
+  "dateCreated": "2023-03-03",
+  "description": "NORDic is an open-source package which allows to focus on a network-oriented approach to identify regulatory mechanisms linked to a disease, and identify genes of interest.",
+  "keywords": "Python, network analysis, boolean network, network inference, biomarker identification, drug repurposing",
+  "license": "MIT",
+  "title": "NORDic",
+  "version": "v2.4.1"
+}

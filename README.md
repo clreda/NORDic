@@ -52,7 +52,7 @@ colomoto-docker
 
 ## Example usage
 
-Once installed, to import NORDic
+Once installed, to import **NORDic**
 
 ```python
 import NORDic 
@@ -66,7 +66,7 @@ help(func)
 
 ## Cite
 
-If you use NORDic in published research, please cite the following preliminary work:
+If you use **NORDic** in academic research, please cite the following preliminary work (which relied on the same type of pipeline as **NORDic NI** and **NORDic PMR**, but with different implementations):
 
 + Formatted citation:
 
