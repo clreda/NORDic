@@ -30,7 +30,7 @@ bibliography: paper.bib
 Genes, proteins and messenger RNAs are shown to interact on each other in order to modulate gene activity. Conversely, gene activity impacts
 protein production, and consequently triggers the chemical reactions needed for survival in healthy individuals. As such, perturbations
 of these gene regulatory interactions, through (epi)genetic and/or environmental factors, might cause diseases: e.g., the suppression of the 
-activity of gene SCN1A is linked to a specific type of epilepsy called Dravet's syndrome, both in mice and humans [@Kalume2013]. Gene 
+activity of gene SCN1A is linked to a specific type of epilepsy called Dravet syndrome, both in mice and humans [@Kalume2013]. Gene 
 regulatory networks, which are graphs connecting biological entities according to their purported regulatory interactions, are useful models 
 that enable a better understanding of those regulatory mechanisms [@Karlebach2008]. 
 
