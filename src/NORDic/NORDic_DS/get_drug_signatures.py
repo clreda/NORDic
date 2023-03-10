@@ -80,13 +80,14 @@ def pubchem2drugname(pubchem_cids, lincs_args):
         pert_inames.setdefault(pubchem_cid, drug_name)
     return pert_inames
 
-def retrieve_drug_signature(pubchem_cid, cell_ids, gene_list, lincs_args, quiet=False):
+def retrieve_drug_signature(pubchem_cid, cell_ids, gene_list, lincs_args, binarize, quiet=False):
     '''
         Retrieve control & treated samples from LINCS L1000 and compute the corresponding drug signature
         @param\tpubchem_cid\tPython integer: drug PubChem CID
         @param\tcell_ids\tPython character string list: list of candidate cell lines in LINCS L1000
         @param\tgene_list\tPython integer list: list of EntrezID genes
         @param\tlincs_args\tPython dictionary: additional arguments for LINCS L1000 requests
+        @param\tbinarize\tPython bool: should the resulting signatures be binarized?
         @param\tquiet\tPython bool[default=False]
         @return\tsig\tPandas DataFrame: rows/[genes] x column/[drug PubChem]
     '''
@@ -138,15 +139,16 @@ def retrieve_drug_signature(pubchem_cid, cell_ids, gene_list, lincs_args, quiet=
     if (sigs is None):
         return None
     assert sigs.shape[1] == nsamples
-    sig = binarize_via_CD(sigs, samples=[2]*len(data_treated)+[1]*len(data_control), binarize=0, nperm=10000)
+    sig = binarize_via_CD(sigs, samples=[2]*len(data_treated)+[1]*len(data_control), binarize=int(binarize), nperm=10000)
     sig.columns = [pubchem_cid]
     return sig
 
-def compute_drug_signatures_L1000(pubchem_cids, lincs_args, chunksize=10):
+def compute_drug_signatures_L1000(pubchem_cids, lincs_args, binarize=True, chunksize=10):
     '''
         Get drug signatures from LINCS L1000
         @param\tpubchem_cids\tPython integer list: list of drug PubChem CIDs
         @param\tlincs_args\tPython dictionary: additional arguments for LINCS L1000 requests
+        @param\tbinarize\tPython bool[default=True]: should the resulting signatures be binarized?
         @return\tsigs\tPandas DataFrame: rows/[genes] x columns/[drug names]
     '''
     assert lincs_args and "credentials" in lincs_args and "path_to_lincs" in lincs_args
@@ -156,7 +158,7 @@ def compute_drug_signatures_L1000(pubchem_cids, lincs_args, chunksize=10):
     gene_files, _, _, _ = download_lincs_files(path_to_lincs, which_lvl=[3])
     gene_df = pd.read_csv(path_to_lincs+gene_files[0], sep="\t", engine='python', index_col=0)
     gene_list, gene_name_list = list(gene_df.index), list(gene_df["pr_gene_symbol"])
-    sigs_list = [retrieve_drug_signature(pubchem_cid, get_all_celllines([pert_inames[pubchem_cid]], user_key) if (len(lincs_args.get("cell_lines", []))==0) else lincs_args["cell_lines"], gene_list, lincs_args) for pubchem_cid in pubchem_cids]
+    sigs_list = [retrieve_drug_signature(pubchem_cid, get_all_celllines([pert_inames[pubchem_cid]], user_key) if (len(lincs_args.get("cell_lines", []))==0) else lincs_args["cell_lines"], gene_list, lincs_args, binarize) for pubchem_cid in pubchem_cids]
     sigs = sigs_list[0].join(sigs_list[1:], how="outer")
     sigs.index = [gene_df.loc[i]["pr_gene_symbol"] for i in sigs.index]
     return sigs

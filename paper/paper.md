@@ -31,7 +31,7 @@ Genes, proteins and messenger RNAs are shown to interact on each other in order 
 protein production, and consequently triggers the chemical reactions needed for survival in healthy individuals. As such, perturbations
 of these gene regulatory interactions, through (epi)genetic and/or environmental factors, might cause diseases: e.g., the suppression of the 
 activity of gene SCN1A is linked to a specific type of epilepsy called Dravet syndrome, both in mice and humans [@Kalume2013]. Gene 
-regulatory networks, which are graphs connecting biological entities according to their purported regulatory interactions, are useful models 
+regulatory networks, which are graphs connecting biological entities according to their known regulatory interactions, are useful models 
 that enable a better understanding of those regulatory mechanisms [@Karlebach2008]. 
 
 In particular, one type of gene regulatory networks, called Boolean networks, allows the definition of so-called regulatory functions 
@@ -49,8 +49,8 @@ However, the construction and analysis of Boolean networks become extremely tedi
 when considering the activity of a large number of genes at a time [@Collombet2017]. 
 
 Moreover, the identification of interesting drug targets, via the detection of master regulators --genes at the top of the regulatory hierarchy-- suffers 
-from, first, not exploiting the full network topology, and thus, being oblivious to transcriptional regulatory cascades [@Bolouri2003], which might account 
-for toxic unexpected side effects [@Huang2019]. Second, those detection methods might not take into account the gene activity information relative to diseased 
+from, first, not exploiting the full network topology, and thus, being oblivious to transcriptional regulatory cascades, which might account 
+for toxic unexpected side effects [@Bolouri2003; @Huang2019]. Second, those detection methods might not take into account the gene activity information relative to diseased 
 patients. 
 
 Finally, as the regulatory mechanisms at play are inherently stochastic [@Raj2008], naive approaches to drug repurposing, where the gene activity predictions 
@@ -144,7 +144,7 @@ disease called Congenital Central Hypoventilation Syndrome (CCHS).
 
 This work was supported by the Institut National pour la Santé et la Recherche Médicale (Inserm, France), the French Ministry of Higher 
 Education and Research (#ENS.X19RDTME-SACLAY19-22) (C.R.), Université Paris Cité, Université Sorbonne Paris Nord, the French National
-Research Agency (#ANR-19-CE23-0026-04) (C.R.), (#ANR-18-CE17-0009-01) (A.D.-D., C.R.), (#ANR-18-CE37-0002-03) (A.D.-D.,C.R.). The 
+Research Agency (#ANR-19-CE23-0026-04) (C.R.), (#ANR-18-CE17-0009-01) (A.D.-D., C.R.), (#ANR-18-CE37-0002-03) (A.D.-D.,C.R.), (#ANR-21-RHUS-009) (A.D.-D.). The 
 implementation of the bandit algorithm *MisLid* in **NORDic DR** was achieved with the help of Andrea Tirinzoni and of Rémy Degenne at Inria, 
 UMR 9198-CRIStAL, F-59000 Lille, France.
 
