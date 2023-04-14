@@ -38,11 +38,10 @@ In particular, one type of gene regulatory networks, called Boolean networks, al
 [@Thomas1973; @Kauffman1969]. Those functions are specific to each node in the graph, and determine the activity of this node 
 according to its regulators. Those functions are defined on the Boolean domain (**True** or **False**), meaning that we only consider binary 
 gene activities. Subsequently, studying this type of networks as a dynamical system (and determining their basins of attraction, for instance) 
-remains rather tractable [@Moon2022]. Then, a Boolean network associated with a given disorder might allow the identification of interesting 
-biomarkers [@Zerrouk2020], or the prediction of gene activity profiles under network perturbations [@Stoll2017]. A Boolean network might also 
-enable drug repurposing, through the paradigm of "signature reversion"; a good drug candidate should be able to "reverse" the gene activity profile 
+remains rather tractable [@Moon2022]. The potential applications are numerous. Taking into account network dynamics should improve tools originally developed using non Boolean networks, such as the Transcription Factor Influence score in CoRegNet [@Nicolle2015] for the identification of interesting 
+biomarkers, or drug repurposing. For the latter, a library of druggable molecules can be screened for good candidates based on the paradigm of "signature reversion"; a good drug candidate should be able to "reverse" the gene activity profile 
 associated with a diseased individual [@Duan2016; @Delahaye2016; @Musa2018]. That is, such a drug would stimulate abnormally weakly activated genes with 
-respect to healthy individuals, and vice-versa. Then, a library of druggable molecules can be screened for good candidates based on this assumption. 
+respect to healthy individuals, and vice-versa.
 This screening approach may considerably speed up drug development, especially for rare or tropical neglected diseases [@Walker2021].
 
 However, the construction and analysis of Boolean networks become extremely tedious and time-consuming in the absence of experimental data or 
@@ -53,11 +52,7 @@ from, first, not exploiting the full network topology, and thus, being oblivious
 for toxic unexpected side effects [@Bolouri2003; @Huang2019]. Second, those detection methods might not take into account the gene activity information relative to diseased 
 patients. 
 
-Finally, as the regulatory mechanisms at play are inherently stochastic [@Raj2008], naive approaches to drug repurposing, where the gene activity predictions 
-under perturbations are performed using a Boolean network, rely on testing a given drug a large number of times to get a good estimation of its 
-effect across patients, or focusing on a patient-specific approach [@Montagud2022], or ignoring the stochastic nature of gene activity regulation. As such, 
-those approaches do not provide clear guarantees on the probability of error in recommendation, might not be sample-efficient, nor exploit side 
-information on drugs to test drugs more efficiently (e.g., leveraging similarities between drugs in terms of effects on gene activity to infer 
+Finally, regulatory mechanisms at (post-)transcriptomic level are inherently stochastic [@Raj2008]. As a consequence, naive algorithms for Boolean network-based *in silico* drug repurposing rely on testing a given drug a large number of times, in order to get a good estimate of its effect on gene activity. Such methods might resort to the simulation of drug treatment on Boolean network in either a patient-specific approach [@Montagud2022], or by ignoring the stochastic part of gene regulation. In both cases, this might incur a potential loss of robustness in the recommendations. Indeed, those approaches do not provide clear guarantees on the probability of error in recommendation, and might not be sample-efficient. In addition, they do not take advantage of supplementary information on drugs which might help to test drugs more efficiently (e.g., leveraging similarities between drugs in terms of effects on gene activity to infer 
 their effect on gene activity).
 
 # Statement of need
