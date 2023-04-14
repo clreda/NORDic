@@ -111,7 +111,7 @@ def merge_network_PPI(network, PPI, quiet=True):
 
 ## https://workflows.omnipathdb.org/tissue-hpa.pdf
 ## https://workflows.omnipathdb.org/networks-r.html
-def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human", sources_int=None, domains_int=None, types_int=None, min_curation_effort=-1, domains_annot='HPA_tissue', quiet=False):
+def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human", sources_int="OMNIPATH", domains_int=None, types_int=None, min_curation_effort=-1, domains_annot='HPA_tissue', quiet=False):
     '''
         Retrieve a network from OmniPath
         @param\tgene_list\tPython character string[default=None]: List of genes to consider (or do not filter the interactions from Omnipath if =None)
@@ -129,7 +129,7 @@ def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human"
     assert species in ['human', 'mouse', 'rat']
     assert types_int in [None, "post_translational", "transcriptional", "post_transcriptional", "mirna_transcriptional"]
     assert sources_int in [None]+list(op.interactions.AllInteractions.resources())
-    assert domains_int in [None, "DOROTHEA", "KINASE_EXTRA", "LIGREC_EXTRA", "LNCRNA_MRNA", "MIRNA_TARGET","OMNIPATH",
+    assert domains_int in ["DOROTHEA", "KINASE_EXTRA", "LIGREC_EXTRA", "LNCRNA_MRNA", "MIRNA_TARGET","OMNIPATH",
         "PATHWAY_EXTRA", "SMALL_MOLECULE", "TF_MIRNA", "TF_REGULONS", "TF_TARGET"]
     assert domains_annot in [None]+list(op.requests.Annotations.resources())
     assert (gene_list is not None) or (disease_name is not None)
