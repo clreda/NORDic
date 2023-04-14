@@ -74,4 +74,4 @@ help(reconnect_network)
 
 from NORDic.UTILS.utils_network import get_network_from_OmniPath
 
-interactions, annot_wide = get_network_from_OmniPath(gene_list=core_genes, species="human", min_curation_effort=-1, quiet=False)
+#interactions, annot_wide = get_network_from_OmniPath(gene_list=core_genes, species="human", min_curation_effort=-1, quiet=False)
