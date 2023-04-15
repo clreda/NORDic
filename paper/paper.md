@@ -132,14 +132,15 @@ predict novel drugs or gene targets which might be investigated later for health
 **NORDic** Python package aims at tackling those problems, with a focus on reproducibility and modularity. It primarily relies on popular formats for network description files, such 
 as the .bnet format. Moreover, **NORDic** enables further study of the network in Cytoscape, by providing a direct conversion to .sif formats, along with a dedicated style file. The different pipelines present in **NORDic** produce intermediary files, which might be checked by the user, and can be fed again to the pipeline in order to reproduce the results.
 
+![NORDic](overview.png)
+
 To get started with the different modules proposed in **NORDic**, please check out the tutorials (Jupyter notebooks) on the GitHub repository [@Reda2023], which provides an application to a 
 disease called Congenital Central Hypoventilation Syndrome (CCHS).
 
 # Acknowledgements
 
-This work was supported by the Institut National pour la Santé et la Recherche Médicale (Inserm, France), the French Ministry of Higher 
-Education and Research (#ENS.X19RDTME-SACLAY19-22) (C.R.), Université Paris Cité, Université Sorbonne Paris Nord, the French National
-Research Agency (#ANR-19-CE23-0026-04) (C.R.), (#ANR-18-CE17-0009-01) (A.D.-D., C.R.), (#ANR-18-CE37-0002-03) (A.D.-D.,C.R.), (#ANR-21-RHUS-009) (A.D.-D.). The 
+This work was supported by Université Paris Cité, Université Sorbonne Paris Nord, the French National
+Research Agency (#ANR-18-CE17-0009-01) (A.D.-D., C.R.), (#ANR-18-CE37-0002-03) (A.D.-D.), (#ANR-21-RHUS-009) (A.D.-D., C.R.). The 
 implementation of the bandit algorithm *MisLid* in **NORDic DR** was achieved with the help of Andrea Tirinzoni and of Rémy Degenne at Inria, 
 UMR 9198-CRIStAL, F-59000 Lille, France.
 
