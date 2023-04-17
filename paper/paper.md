@@ -55,8 +55,6 @@ patients.
 Finally, regulatory mechanisms at (post-)transcriptomic level are inherently stochastic [@Raj2008]. As a consequence, naive algorithms for Boolean network-based *in silico* drug repurposing rely on testing a given drug a large number of times, in order to get a good estimate of its effect on gene activity. Such methods might resort to the simulation of drug treatment on Boolean network in either a patient-specific approach [@Montagud2022], or by ignoring the stochastic part of gene regulation. In both cases, this might incur a potential loss of robustness in the recommendations. Indeed, those approaches do not provide clear guarantees on the probability of error in recommendation, and might not be sample-efficient. In addition, they do not take advantage of supplementary information on drugs which might help to test drugs more efficiently (e.g., leveraging similarities between drugs in terms of effects on gene activity to infer 
 their effect on gene activity).
 
-![Overview of the different modules in NORDic.](overview.png)
-
 # Statement of need
 
 As a general rule, the development of **NORDic** relies on avoiding *ad hoc* solutions, by implementation of approaches which are relevant to all kinds of 
@@ -74,6 +72,8 @@ perturbation. Those works then propose approaches to infer in an automated way a
 [@Mussel2010]), by studying gene activity correlations (ARACNE [@Margolin2006], *parmigene* [@Sales2011]), or through answer-set programming, having converted 
 experimental measures into a set of Boolean constraints (BoneSiS [@Chevalier2019], Re:IN [@Yordanov2016]). However, for rare diseases for instance, pinpointing a 
 subset of genes of interest is already a difficult task by itself.
+
+![Overview of the different modules in NORDic.](overview.png)
 
 One approach, called CasQ [@Aghamiri2020], has specifically proposed a direct, automated conversion from regulatory maps in the MINERVA database [@Gawron2016] to 
 Boolean networks. However, not only does this method need the definition of prior regulatory maps, but 
