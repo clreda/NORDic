@@ -73,14 +73,14 @@ perturbation. Those works then propose approaches to infer in an automated way a
 experimental measures into a set of Boolean constraints (BoneSiS [@Chevalier2019], Re:IN [@Yordanov2016]). However, for rare diseases for instance, pinpointing a 
 subset of genes of interest is already a difficult task by itself.
 
-![Overview of the different modules in NORDic.](overview.png)
-
 One approach, called CasQ [@Aghamiri2020], has specifically proposed a direct, automated conversion from regulatory maps in the MINERVA database [@Gawron2016] to 
 Boolean networks. However, not only does this method need the definition of prior regulatory maps, but 
 it also relies on automatically assigning gene regulatory functions based on the regulators of each 
 gene according to the map. This automated procedure asserts that a given gene is considered active if and only if every one of its reported activatory regulators is active, 
 and all of its inhibitory regulators are inactive. However, since this choice does not take into account dynamical information from experiments, resulting regulatory functions 
 might impact the quality of gene activity predictions.
+
+![Overview of the different modules in NORDic.](overview.png)
 
 Moreover, there exist two hurdles to building Boolean networks which are specific to the Boolean framework. First, gene activity data must be binarized, meaning that 
 one has to decide when a given gene is considered active or inactive in each sample. Such a process leads to an unavoidable loss of information. In order to avoid bias in the inference process, this step should be 
