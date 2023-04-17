@@ -132,7 +132,7 @@ predict novel drugs or gene targets which might be investigated later for health
 **NORDic** Python package aims at tackling those problems, with a focus on reproducibility and modularity. It primarily relies on popular formats for network description files, such 
 as the .bnet format. Moreover, **NORDic** enables further study of the network in Cytoscape, by providing a direct conversion to .sif formats, along with a dedicated style file. The different pipelines present in **NORDic** produce intermediary files, which might be checked by the user, and can be fed again to the pipeline in order to reproduce the results.
 
-![Figure 1: Overview of the different modules in NORDic.](overview.png)
+![Overview of the different modules in NORDic.](overview.png)
 
 To get started with the different modules proposed in **NORDic**, please check out the tutorials (Jupyter notebooks) on the GitHub repository [@Reda2023], which provides an application to a 
 disease called Congenital Central Hypoventilation Syndrome (CCHS).
