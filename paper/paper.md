@@ -80,12 +80,14 @@ gene according to the map. This automated procedure asserts that a given gene is
 and all of its inhibitory regulators are inactive. However, since this choice does not take into account dynamical information from experiments, resulting regulatory functions 
 might impact the quality of gene activity predictions.
 
-![Overview of the different modules in NORDic.](overview.png)
-
 Moreover, there exist two hurdles to building Boolean networks which are specific to the Boolean framework. First, gene activity data must be binarized, meaning that 
 one has to decide when a given gene is considered active or inactive in each sample. Such a process leads to an unavoidable loss of information. In order to avoid bias in the inference process, this step should be 
 data-driven and user-controlled. For instance, when using PROFILE [@Beal2021], a majority of genes might end up with an undetermined status --meaning that they are considered 
-neither significantly strongly nor weakly active-- which considerably undermines the input from experimental constraints. Second, the problem of identification of a Boolean 
+neither significantly strongly nor weakly active-- which considerably undermines the input from experimental constraints. 
+
+![Overview of the different modules in NORDic.](overview.png)
+
+Second, the problem of identification of a Boolean 
 network is usually underdetermined, as there is too few of experiments and measurements in practice, compared to the size of the considered gene set.
 
 Module **NORDic Network Identification (NI)** addresses these issues in an automated and user-controllable manner, by performing information extraction from large online 
