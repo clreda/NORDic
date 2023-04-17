@@ -55,12 +55,14 @@ patients.
 Finally, regulatory mechanisms at (post-)transcriptomic level are inherently stochastic [@Raj2008]. As a consequence, naive algorithms for Boolean network-based *in silico* drug repurposing rely on testing a given drug a large number of times, in order to get a good estimate of its effect on gene activity. Such methods might resort to the simulation of drug treatment on Boolean network in either a patient-specific approach [@Montagud2022], or by ignoring the stochastic part of gene regulation. In both cases, this might incur a potential loss of robustness in the recommendations. Indeed, those approaches do not provide clear guarantees on the probability of error in recommendation, and might not be sample-efficient. In addition, they do not take advantage of supplementary information on drugs which might help to test drugs more efficiently (e.g., leveraging similarities between drugs in terms of effects on gene activity to infer 
 their effect on gene activity).
 
+![Overview of the different modules in NORDic.](overview.png)
+
 # Statement of need
 
 As a general rule, the development of **NORDic** relies on avoiding *ad hoc* solutions, by implementation of approaches which are relevant to all kinds of 
 diseases regardless of the level of knowledge present in the literature --contrary to approaches which rely on knowing the relation between membrane receptors 
 and a set of genes which activity characterizes the presence of the disease, for instance "Causal Reasoning Analytical Framework for Target discovery" 
-(CRAFT) [@Srivastava2018]. Solutions proposed in this package emphasize on, first, the modularity of the methods, by providing functions which can tackle different 
+(CRAFT) [@Srivastava2018]. Please refer to Figure 1 for an overview of the package. Solutions proposed in this package emphasize on, first, the modularity of the methods, by providing functions which can tackle different 
 types of regulatory dynamics for instance; second, on the transparency of the approaches, by allowing the finetuning of each method through parameters with a clearly 
 defined impact on the result.
 
@@ -131,8 +133,6 @@ biological phenomena on a larger set of genes. These models might speed up the u
 predict novel drugs or gene targets which might be investigated later for healthcare purposes. In particular, the network-oriented approach might be able to predict off-targets. The
 **NORDic** Python package aims at tackling those problems, with a focus on reproducibility and modularity. It primarily relies on popular formats for network description files, such 
 as the .bnet format. Moreover, **NORDic** enables further study of the network in Cytoscape, by providing a direct conversion to .sif formats, along with a dedicated style file. The different pipelines present in **NORDic** produce intermediary files, which might be checked by the user, and can be fed again to the pipeline in order to reproduce the results.
-
-![Overview of the different modules in NORDic.](overview.png)
 
 To get started with the different modules proposed in **NORDic**, please check out the tutorials (Jupyter notebooks) on the GitHub repository [@Reda2023], which provides an application to a 
 disease called Congenital Central Hypoventilation Syndrome (CCHS).
