@@ -144,6 +144,6 @@ disease called Congenital Central Hypoventilation Syndrome (CCHS).
 This work was supported by Université Paris Cité, Université Sorbonne Paris Nord, the French National
 Research Agency (#ANR-18-CE17-0009-01) (A.D.-D., C.R.), (#ANR-18-CE37-0002-03) (A.D.-D.), (#ANR-21-RHUS-009) (A.D.-D., C.R.). The 
 implementation of the bandit algorithm *MisLid* in **NORDic DR** was achieved with the help of Andrea Tirinzoni and of Rémy Degenne at Inria, 
-UMR 9198-CRIStAL, F-59000 Lille, France.
+UMR 9198-CRIStAL, F-59000 Lille, France. The funders had no role in review design, decision to publish, or preparation of the manuscript.
 
 # References
