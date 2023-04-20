@@ -143,7 +143,7 @@ def retrieve_drug_signature(pubchem_cid, cell_ids, gene_list, lincs_args, binari
     sig.columns = [pubchem_cid]
     return sig
 
-def compute_drug_signatures_L1000(pubchem_cids, lincs_args, binarize=True, chunksize=10):
+def compute_drug_signatures_L1000(pubchem_cids, lincs_args, binarize=True, gene_list=None, chunksize=10):
     '''
         Get drug signatures from LINCS L1000
         @param\tpubchem_cids\tPython integer list: list of drug PubChem CIDs
@@ -157,7 +157,7 @@ def compute_drug_signatures_L1000(pubchem_cids, lincs_args, binarize=True, chunk
     pert_inames = pubchem2drugname(pubchem_cids, lincs_args)
     gene_files, _, _, _ = download_lincs_files(path_to_lincs, which_lvl=[3])
     gene_df = pd.read_csv(path_to_lincs+gene_files[0], sep="\t", engine='python', index_col=0)
-    gene_list, gene_name_list = list(gene_df.index), list(gene_df["pr_gene_symbol"])
+    gene_list, gene_name_list = list(gene_df.index) if (gene_list is None) else gene_list, list(gene_df["pr_gene_symbol"])
     sigs_list = [retrieve_drug_signature(pubchem_cid, get_all_celllines([pert_inames[pubchem_cid]], user_key) if (len(lincs_args.get("cell_lines", []))==0) else lincs_args["cell_lines"], gene_list, lincs_args, binarize) for pubchem_cid in pubchem_cids]
     sigs = sigs_list[0].join(sigs_list[1:], how="outer")
     sigs.index = [gene_df.loc[i]["pr_gene_symbol"] for i in sigs.index]
