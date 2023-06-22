@@ -1,5 +1,5 @@
 # Network Oriented Repurposing of Drugs (NORDic)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7239047.svg)](https://doi.org/10.5281/zenodo.7239047)
+[![Anaconda version](https://anaconda.org/creda/nordic/badges/version.svg)](https://anaconda.org/creda/nordic) [![PyPI version](https://badge.fury.io/py/nordic.svg)](https://badge.fury.io/py/nordic) [![Zenodo version](https://zenodo.org/badge/DOI/10.5281/zenodo.7239047.svg)](https://doi.org/10.5281/zenodo.7239047)
 
 ## Statement of need
 
