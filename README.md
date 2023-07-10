@@ -13,6 +13,10 @@ Being able to build in an automated and reproducible way a model of gene interac
 
 ## Install the latest release
 
+### Supported platforms
+
+The package has been developed and mainly tested on a Linux platform. Issues when using it on Windows or Macs can be reported on this GitHub repository.
+
 ### Dependencies
 
 It is strongly advised to create a virtual environment using Conda (python>=3.8)
@@ -25,6 +29,7 @@ conda activate test_NORDic
 and install missing dependencies in that environment
 
 ```bash
+python3 -m pip install wheel
 apt-get install graphviz
 conda install -c colomoto -y -q maboss
 ```
