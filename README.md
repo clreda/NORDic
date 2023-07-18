@@ -26,23 +26,21 @@ conda create -n test_NORDic python=3.8
 conda activate test_NORDic
 ```
 
-and install missing dependencies in that environment
-
-```bash
-python3 -m pip install wheel
-apt-get install graphviz
-conda install -c colomoto -y -q maboss
-```
-
 The complete list of dependencies can be found at [requirements.txt](https://raw.githubusercontent.com/clreda/NORDic/main/pip/requirements.txt) or [meta.yaml](https://raw.githubusercontent.com/clreda/NORDic/main/conda/meta.yaml).
 
 ### Using pip (package hosted on PyPI)
 
+We need to install missing dependencies from PyPI:
+
 ```bash
+apt-get install graphviz # for Debian distributions, check the correct command for your own distribution
+conda install -c colomoto -y -q maboss
 pip install NORDic 
 ```
 
 ### Using conda (package hosted on Anaconda.org)
+
+All dependencies are retrievable from Anaconda:
 
 ```bash
 conda install -c creda -y -q nordic
