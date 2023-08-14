@@ -6,6 +6,7 @@ import pandas as pd
 from multiprocessing import cpu_count
 import numpy as np
 from subprocess import call
+import unittest
 
 ## I. Building a small regulatory model of CCHS (**NORDic NI**)
 

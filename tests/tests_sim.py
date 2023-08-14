@@ -1,13 +1,12 @@
 #coding: utf-8
 
-import unittest
-
 import NORDic
 import pandas as pd
 import numpy as np
 import os
 from multiprocessing import cpu_count
 from time import time
+import unittest
 
 class TestSIM(unittest.TestCase):
 

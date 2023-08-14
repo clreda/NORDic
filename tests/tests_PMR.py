@@ -6,6 +6,7 @@ import pandas as pd
 from multiprocessing import cpu_count
 import numpy as np
 import mpbn
+import unittest
 
 ## II. Prioritization of master regulators (**NORDic PMR**)
 

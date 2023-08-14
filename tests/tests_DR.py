@@ -1,12 +1,11 @@
 #coding: utf-8
 
-import unittest
-
 import NORDic
 import os
 import pandas as pd
 from multiprocessing import cpu_count
 import numpy as np
+import unittest
 
 ## IV. Drug Repurposing (**NORDic DR**)
 

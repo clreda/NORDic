@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from multiprocessing import cpu_count
 import numpy as np
+import unittest
 
 ## III. Simulation of drug effect based on a Boolean network (**NORDic DS**)
 
