@@ -6,6 +6,8 @@ import pandas as pd
 import unittest
 from subprocess import Popen
 
+from functools import reduce
+
 class TestPKN(unittest.TestCase):
 
     def create_network(self):
@@ -49,15 +51,15 @@ class TestPKN(unittest.TestCase):
         return final_network, core_genes
 
     def test_determine_threshold(self):
-        file_folder="ToyOndine/"
-        final_network, core_genes = self.test_merge_network_PPI()
         from NORDic.UTILS.utils_network import determine_edge_threshold
-        threshold = determine_edge_threshold(final_network, core_genes)
-        self.assertTrue(0 < threshold)
-        self.assertTrue(threshold < 1)
         from NORDic.UTILS.utils_network import remove_isolated
         from NORDic.UTILS.utils_grn import get_weakly_connected
         from functools import reduce
+        file_folder="ToyOndine/"
+        final_network, core_genes = self.test_merge_network_PPI()
+        threshold = determine_edge_threshold(final_network, core_genes)
+        self.assertTrue(0 < threshold)
+        self.assertTrue(threshold < 1)
         final_network = remove_isolated(final_network.loc[final_network["score"]>=threshold])
         glist = list(set(reduce(lambda x,y: x+y, [list(final_network[c]) for c in ["preferredName_A", "preferredName_B"]])))
         components = get_weakly_connected(final_network, glist, score_col="score")
@@ -78,6 +80,7 @@ class TestPKN(unittest.TestCase):
     def test_full_pipeline(self):
         from NORDic.UTILS.STRING_utils import get_network_from_STRING
         from NORDic.UTILS.utils_network import aggregate_networks
+        from NORDic.UTILS.utils_grn import get_weakly_connected
         file_folder="ToyOndine_full/"
         Popen(('cp -r ToyOndine/ '+file_folder).split(" "))
         core_genes = ["PHOX2B", "RET", "BDNF", "ASCL1", "EDN3", "GDNF"]
