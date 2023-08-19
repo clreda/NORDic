@@ -16,8 +16,6 @@ class TestSIM(unittest.TestCase):
         seednb=12345
         file_folder="ToyOndine/"
         network_fname=file_folder+"solution.bnet"
-        from IPython.display import Image
-        Image(filename=file_folder+'inferred_maximal_solution.png') 
         import mpbn
         net = mpbn.MPBooleanNetwork(mpbn.load(network_fname))
         x0 = net.zero() # consider initial state where all gene expression levels are set to 0...
@@ -161,6 +159,7 @@ class TestSIM(unittest.TestCase):
 
     def test_MPBN_Mutant_KO(self):
         x0, network_fname, seednb, njobs = self.create_instance()
+        initial = pd.DataFrame(pd.Series(x0), columns=["initial"])
         from NORDic.UTILS.utils_sim import test
         from NORDic.UTILS.utils_sim import MPBN_SIM
         nee = MPBN_SIM(seednb,njobs)
@@ -170,6 +169,7 @@ class TestSIM(unittest.TestCase):
 
     def test_MPBN_Mutant_OE(self):
         x0, network_fname, seednb, njobs = self.create_instance()
+        initial = pd.DataFrame(pd.Series(x0), columns=["initial"])
         from NORDic.UTILS.utils_sim import test
         from NORDic.UTILS.utils_sim import MPBN_SIM
         nee = MPBN_SIM(seednb,njobs)
@@ -179,6 +179,7 @@ class TestSIM(unittest.TestCase):
 
     def test_MPBN_Mutant_KO_transient(self):
         x0, network_fname, seednb, njobs = self.create_instance()
+        initial = pd.DataFrame(pd.Series(x0), columns=["initial"])
         from NORDic.UTILS.utils_sim import test
         from NORDic.UTILS.utils_sim import MPBN_SIM
         nee = MPBN_SIM(seednb,njobs)
@@ -188,6 +189,7 @@ class TestSIM(unittest.TestCase):
 
     def test_MPBN_Mutant_OE_transient(self):
         x0, network_fname, seednb, njobs = self.create_instance()
+        initial = pd.DataFrame(pd.Series(x0), columns=["initial"])
         from NORDic.UTILS.utils_sim import test
         from NORDic.UTILS.utils_sim import MPBN_SIM
         nee = MPBN_SIM(seednb,njobs)
