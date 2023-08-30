@@ -18,13 +18,27 @@ from NORDic.UTILS.LINCS_utils import build_url, post_request, lincs_api_url
 
 def request_biodbnet(probe_list, from_, to_, taxon_id, chunksize=500, quiet=False):
     '''
-        Converts gene identifier from from_ to to_ in a given species
-        @param\tprobe_list\tPython character string list: list of probes to convert (of type from_)
-        @param\tfrom_\tPython character string: an identifier type as recognized by BioDBnet
-        @param\tto_\tPython character string: an identifier type as recognized by BioDBnet
-        @param\ttaxonId\tPython integer: NCBI taxonomy ID
-        @param\tchunksize\tPython integer[default=500]: 1 chunk per request
-        @return\tres_df\tPandas DataFrame: rows/["InputValue"/from_] x columns[to_] ("-" if the identifier has not been found)
+    Converts gene identifier from from to to in a given species
+
+    ...
+
+    Parameters
+    ----------
+    probe_list : Python character string list
+        list of probes to convert (of type from_)
+    from_ : Python character string
+        an identifier type as recognized by BioDBnet
+    to_ : Python character string
+        an identifier type as recognized by BioDBnet
+    taxonId : Python integer
+        NCBI taxonomy ID
+    chunksize : Python integer
+        [default=500] : 1 chunk per request
+
+    Returns
+    ----------
+    res_df : Pandas DataFrame
+        rows/["InputValue"/from_] x columns[to_] ("-" if the identifier has not been found)
     '''
     chunk_probes=[probe_list[i:i+chunksize] for i in range(0,len(probe_list),chunksize)]
     res_list = []
@@ -56,14 +70,29 @@ EntrezGene_missing_genes = {
 }
 def convert_genes_EntrezGene(gene_list, taxon_id, app_name, chunksize=100, missing_genes=EntrezGene_missing_genes,quiet=False):
     '''
-        Convert gene symbols into EntrezGene CID
-        @param\tgene_list\tPython character string list: list of genes
-        @param\ttaxon_id\tPython character string
-        @param\tapp_name\tPython character string
-        @param\tmissing_genes\tPython dictionary of character string x character string: known conversions
-        @param\tchunksize\tPython integer[default=100]: 1 chunk per request
-        @param\tquiet\tPython bool[default=False]
-        @return\tres_df\tPandas DataFrame: rows/["InputValue"] x columns/["Gene ID"/might be separated by "; "] ("-" if they do not exist) or None if no identifier has been found
+    Convert gene symbols into EntrezGene CID
+
+    ...
+
+    Parameters
+    ----------
+    gene_list : Python character string list
+        list of genes
+    taxon_id : Python character string
+        NCBI taxonomy ID
+    app_name : Python character string
+        STRING identifier
+    missing_genes : Python dictionary of character string x character string
+        known conversions
+    chunksize : Python integer
+        [default=100] : 1 chunk per request
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    res_df : Pandas DataFrame
+        rows/["InputValue"] x columns/["Gene ID"/might be separated by "; "] ("-" if they do not exist) or None if no identifier has been found
     '''
     if (not quiet):
         print("<UTILS_DATA> Gene Symbol -> Gene ID (%d probes)" % len(gene_list))
@@ -111,11 +140,24 @@ def convert_genes_EntrezGene(gene_list, taxon_id, app_name, chunksize=100, missi
 def convert_EntrezGene_LINCSL1000(file_folder, EntrezGenes, user_key, quiet=False):
     '''
     Converts EntrezIDs to Gene Symbols present in LINCS L1000
-    @param\tfile_folder\tPython character string: path to folder of intermediate results
-    @param\tEntrezGenes\tPython character string list: list of EntrezGene IDs
-    @param\tuser_key\tPython character string: LINCS L1000 user key
-    @param\tquiet\tPython bool[default=False]
-    @return\tPandas\tPandas DataFrame: rows/[EntrezID] x columns/["Gene Symbol","Entrez ID"] ("-" if they do not exist)
+
+    ...
+
+    Parameters
+    ----------
+    file_folder : Python character string
+        path to folder of intermediate results
+    EntrezGenes : Python character string list
+        list of EntrezGene IDs
+    user_key : Python character string
+        LINCS L1000 user key
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    Pandas : Pandas DataFrame
+        rows/[EntrezID] x columns/["Gene Symbol","Entrez ID"] ("-" if they do not exist)
     '''
     assert user_key
     gene_file = file_folder+"entrezGene_LINCSL1000.pck"
@@ -160,11 +202,23 @@ def convert_EntrezGene_LINCSL1000(file_folder, EntrezGenes, user_key, quiet=Fals
 
 def get_all_celllines(pert_inames, user_key, quiet=False):
     '''
-        Get all cell lines in which one gene in the input list has been specifically perturbed (genetic perturbation)
-        @param\tpert_inames\tPython character string: List of genes (symbols from LINCS L1000)
-        @param\tuser_key\tPython character string: user key from LINCS L1000 CLUE API
-        @param\tquiet\tPython bool[default=False]
-        @return\tcell_lines\tPython character string list: list of cell lines in which at least one gene from pert_inames has been perturbed
+    Get all cell lines in which one gene in the input list has been specifically perturbed (genetic perturbation)
+
+    ...
+
+    Parameters
+    ----------
+    pert_inames : Python character string
+        List of genes (symbols from LINCS L1000)
+    user_key : Python character string
+        user key from LINCS L1000 CLUE API
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    cell_lines : Python character string list
+        list of cell lines in which at least one gene from pert_inames has been perturbed
     '''
     assert user_key
     endpoint = "sigs"

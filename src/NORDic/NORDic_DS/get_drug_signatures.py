@@ -12,10 +12,19 @@ from NORDic.UTILS.utils_data import get_all_celllines
 
 def get_ranking(CD):
     '''
-        Retrieve ranking (50 first drugs) from L1000 CDS^2 search engine
-        @param\tCD\tPandas DataFrame: rows/[genes] x column/[value] differential phenotype
-        @return\tresuls\tPandas DataFrame: rows/[drug names] x column/["L1000 CDS2"] ranking 
-        of the drugs according to their ability to reverse the phenotype
+    Retrieve ranking (50 first drugs) from L1000 CDS^2 search engine
+
+    ...
+
+    Parameters
+    ----------
+    CD : Pandas DataFrame
+        rows/[genes] x column/[value] differential phenotype
+
+    Returns
+    ----------
+    resuls : Pandas DataFrame
+        rows/[drug names] x column/["L1000 CDS2"] ranking of the drugs according to their ability to reverse the phenotype
     '''
     ## # The app uses uppercase gene symbols. So it is crucial to perform this step
     CD.index = [g.upper() for g in CD.index]
@@ -38,10 +47,21 @@ def get_ranking(CD):
 
 def drugname2pubchem(drug_names, lincs_args):
     '''
-        Convert drug names into PubChem CIDs
-        @param\tdrug_names\tPython character string list: list of drug names
-        @param\tlincs_args\tPython dictionary: additional arguments for LINCS L1000 requests
-        @return\tpubchem_cids\tPython dictionary: (keys=drug names, values=PubChem CIDs)
+    Convert drug names into PubChem CIDs
+
+    ...
+
+    Parameters
+    ----------
+    drug_names : Python character string list
+        list of drug names
+    lincs_args : Python dictionary
+        additional arguments for LINCS L1000 requests
+
+    Returns
+    ----------
+    pubchem_cids : Python dictionary
+        (keys=drug names, values=PubChem CIDs)
     '''
     endpoint = "perts"
     method = "filter"
@@ -60,10 +80,21 @@ def drugname2pubchem(drug_names, lincs_args):
 
 def pubchem2drugname(pubchem_cids, lincs_args):
     '''
-        Convert drug names into PubChem CIDs
-        @param\tpubchem_cids\tPython integer list: list of drug PubChem CIDs
-        @param\tlincs_args\tPython dictionary: additional arguments for LINCS L1000 requests
-        @return\tpert_inames\tPython dictionary: (keys=PubChem CIDs, values=drug names)
+    Convert drug names into PubChem CIDs
+
+    ...
+
+    Parameters
+    ----------
+    pubchem_cids : Python integer list
+        list of drug PubChem CIDs
+    lincs_args : Python dictionary
+        additional arguments for LINCS L1000 requests
+
+    Returns
+    ----------
+    pert_inames : Python dictionary
+        (keys=PubChem CIDs, values=drug names)
     '''
     endpoint = "perts"
     method = "filter"
@@ -82,14 +113,29 @@ def pubchem2drugname(pubchem_cids, lincs_args):
 
 def retrieve_drug_signature(pubchem_cid, cell_ids, gene_list, lincs_args, binarize, quiet=False):
     '''
-        Retrieve control & treated samples from LINCS L1000 and compute the corresponding drug signature
-        @param\tpubchem_cid\tPython integer: drug PubChem CID
-        @param\tcell_ids\tPython character string list: list of candidate cell lines in LINCS L1000
-        @param\tgene_list\tPython integer list: list of EntrezID genes
-        @param\tlincs_args\tPython dictionary: additional arguments for LINCS L1000 requests
-        @param\tbinarize\tPython bool: should the resulting signatures be binarized?
-        @param\tquiet\tPython bool[default=False]
-        @return\tsig\tPandas DataFrame: rows/[genes] x column/[drug PubChem]
+    Retrieve control & treated samples from LINCS L1000 and compute the corresponding drug signature
+
+    ...
+
+    Parameters
+    ----------
+    pubchem_cid : Python integer
+        drug PubChem CID
+    cell_ids : Python character string list
+        list of candidate cell lines in LINCS L1000
+    gene_list : Python integer list
+        list of EntrezID genes
+    lincs_args : Python dictionary
+        additional arguments for LINCS L1000 requests
+    binarize : Python bool
+        should the resulting signatures be binarized?
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    sig : Pandas DataFrame
+        rows/[genes] x column/[drug PubChem]
     '''
     endpoint = "sigs"
     method = "filter"
@@ -145,11 +191,23 @@ def retrieve_drug_signature(pubchem_cid, cell_ids, gene_list, lincs_args, binari
 
 def compute_drug_signatures_L1000(pubchem_cids, lincs_args, binarize=True, gene_list=None, chunksize=10):
     '''
-        Get drug signatures from LINCS L1000
-        @param\tpubchem_cids\tPython integer list: list of drug PubChem CIDs
-        @param\tlincs_args\tPython dictionary: additional arguments for LINCS L1000 requests
-        @param\tbinarize\tPython bool[default=True]: should the resulting signatures be binarized?
-        @return\tsigs\tPandas DataFrame: rows/[genes] x columns/[drug names]
+    Get drug signatures from LINCS L1000
+
+    ...
+
+    Parameters
+    ----------
+    pubchem_cids : Python integer list
+        list of drug PubChem CIDs
+    lincs_args : Python dictionary
+        additional arguments for LINCS L1000 requests
+    binarize : Python bool
+        [default=True] : should the resulting signatures be binarized?
+
+    Returns
+    ----------
+    sigs : Pandas DataFrame
+        rows/[genes] x columns/[drug names]
     '''
     assert lincs_args and "credentials" in lincs_args and "path_to_lincs" in lincs_args
     user_key = get_user_key(lincs_args["credentials"])

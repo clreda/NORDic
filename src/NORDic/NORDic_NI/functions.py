@@ -23,25 +23,49 @@ from NORDic.NORDic_NI.cytoscape_style import style_file
 
 def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False, preserve_network_sign=True):
     '''
-        Generates or retrieves the optimal network model
-        @param\tfile_folder\tPython character string: path to which files should be saved
-        @param\ttaxon_id\tPython integer: NCBI Taxonomy ID for the considered species
-        @param\tpath_to_genes\tPython character string or None[default=None]: path to the file containing gene names (one per line)
-        @param\tdisgenet_args\tPython dictionary or None[default=None]: arguments to the DisGeNET API (see test files)
-        @param\tnetwork_fname\tPython character string or None[default=None]: path to the file containing the prior knowledge network (see test files)
-        @param\tstring_args\tPython dictionary or None[default=None]: arguments to the STRING API (see test files)
-        @param\texperiments_fname\tPython character string or None[default=None]: path to the file containing the matrix of gene expression data (genes x samples) (see test files for format)
-        @param\tlincs_args\tPython dictionary or None[default=None]: arguments to the LINCS L1000 API (see test files)
-        @param\tedge_args\tPython dictionary or None[default=None]: arguments to the processing of edges (see test files)
-        @param\tsig_args\tPython dictionary or None[default=None]: arguments to the processing of signatures (see test files)
-        @param\tbonesis_args\tPython dictionary or None[default=None]: arguments to building constraints and generating solutions using BoneSIS (see test files)
-        @param\tweights\tPython dictionary or None[default=None]: weights to the optimal model selection procedure (see test files)
-        @param\tseed\tPython integer[default=0]
-        @param\tnjobs\tPython integer[default=1]
-        @param\tnjobs\tPython integer[default=1]
-        @param\tforce_experiments\tPython bool[default=True]: if set to True, returns an error if no experimental profile associated with the genes is found
-        @param\taccept_nonRNA\tPython bool[default=False]: if set to False, ignores gene names which cannot be converted to EntrezIDs or which are not present in LINCS L1000
-        @return\tsolution\tPython character string: optimal model selected by the procedure
+    Generates or retrieves the optimal network model
+
+    ...
+
+    Parameters
+    ----------
+    file_folder : Python character string
+        path to which files should be saved
+    taxon_id : Python integer
+        NCBI Taxonomy ID for the considered species
+    path_to_genes : Python character string or None
+        [default=None] : path to the file containing gene names (one per line)
+    disgenet_args : Python dictionary or None
+        [default=None] : arguments to the DisGeNET API (see test files)
+    network_fname : Python character string or None
+        [default=None] : path to the file containing the prior knowledge network (see test files)
+    string_args : Python dictionary or None
+        [default=None] : arguments to the STRING API (see test files)
+    experiments_fname : Python character string or None
+        [default=None] : path to the file containing the matrix of gene expression data (genes x samples) (see test files for format)
+    lincs_args : Python dictionary or None
+        [default=None] : arguments to the LINCS L1000 API (see test files)
+    edge_args : Python dictionary or None
+        [default=None] : arguments to the processing of edges (see test files)
+    sig_args : Python dictionary or None
+        [default=None] : arguments to the processing of signatures (see test files)
+    bonesis_args : Python dictionary or None
+        [default=None] : arguments to building constraints and generating solutions using BoneSIS (see test files)
+    weights : Python dictionary or None
+        [default=None] : weights to the optimal model selection procedure (see test files)
+    seed : Python integer
+        [default=0] : random seed 
+    njobs : Python integer
+        [default=1] : number of parallel jobs
+    force_experiments : Python bool
+        [default=True] : if set to True, returns an error if no experimental profile associated with the genes is found
+    accept_nonRNA : Python bool
+        [default=False] : if set to False, ignores gene names which cannot be converted to EntrezIDs or which are not present in LINCS L1000
+
+    Returns
+    ----------
+    solution : Python character string
+        optimal model selected by the procedure
     '''
     solution_fname, nsol = solution_generation(file_folder, taxon_id, path_to_genes=path_to_genes, disgenet_args=disgenet_args, network_fname=network_fname, string_args=string_args, experiments_fname=experiments_fname, lincs_args=lincs_args, edge_args=edge_args, sig_args=sig_args, bonesis_args=bonesis_args, seed=seed, njobs=njobs, force_experiments=force_experiments, accept_nonRNA=accept_nonRNA, preserve_network_sign=preserve_network_sign)
 
@@ -63,24 +87,47 @@ def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_a
 
 def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False,preserve_network_sign=True):
     '''
-        Generates or retrieves the optimal network model
-        @param\tfile_folder\tPython character string: path to which files should be saved
-        @param\ttaxon_id\tPython integer: NCBI Taxonomy ID for the considered species
-        @param\tpath_to_genes\tPython character string or None: path to the file containing gene names (one per line)
-        @param\tdisgenet_args\tPython dictionary or None: arguments to the DisGeNET API (see test files)
-        @param\tnetwork_fname\tPython character string or None: path to the file containing the prior knowledge network (see test files)
-        @param\tstring_args\tPython dictionary or None: arguments to the STRING API (see test files)
-        @param\texperiments_fname\tPython character string or None: path to the file containing the matrix of gene expression data (genes x samples) (see test files for format)
-        @param\tlincs_args\tPython dictionary or None: arguments to the LINCS L1000 API (see test files)
-        @param\tedge_args\tPython dictionary or None: arguments to the processing of edges (see test files)
-        @param\tsig_args\tPython dictionary or None: arguments to the processing of signatures (see test files)
-        @param\tbonesis_args\tPython dictionary or None: arguments to building constraints and generating solutions using BoneSIS (see test files)
-        @param\tseed\tPython integer[default=0]
-        @param\tnjobs\tPython integer[default=1]
-        @param\tnjobs\tPython integer[default=1]
-        @param\tforce_experiments\tPython bool[default=True]: if set to True, returns an error if no experimental profile associated with the genes is found
-        @param\taccept_nonRNA\tPython bool[default=False]: if set to False, ignores gene names which cannot be converted to EntrezIDs or which are not present in LINCS L1000
-        @return\tsolution\tPython character string: optimal model selected by the procedure
+    Generates or retrieves the optimal network model
+
+    ...
+
+    Parameters
+    ----------
+    file_folder : Python character string
+        path to which files should be saved
+    taxon_id : Python integer
+        NCBI Taxonomy ID for the considered species
+    path_to_genes : Python character string or None
+        path to the file containing gene names (one per line)
+    disgenet_args : Python dictionary or None
+        arguments to the DisGeNET API (see test files)
+    network_fname : Python character string or None
+        path to the file containing the prior knowledge network (see test files)
+    string_args : Python dictionary or None
+        arguments to the STRING API (see test files)
+    experiments_fname : Python character string or None
+        path to the file containing the matrix of gene expression data (genes x samples) (see test files for format)
+    lincs_args : Python dictionary or None
+        arguments to the LINCS L1000 API (see test files)
+    edge_args : Python dictionary or None
+        arguments to the processing of edges (see test files)
+    sig_args : Python dictionary or None
+        arguments to the processing of signatures (see test files)
+    bonesis_args : Python dictionary or None
+        arguments to building constraints and generating solutions using BoneSIS (see test files)
+    seed : Python integer
+        [default=0] : random seed
+    njobs : Python integer
+        [default=1] : number of parallel jobs
+    force_experiments : Python bool
+        [default=True] : if set to True, returns an error if no experimental profile associated with the genes is found
+    accept_nonRNA : Python bool
+        [default=False] : if set to False, ignores gene names which cannot be converted to EntrezIDs or which are not present in LINCS L1000
+
+    Returns
+    ----------
+    solution : Python character string
+        optimal model selected by the procedure
     '''
     sbcall("mkdir -p "+file_folder, shell=True)
     solution_fname=file_folder+("SOLUTIONS-%d_binthres=%.3f_thresiscale=%s_score=%.2f_maxclause=%d" % (bonesis_args.get("limit", 1), sig_args.get("bin_thres", 0.5), str(lincs_args.get("thres_iscale", 0.)), string_args.get("score", 1), bonesis_args.get("max_maxclause", 5)))
@@ -535,10 +582,21 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
 
 def import_all_solutions(solution_fname, quiet=False):
     '''
-        Import all solutions which have been generated
-        @param\tsolution_fname\tPython character string: header of solution files
-        @param\tquiet\tPython bool[default=False]
-        @return\tsolutions\tPandas DataFrame: rows/[genes] x columns/[solution IDs] containing regulatory functions for each gene in each solution
+    Import all solutions which have been generated
+
+    ...
+
+    Parameters
+    ----------
+    solution_fname : Python character string
+        header of solution files
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    solutions : Pandas DataFrame
+        rows/[genes] x columns/[solution IDs] containing regulatory functions for each gene in each solution
     '''
     fname_ls = glob(solution_fname+"_*.zip")
     assert len(fname_ls)>0
@@ -563,10 +621,21 @@ def import_all_solutions(solution_fname, quiet=False):
 
 def visualize_models(sols, file_folder):
     '''
-        Selection of an optimal model in a set of solutions, based on a topology-based desirability function
-        @param\tsols\tPandas DataFrame: rows/[genes] x columns/[solution IDs]
-        @param\tweights\tPython dictionary: weight for each graph characteristic
-        @return\tsolution\tPandas DataFrame: rows/[genes] x column/[solution ID] selected solution
+    Selection of an optimal model in a set of solutions, based on a topology-based desirability function
+
+    ...
+
+    Parameters
+    ----------
+    sols : Pandas DataFrame
+        rows/[genes] x columns/[solution IDs]
+    weights : Python dictionary
+        weight for each graph characteristic
+
+    Returns
+    ----------
+    solution : Pandas DataFrame
+        rows/[genes] x column/[solution ID] selected solution
     '''
     ## * Minimal model (number of edges) *
     minimal, nminimal = get_minimal_edges(sols)
@@ -596,10 +665,21 @@ def select_optimal_model(sols, weights, file_folder):
 
 def solution2cytoscape(solution, fname):
     '''
-        Convert a solution into a Cytoscape-readable file
-        @param\tsolution\tPandas Series: rows/[genes]
-        @param\tfname\tPython character string: path to Cytoscape-readable SIF and XML (style) files (no extension)
-        @return\tNone\t
+    Convert a solution into a Cytoscape-readable file
+
+    ...
+
+    Parameters
+    ----------
+    solution : Pandas Series
+        rows/[genes]
+    fname : Python character string
+        path to Cytoscape-readable SIF and XML (style) files (no extension)
+
+    Returns
+    ----------
+    None
+        writes a Cytoscape-readable file
     '''
     ## 1. Create SIF file
     target = []

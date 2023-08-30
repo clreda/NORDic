@@ -13,18 +13,37 @@ from NORDic.UTILS.utils_state import binarize_experiments
 
 def profiles2signatures(profiles_df, user_key, path_to_lincs, save_fname, backgroundfile=False, selection="distil_ss", thres=0.5, bin_method="binary", nbackground_limits=(4,30), quiet=False):
     '''
-        Convert experimental profiles into signatures (1 for control samples, 1 for treated ones)
-        @param\tprofiles_df\tPandas DataFrame: rows/[genes+annotations] x columns/[samples]
-        @param\tuser_key\tPython character string: LINCS L1000 user API key
-        @param\tpath_to_lincs\tPython character string: path to local LINCS L1000 files
-        @param\tsave_fname\tPython character string: path to save normalized expression profiles per cell line
-        @param\tbackground_file\tPython bool[default=False]: retrieves from LINCS L1000 supplementary expression values if set to True to compute more precise basal gene expression levels
-        @param\tselection\tPython character string[default="distil_ss"]: LINCS L1000 metric to maximize for the "background" data
-        @param\tthres\tPython float[default=0.5]: threshold for cutoff normalized gene expression values (in [0,0.5])
-        @param\tbin_method\tPython character string[default="binary"]: binarization approach
-        @param\tnbackground_limits\tPython integer tuple[default=(4,30)]: lower and upper bounds on the number of profiles for the background expression data
-        @param\tquiet\tPython bool[default=False]
-        @return\tsignatures_df\tPandas DataFrame: rows/[genes] x columns/[signature ID]
+    Convert experimental profiles into signatures (1 for control samples, 1 for treated ones)
+
+    ...
+
+    Parameters
+    ----------
+    profiles_df : Pandas DataFrame
+        rows/[genes+annotations] x columns/[samples]
+    user_key : Python character string
+        LINCS L1000 user API key
+    path_to_lincs : Python character string
+        path to local LINCS L1000 files
+    save_fname : Python character string
+        path to save normalized expression profiles per cell line
+    background_file : Python bool
+        [default=False] : retrieves from LINCS L1000 supplementary expression values if set to True to compute more precise basal gene expression levels
+    selection : Python character string
+        [default="distil_ss"] : LINCS L1000 metric to maximize for the "background" data
+    thres : Python float
+        [default=0.5] : threshold for cutoff normalized gene expression values (in [0,0.5])
+    bin_method : Python character string
+        [default="binary"] : binarization approach
+    nbackground_limits : Python integer tuple
+        [default=(4,30)] : lower and upper bounds on the number of profiles for the background expression data
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    signatures_df\tPandas DataFrame
+        rows/[genes] x columns/[signature ID]
     '''
     assert thres >= 0 and thres <= 0.5
     assert path_to_lincs
@@ -112,18 +131,38 @@ def profiles2signatures(profiles_df, user_key, path_to_lincs, save_fname, backgr
 def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, taxon_id, selection, user_key, path_to_lincs, thres_iscale=None, nsigs=2, quiet=False):
     '''
     Retrieve experimental profiles from the provided cell lines, perturbation types, list of genes, in the given species (taxon ID)
-    @param\tfile_folder\tPython character string: folder where to store intermediary results
-    @param\tcell_lines\tPython character string list: cell lines present in LINCS L1000
-    @param\tpert_types\tPython character string list: types of perturbations as supported by LINCS L1000
-    @param\tpert_di\tPython dictionary (keys=Python character string, values=Python integer): associates HUGO gene symbols to their EntrezGene IDs
-    @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-    @param\tselection\tPython character string: LINCS L1000 metric to maximize
-    @param\tuser_key\tPython character string: LINCS L1000 user API key
-    @param\tpath_to_lincs\tPython character string: path to local LINCS L1000 files
-    @param\tthres_iscale\tPython float or None[default=None]: lower threshold on the interference scale which quantifies the success of a genetic experiment
-    @param\tnsigs\tPython integer[default=2]: minimal number of profiles per experiment and condition
-    @param\tquiet\tPython bool[default=False]
-    @return\tsignatures\tPandas DataFrame: rows/[genes+annotations] x columns/[profile/signature IDs]
+
+    ...
+
+    Parameters
+    ----------
+    file_folder : Python character string
+        folder where to store intermediary results
+    cell_lines : Python character string list
+        cell lines present in LINCS L1000
+    pert_types : Python character string list
+        types of perturbations as supported by LINCS L1000
+    pert_di : Python dictionary
+        (keys=Python character string, values=Python integer) associates HUGO gene symbols to their EntrezGene IDs
+    taxon_id : Python integer
+        NCBI taxonomy ID
+    selection : Python character string
+        LINCS L1000 metric to maximize
+    user_key : Python character string
+        LINCS L1000 user API key
+    path_to_lincs : Python character string
+        path to local LINCS L1000 files
+    thres_iscale : Python float or None
+        [default=None] : lower threshold on the interference scale which quantifies the success of a genetic experiment
+    nsigs : Python integer
+        [default=2] : minimal number of profiles per experiment and condition
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    signatures : Pandas DataFrame
+        rows/[genes+annotations] x columns/[profile/signature IDs]
     '''
     assert str(thres_iscale) == "None" or thres_iscale >= 0
     assert len(cell_lines) > 0

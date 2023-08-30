@@ -20,11 +20,23 @@ from scipy.stats import ks_2samp, spearmanr, kendalltau
 #################################################
 def baseline(signatures, phenotype, is_binary=False):
     '''
-        Compute the cosine scores between a set of signatures and a differential phenotype
-        @param\tS\tPandas DataFrame: signatures rows/[genes] x columns/[drug names] [Treated || Control]
-        @param\tP\tPandas DataFrame: differential phenotype rows/[genes] x column/[disease name] [Diseased || Healthy]
-        @param\tis_binary\tPython bool[default=False]: if set to True, the signatures and phenotypes might be binary (that is, with values in {0,1})
-        @return\tscores\tPython float dictionary: dictionary (keys=drug names, values=scores), the higher the score, the higher the repurposing power
+    Compute the cosine scores between a set of signatures S and a differential phenotype P
+
+    ...
+
+    Parameters
+    ----------
+    S : Pandas DataFrame
+        signatures rows/[genes] x columns/[drug names] [Treated || Control]
+    P : Pandas DataFrame
+        differential phenotype rows/[genes] x column/[disease name] [Diseased || Healthy]
+    is_binary : Python bool
+        [default=False] : if set to True, the signatures and phenotypes might be binary (that is, with values in {0,1})
+
+    Returns
+    -------
+    scores : Python float dictionary
+        dictionary (keys=drug names, values=scores), the higher the score, the higher the repurposing power
     '''
     SC, PC = signatures.dropna(), phenotype.dropna()
     if (is_binary):
@@ -44,13 +56,25 @@ def baseline(signatures, phenotype, is_binary=False):
 #######################################
 def empirical_pvalue(sorted_rewards, sorted_ground_truth, nperms, method="ks_2samp"):
     '''
-        Compute an empirical p-value corresponding to testing whether the distributions in the predicted scores and the ground truth are similar
-        by randomly permuting the values of the predictions and averaging the number of significant statistics across all permutations
-        @param\tsorted_rewards\tPython float list: predicted scores sorted by genes of increasing predicted value
-        @param\tsorted_ground_truth\tPython float list: ground truth scores sorted by genes of increasing predicted value
-        @param\tnperms\tPython integer: number of permutations to perform
-        @param\tmethod\tPython character string[default="ks_2samp"]: statistical test to perform at each permutation (should belong to scipy.stats)
-        @return\tpvalue\tPython float: empirical p-value corresponding to the test across all @nperms permutations
+    Compute an empirical p-value corresponding to testing whether the distributions in the predicted scores and the ground truth are similar by randomly permuting the values of the predictions and averaging the number of significant statistics across all permutations
+
+    ...
+
+    Parameters
+    ----------
+    sorted_rewards : Python float list
+        predicted scores sorted by genes of increasing predicted value
+    sorted_ground_truth : Python float list
+        ground truth scores sorted by genes of increasing predicted value
+    nperms : Python integer
+        number of permutations to perform
+    method : Python character string
+        [default="ks_2samp"] : statistical test to perform at each permutation (should belong to scipy.stats)
+
+    Returns
+    -------
+    pvalue : Python float
+        empirical p-value corresponding to the test across all @nperms permutations
     '''
     assert method in ["ks_2samp", "spearmanr", "kendalltau"]
     val_true, _ = eval(method)(sorted_rewards, sorted_ground_truth)
@@ -66,15 +90,31 @@ def empirical_pvalue(sorted_rewards, sorted_ground_truth, nperms, method="ks_2sa
 
 def compute_metrics(rewards, ground_truth, K=[2,5,10], use_negative_class=False, nperms=10000, thres=0., beta=1.):
     '''
-        Compute AUC, Hit Ratio @ k of method for positive/negative class with p-value
-        @param\trewards\tPython float list: predicted scores
-        @param\tground_truth\tPython float list: ground truth scores
-        @param\tK\tPython integer list[default=[2,5,10]]: ranks at which the hit ratio should be computed
-        @param\tuse_negative_class\tPython bool[default=False]: if set to True, compute the performance with respect to the negative class instead of the positive class
-        @param\tnperms\tPython integer[default=10000]: number of permutations to perform
-        @param\tthres\tPython float[default=0.]: decision threshold to determine the positive (resp. negative) class
-        @param\tbeta\tPython float[default=1.]: value of the coefficient in the F-measure
-        @return\tres_di\tPython dictionary: (keys=metrics, values=values of the metrics)
+    Compute AUC, Hit Ratio @ k of method for positive/negative class with p-value
+
+    ...
+
+    Parameters
+    ----------
+    rewards : Python float list
+        predicted scores
+    ground_truth : Python float list
+        ground truth scores
+    K : Python integer list
+        [default=[2,5,10]] : ranks at which the hit ratio should be computed
+    use_negative_class : Python bool
+        [default=False] : if set to True, compute the performance with respect to the negative class instead of the positive class
+    nperms : Python integer
+        [default=10000] : number of permutations to perform
+    thres : Python float
+        [default=0.] : decision threshold to determine the positive (resp. negative) class
+    beta : Python float
+        [default=1.] : value of the coefficient in the F-measure
+
+    Returns
+    -------
+    res_di : Python dictionary
+        (keys=metrics, values=values of the metrics)
     '''
     ids = np.argsort(rewards).tolist()
     ids.reverse()
@@ -96,15 +136,31 @@ def compute_metrics(rewards, ground_truth, K=[2,5,10], use_negative_class=False,
 
 def simulate(network_fname, targets, patients, score, simu_params={}, nbseed=0, quiet=False):
     '''
-        Simulate and score the individual effects of drugs on patient phenotypes, compared to controls
-        @param\tnetwork_fname\tPython character string: (relative) path to a network .BNET file
-        @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
-        @param\tpatients\tPandas DataFrame: rows/[genes] x columns/[samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
-        @param\tscore\tPython object: scoring of attractors
-        @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
-        @param\tnbseed\tPython integer[default=0]
-        @param\tquiet\tPython bool[default=False]
-        @return\tscores\tPandas DataFrame: rows/[patient phenotypes] x columns/[drug names], values are the associated scores
+    Simulate and score the individual effects of drugs on patient phenotypes, compared to controls
+
+    ...
+
+    Parameters
+    ----------
+    network_fname : Python character string
+        (relative) path to a network .BNET file
+    targets : Pandas DataFrame
+        rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
+    patients : Pandas DataFrame
+        rows/[genes] x columns/[samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
+    score : Python object
+        scoring of attractors
+    simu_params : Python dictionary
+        [default={}] : arguments to MPBN-SIM
+    nbseed : Python integer
+        [default=0] : random seed
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    scores : Pandas DataFrame
+        rows/[patient phenotypes] x columns/[drug names], values are the associated scores
     '''
     from multiprocessing import cpu_count
     assert simu_params.get('thread_count', 1)>=1 and simu_params.get('thread_count', 1)<=max(1,cpu_count()-2)
@@ -126,12 +182,25 @@ def simulate(network_fname, targets, patients, score, simu_params={}, nbseed=0, 
 
 def compute_frontier(df, samples, nbseed=0, quiet=False):
     '''
-        Fit a model to classify control/treated phenotypes
-        @param\tdf\tPandas DataFrame: rows/[genes] x columns/[samples] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
-        @param\tsamples\tPandas DataFrame: rows/["annotation"] x columns/[samples ], values are 1 (healthy sample) or 2 (patient sample).
-        @param\tnbseed\tPython integer[default=0]
-        @param\tquiet\tPython bool[default=False]
-        @return\tmodel\tPython object with a function "predict" that returns predictions (1: control, or 2: treated) on phenotypes
+    Fit a model to classify control/treated phenotypes
+
+    ...
+
+    Parameters
+    ----------
+    df : Pandas DataFrame
+        rows/[genes] x columns/[samples] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
+    samples : Pandas DataFrame
+        rows/["annotation"] x columns/[samples ], values are 1 (healthy sample) or 2 (patient sample).
+    nbseed : Python integer
+        [default=0] : random seed
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    model : Python object
+        object with a function "predict" that returns predictions (1: control, or 2: treated) on phenotypes
     '''
     from sklearn import svm
     model = svm.SVC(random_state=nbseed)
@@ -145,18 +214,37 @@ def compute_frontier(df, samples, nbseed=0, quiet=False):
 
 def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_name="", quiet=False):
     '''
-        Compute similarities between any attractor in WT and in mutants, weighted by their probabilities
-        @param\tf\tBoolean Network (MPBN) object: the mutated network
-        @param\tx0\tMPBN object: initial state
-        @param\tA\tAttractor list: list of attractors in mutant network
-        @param\tscore\tPython object: scoring of attractors
-        @param\tgenes\tPython character string list: list of genes in the model @frontier
-        @param\tnb_sims\tPython integer: number of iterations to compute the probabilities
-        @param\texperiments\tPython dictionary list: list of experiments (different rates/depths)
-        @param\trepeat\tPython integer[default=1]: how many times should these experiments be repeated
-        @param\texp_name\tPython character string[default=""]: printable for an experiment
-        @param\tquiet\tPython bool[default=False]
-        @return\tscore\tPython float: change in attractors induced by the mutation
+    Compute similarities between any attractor in WT and in mutants, weighted by their probabilities
+
+    ...
+
+    Parameters
+    ----------
+    f : Boolean Network (MPBN) object
+        the mutated network
+    x0 : MPBN object
+        initial state
+    A : Attractor list
+        list of attractors in mutant network
+    score : Python object
+        scoring of attractors
+    genes : Python character string list
+        list of genes in the model frontier
+    nb_sims : Python integer
+        number of iterations to compute the probabilities
+    experiments : Python dictionary list
+        list of experiments (different rates/depths)
+    repeat : Python integer
+        [default=1] : how many times should these experiments be repeated
+    exp_name : Python character string
+        [default=""] : printable for an experiment
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    score : Python float
+        change in attractors induced by the mutation
     '''
     for exp in experiments:
         if "name" not in exp:
@@ -190,15 +278,31 @@ def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_na
 
 def simulate_treatment(network_name, targets, score, state, simu_params={}, quiet=False):
     '''
-        Compute the score assigned to a drug with targets in @targets[[drug]] in network
-        @param\tnetwork_name\tPython character string: filename of the network in .bnet (needs to be pickable)
-        @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[columns]
-        @param\tscore\tPython object: scoring of attractors
-        @param\tstate\tPandas DataFrame: binary patient initial state rows/[genes] x columns/[values in {-1,0,1}]
-        @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
-        @param\tseednb\tPython integer[default=0]
-        @param\tquiet\tPython bool[default=False]
-        @return\teffects\tPython float dictionary: distance from attractors from treated networks to control profiles
+    Compute the score assigned to a drug with targets in @targets[[drug]] in network
+
+    ...
+
+    Parameters
+    ----------
+    network_name : Python character string
+        filename of the network in .bnet (needs to be pickable)
+    targets : Pandas DataFrame
+        rows/[genes] x columns/[columns]
+    score : Python object
+        scoring of attractors
+    state : Pandas DataFrame
+        binary patient initial state rows/[genes] x columns/[values in {-1,0,1}]
+    simu_params : Python dictionary
+        [default={}] : arguments to MPBN-SIM
+    seednb : Python integer
+        [default=0] : random seed
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    effects : Python float dictionary
+        distance from attractors from treated networks to control profiles
     '''
     ## 1. Load the Boolean network
     f = mpbn.load(network_name)

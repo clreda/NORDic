@@ -26,11 +26,23 @@ def capture():
 
 def determine_edge_threshold(network, core_gene_set, quiet=True):
     '''
-        Determine the greatest threshold on the edge score which allows all of the core gene set to be connected (binary search)
-        @param\tnetwork\tPandas DataFrame: rows/[interactions] x at least three columns "preferredName_A" (input node), "preferredName_B" (output node), "score" (edge score)
-        @param\tcore_gene_set\tPython character string list: list of genes that should remain connected
-        @param\tquiet\tPython bool[default=None]: 
-        @return\tt\tPython float: maximum threshold which allows the connection of all genes in the core set
+    Determine the greatest threshold on the edge score which allows all of the core gene set to be connected (binary search)
+
+    ...
+
+    Parameters
+    ----------
+    network : Pandas DataFrame
+        rows/[interactions] x at least three columns "preferredName_A" (input node), "preferredName_B" (output node), "score" (edge score)
+    core_gene_set : Python character string list
+        list of genes that should remain connected
+    quiet : Python bool
+        [default=None]: prints out verbose
+
+    Returns
+    ----------
+    t : Python float
+        maximum threshold which allows the connection of all genes in the core set
     '''
     ppi = network[["preferredName_A","preferredName_B","score"]]
     ppi.columns = ["A","B","score"]
@@ -80,11 +92,23 @@ def determine_edge_threshold(network, core_gene_set, quiet=True):
 
 def merge_network_PPI(network, PPI, quiet=True):
     '''
-        Merge two network while solving all inconsistencies (duplicates, paradoxes, etc.) in signs, directions, scores
-        @param\tnetwork\tPandas DataFrame: rows/[interactions] x at least three columns "preferredName_A" (input node), "preferredName_B" (output node), "score" (edge score)
-        @param\tPPI\tPandas DataFrame: rows/[interactions] x at least three columns "preferredName_A" (input node), "preferredName_B" (output node), "score" (edge score)
-        @param\tquiet\tPython bool[default=None]: 
-        @return\tfinal_network\tPandas DataFrame: rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
+    Merge two network while solving all inconsistencies (duplicates, paradoxes, etc.) in signs, directions, scores
+
+    ...
+
+    Parameters
+    ----------
+    network : Pandas DataFrame
+        rows/[interactions] x at least three columns "preferredName_A" (input node), "preferredName_B" (output node), "score" (edge score)
+    PPI : Pandas DataFrame
+        rows/[interactions] x at least three columns "preferredName_A" (input node), "preferredName_B" (output node), "score" (edge score)
+    quiet : Python bool
+        [default=None] : prints out verbose
+
+    Returns
+    ----------
+    final_network : Pandas DataFrame
+        rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
     '''
     edges_PPI = ["--".join(PPI.loc[x][["preferredName_A","preferredName_B"]]) for x in PPI.index]
     edges_network = ["--".join(network.loc[x][["preferredName_A","preferredName_B"]]) for x in network.index]
@@ -113,18 +137,37 @@ def merge_network_PPI(network, PPI, quiet=True):
 ## https://workflows.omnipathdb.org/networks-r.html
 def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human", sources_int="omnipath", domains_int=None, types_int=None, min_curation_effort=-1, domains_annot='HPA_tissue', quiet=False):
     '''
-        Retrieve a network from OmniPath
-        @param\tgene_list\tPython character string[default=None]: List of genes to consider (or do not filter the interactions from Omnipath if =None)
-        @param\tdisease_name\tPython character string[default=None]: Disease name (in letters) to consider
-        @param\tspecies\tPython character string[default=None]: Species to consider (either "human", "mouse", or "rat")
-        @param\tsources_int\tPython character string[default=None]: Which databases for interactions to consider (if =None, consider them all)
-        @param\tdomains_int\tPython character string[default=None]:
-        @param\ttypes_int\tPython character string[default=None]: Types of interactions, e.g., "post_translational", "transcriptional", "post_transcriptional", "mirna_transcriptional"
-        @param\tmin_curation_effort\tPython integer[default=-1]: if positive, select edges based on that criteria (the higher, the better). Counts the unique database-citation pairs, i.e. how many times was an interaction described in a paper and mentioned in a database
-        @param\tdomain_annot\tPython integer[default='HPA_tissue']:
-        @param\tquiet\tPython bool[default=None]:  
-        @return\tfinal_network\tPandas DataFrame: rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
-                \tannot_wide\tPandas DataFrame: rows/[gene symbols] x columns/[annotations from the database @domains_annot]
+    Retrieve a network from OmniPath
+
+    ...
+
+    Parameters
+    ----------
+    gene_list : Python character string
+        [default=None] : List of genes to consider (or do not filter the interactions from Omnipath if =None)
+    disease_name : Python character string
+        [default=None] : Disease name (in letters) to consider
+    species : Python character string
+        [default=None] : Species to consider (either "human", "mouse", or "rat")
+    sources_int : Python character string
+        [default=None] : Which databases for interactions to consider (if =None, consider them all)
+    domains_int : Python character string
+        [default=None] : source of interactions in OmniPath
+    types_int : Python character string
+        [default=None] : Types of interactions, e.g., "post_translational", "transcriptional", "post_transcriptional", "mirna_transcriptional"
+    min_curation_effort : Python integer
+        [default=-1] : if positive, select edges based on that criteria (the higher, the better). Counts the unique database-citation pairs, i.e. how many times was an interaction described in a paper and mentioned in a database
+    domain_annot : Python character string
+        [default='HPA_tissue'] : source of annotations in OmniPath
+    quiet : Python bool
+        [default=False] : prints out verbose  
+
+    Returns
+    ----------
+    final_network : Pandas DataFrame
+        rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
+    annot_wide : Pandas DataFrame
+        rows/[gene symbols] x columns/[annotations from the database @domains_annot]
     '''
     assert species in ['human', 'mouse', 'rat']
     assert types_int in [None, "post_translational", "transcriptional", "post_transcriptional", "mirna_transcriptional"]
@@ -166,10 +209,21 @@ def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human"
 
 def remove_isolated(network, quiet=False):
     '''
-        Remove all nodes which do not belong to the largest connected component from the network
-        @param\tnetwork\tPandas DataFrame: rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
-        @param\tquiet\tPython bool[default=None]:  
-        @return\ttrimmed_network\tPandas DataFrame: rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
+    Remove all nodes which do not belong to the largest connected component from the network
+
+    ...
+
+    Parameters
+    ----------
+    network : Pandas DataFrame
+        rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
+    quiet : Python bool
+        [default=None] : prints out verbose
+
+    Returns
+    ----------
+    trimmed_network : Pandas DataFrame
+        rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
     '''
     glist = list(set(list(network["preferredName_A"])+list(network["preferredName_B"])))
     components = get_weakly_connected(network, glist, score_col="score")
@@ -183,20 +237,37 @@ def remove_isolated(network, quiet=False):
 
 def aggregate_networks(file_folder, gene_list, taxon_id, min_score, network_type, app_name, version_net="11.5", version_act="11.0", quiet=0):
     '''
-        This function performs the following pipeline to build a prior knowledge network based on a subset of genes
-	- Retrieve protein actions and predicted PPIs from STRING
-	- Merge the two networks while solving all inconsistencies (duplicates, paradoxes, etc.) in signs, directions, scores
-	- Determine the greatest threshold on the edge score which allows all of the core gene set to be connected (binary search)
-	- Trim out edges which scores are below the threshold, and remove all isolated nodes
-        @param\tfile_folder\tPython character string: relative path where to store files
-        @param\tgene_list\tPython character string list: list of core gene symbols to preserve in the network
-        @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tmin_score\tPython integer: minimum score on edges retrieved from the STRING database
-        @param\tapp_name\tPython character string: Identifier for STRING requests
-        @param\tversion_net\tPython character string[default="11.5"]: Number of version for interaction data in the STRING database. To avoid compatibility issues, it is strongly advised not to change this parameter
-        @param\tversion_act\tPython character string[default="11.0"]: Number of version for protein action data in the STRING database. To avoid compatibility issues, it is strongly advised not to change this parameter
-        @param\tquiet\tPython bool[default=None]: 
-        @return\tfinal_network\tPandas DataFrame: rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
+    This function performs the following pipeline to build a prior knowledge network based on a subset of genes
+    - Retrieve protein actions and predicted PPIs from STRING
+    - Merge the two networks while solving all inconsistencies (duplicates, paradoxes, etc.) in signs, directions, scores
+    - Determine the greatest threshold on the edge score which allows all of the core gene set to be connected (binary search)
+    - Trim out edges which scores are below the threshold, and remove all isolated nodes
+
+    ...
+
+    Parameters
+    ----------
+    file_folder : Python character string
+        relative path where to store files
+    gene_list : Python character string list
+        list of core gene symbols to preserve in the network
+    taxon_id : Python integer
+        NCBI taxonomy ID
+    min_score : Python integer
+        minimum score on edges retrieved from the STRING database
+    app_name : Python character string
+        Identifier for STRING requests
+    version_net : Python character string
+        [default="11.5"] : Number of version for interaction data in the STRING database. To avoid compatibility issues, it is strongly advised not to change this parameter
+    version_act : Python character string
+        [default="11.0"] : Number of version for protein action data in the STRING database. To avoid compatibility issues, it is strongly advised not to change this parameter
+    quiet : Python bool
+        [default=None] : prints out verbose 
+
+    Returns
+    ----------
+    final_network : Pandas DataFrame
+        rows/[interactions] x columns/[["preferredName_A", "preferredName_B", "sign", "directed", "score"]]
     '''
     network = get_network_from_STRING(gene_list, taxon_id, min_score=min_score, network_type=network_type, add_nodes=0, app_name=app_name, version=version_net, quiet=quiet)
     PPI = get_interactions_from_STRING(gene_list, taxon_id, min_score=min_score, strict=False, version=version_act, app_name=app_name, file_folder=file_folder)

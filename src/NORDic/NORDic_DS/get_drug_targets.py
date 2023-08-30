@@ -16,13 +16,27 @@ from NORDic.UTILS.LINCS_utils import get_user_key, build_url, post_request
 
 def retrieve_drug_targets(file_folder, drug_names, TARGET_args={}, gene_list=[], sources=["DrugBank","MINERVA","LINCS","TTD","DrugCentral"], quiet=False):
     '''
-        Retrieve drug targets from several online sources
-        @param\tdrug_names\tPython character string list: list of common drug names
-        @param\tTARGET_args\tPython dictionary[default={}]: see for each source
-        @param\tgene_list\tPython character string list[defaul=[]]: list of HGNC symbols
-        @param\tsources\tPython character string list[default=["DrugBank","MINERVA","LINCS","TTD","DrugCentral"]]: list of source names (in ["DrugBank","MINERVA","LINCS","TTD","DrugCentral"])
-        @param\tquiet\tPython bool[default=False]
-        @param\ttarget_df\tPandas DataFrame: rows/[genes] x columns/[drug names], values are the number of times a target is connected to a drug
+    Retrieve drug targets from several online sources
+
+    ...
+
+    Parameters
+    ----------
+    drug_names : Python character string list
+        list of common drug names
+    TARGET_args : Python dictionary
+        [default={}] : see for each source
+    gene_list : Python character string list
+        [default=[]] : list of HGNC symbols
+    sources : Python character string list
+        [default=["DrugBank","MINERVA","LINCS","TTD","DrugCentral"]] : list of source names (in ["DrugBank","MINERVA","LINCS","TTD","DrugCentral"])
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    targets_df : Pandas DataFrame
+        rows/[genes] x columns/[drug names], values are the number of times a target is connected to a drug across all queried databases
     '''
     assert all([s in ["DrugBank","MINERVA","LINCS","TTD","DrugCentral"] for s in sources])
     targets_list = []
@@ -114,10 +128,21 @@ def retrieve_drug_targets(file_folder, drug_names, TARGET_args={}, gene_list=[],
 ## https://minerva.pages.uni.lu/doc/api/15.0/projects/
 def get_targets_MINERVA(drug_names, quiet=False):
     '''
-        Utility function using httr:GET to send queries to a given MINERVA Platform instance
-        @param\tdrug_names\tPython character string list: list of common drug names
-        @param\tquiet\tPython bool[default=False]
-        @return\ttarget_df\tPandas DataFrame: rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
+    Utility function using httr:GET to send queries to a given MINERVA Platform instance
+
+    ...
+
+    Parameters
+    ----------
+    drug_names : Python character string list
+        list of common drug names
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    target_df : Pandas DataFrame
+        rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
     '''
     base_url="https://minerva-dev.lcsb.uni.lu/minerva/api/projects/"
     headers = {'content-type': 'application/x-www-form-urlencoded'}
@@ -151,13 +176,27 @@ def get_targets_MINERVA(drug_names, quiet=False):
 #################
 def get_targets_DrugBank(drug_names, path_to_drugbank, drug_fname, target_fname, quiet=False):
     '''
-        Utility function which gets drug targets from a local DrugBank database
-        @param\tdrug_names\tPython character string list: list of common drug names
-        @param\tpath_to_drugbank\tPython character string: (relative) path to DrugBank files
-        @param\tdrug_fname\tPython character string: file name of .XML file of the complete database (full_database.xml) in DrugBank
-        @param\ttarget_fname\tPython character string: file name of .CSV file of the protein targets (all.csv) in DrugBank
-        @param\tquiet\tPython bool[default=False]
-        @return\ttarget_df\tPandas DataFrame: rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
+    Utility function which gets drug targets from a local DrugBank database
+
+    ...
+
+    Parameters
+    ----------
+    drug_names : Python character string list
+        list of common drug names
+    path_to_drugbank : Python character string
+        (relative) path to DrugBank files
+    drug_fname : Python character string
+        file name of .XML file of the complete database (full_database.xml) in DrugBank
+    target_fname : Python character string
+        file name of .CSV file of the protein targets (all.csv) in DrugBank
+    quiet : Python bool
+        prints out verbose (default=False)
+
+    Returns
+    ----------
+    target_df : Pandas DataFrame
+        rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
     '''
     ## 1. Find drug names from DrugBank identifiers (using file from DrugBank after registration)
     if (not os.path.exists(path_to_drugbank+drug_fname)):
@@ -198,12 +237,25 @@ def get_targets_DrugBank(drug_names, path_to_drugbank, drug_fname, target_fname,
 ####################
 def get_targets_LINCS(drug_names, path_to_lincs, credentials, selection=None, nsigs=None, quiet=False):
     '''
-        Utility function to retrieve drug targets from the LINCS L1000 database
-        @param\tdrug_names\tPython character string list: list of common drug names
-        @param\tpath_to_lincs\tPython character string: (relative) path to LINCS files
-        @param\tcredentials\tPython character string: (relative) path to LINCS credentials file
-        @param\tquiet\tPython bool[default=False]
-        @return\ttarget_df\tPandas DataFrame: rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
+    Utility function to retrieve drug targets from the LINCS L1000 database
+
+    ...
+
+    Parameters
+    ----------
+    drug_names : Python character string list
+        list of common drug names
+    path_to_lincs : Python character string
+        (relative) path to LINCS files
+    credentials : Python character string
+        (relative) path to LINCS credentials file
+    quiet : Python bool
+        prints out verbose (default=False)
+
+    Returns
+    ----------
+    target_df : Pandas DataFrame
+        rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
     '''
     target_lst = [[]]*len(drug_names)
     pubchem_cids = drugname2pubchem(drug_names, lincs_args={"path_to_lincs": path_to_lincs, "credentials": credentials})
@@ -229,10 +281,21 @@ def get_targets_LINCS(drug_names, path_to_lincs, credentials, selection=None, ns
 ##########################################
 def get_targets_TTD(drug_names, quiet=False):
     '''
-        Utility function to retrieve drug targets from the Therapeutic Target Database (TTD)
-        @param\tdrug_name\tPython character string list: list of common drug names
-        @param\tquiet\tPython bool[default=False]
-        @return\ttarget_df\tPandas DataFrame: rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "-" (inhibitor) or "+" (activator) or "" (no known regulation)
+    Utility function to retrieve drug targets from the Therapeutic Target Database (TTD)
+
+    ...
+
+    Parameters
+    ----------
+    drug_name : Python character string list
+        list of common drug names
+    quiet : Python bool
+        prints out verbose (default=False)
+
+    Returns
+    ----------
+    target_df : Pandas DataFrame
+        rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "-" (inhibitor) or "+" (activator) or "" (no known regulation)
     '''
     ## 1. Download files (TARGET-ID and DRUG-ID matchings)
     ttd_url = "http://db.idrblab.net/ttd/sites/default/files/ttd_database/"
@@ -266,10 +329,21 @@ def get_targets_TTD(drug_names, quiet=False):
 ##########################################
 def get_targets_DrugCentral(drug_names, quiet=False):
     '''
-        Utility function to retrieve drug targets from the DrugCentral 2021
-        @param\tdrug_name\tPython character string list: list of common drug names
-        @param\tquiet\tPython bool[default=False]
-        @return\ttarget_df\tPandas DataFrame: rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
+    Utility function to retrieve drug targets from the DrugCentral 2021
+
+    ...
+
+    Parameters
+    ----------
+    drug_name : Python character string list
+        list of common drug names
+    quiet : Python bool
+        prints out verbose (default=False)
+
+    Returns
+    ----------
+    target_df : Pandas DataFrame
+        rows/[lists of HGNC symbols of targets] x columns/[drug names], values are "*" (known regulator) or "" (no known regulation)
     '''
     ffile = [[drug_names[[d.lower() for d in drug_names].index(x.split("\t")[0][1:-1].lower())], [xx for xx in x.split("\t")[1][1:-1].split("|") if ((len(xx)>1) and (xx[1].upper()==xx[1]))]] for x in sbcheck_output("wget -qO- https://unmtid-shinyapps.net/download/DrugCentral/2021_09_01/drug.target.interaction.tsv.gz | gzip -d | cut -f1,6", shell=True).decode("utf-8").split("\n")[:-1] if (x.split("\t")[0][1:-1].lower() in [d.lower() for d in drug_names])]
     ffile = [[x, y] for x,y in ffile if (len(y)>0)]

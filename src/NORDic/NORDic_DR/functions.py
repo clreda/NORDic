@@ -11,17 +11,34 @@ def adaptive_testing(network_name, signatures, targets, score, states, simu_para
         reward_fname=None, quiet=False):
     '''
         Perform adaptive testing and recommends most promising treatments (=maximizing score)
-        @param\tnetwork_name\tPython character string: (relative) path to a network .BNET file
-        @param\tsignatures\tPandas DataFrame: rows/[features] x columns/[drugs to test]
-        @param\ttargets\tPandas DataFrame: rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
-        @param\tscore\tPython object: scoring of attractors
-        @param\tstates\tPandas DataFrame: rows/[gene] x columns/[patient samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
-        @param\tsimu_params\tPython dictionary[default={}]: arguments to MPBN-SIM
-        @param\tbandit_params\tPython dictionary[default={}]: arguments to the bandit algorithms
-        @param\treward_fname\tPython character string[default=None]: path to a reward matrix rows/[patients] x columns/[drugs]
-        @param\tquiet\tPython bool[default=False]
-        @return\tempirical_rec\tPandas DataFrame: rows/[drugs to test] x column/["Frequency"], the percentage of times 
-        across all simulations at the end of which the considered drug is recommended
+
+    ...
+
+    Parameters
+    ----------
+    network_name : Python character string
+        (relative) path to a network .BNET file
+    signatures : Pandas DataFrame
+        rows/[features] x columns/[drugs to test]
+    targets : Pandas DataFrame
+        rows/[genes] x columns/[drugs to test] (either 1: active expression, -1: inactive expression, 0: undetermined expression)
+    score : Python object
+        scoring of attractors
+    states : Pandas DataFrame
+        rows/[gene] x columns/[patient samples] (either 1: activatory, -1: inhibitory, 0: no regulation).
+    simu_params: Python dictionary
+        [default={}] : arguments to MPBN-SIM
+    bandit_params : Python dictionary
+        [default={}] : arguments to the bandit algorithms
+    reward_fname : Python character string
+        [default=None] : path to a reward matrix rows/[patients] x columns/[drugs]
+    quiet : Python bool
+        [default=False] : prints verbose
+
+    Returns
+    -------
+    empirical_rec : Pandas DataFrame
+        rows/[drugs to test] x column/["Frequency"], the percentage of times across all simulations at the end of which the considered drug is recommended
     '''
     assert signatures.shape[1]==targets.shape[1]
     assert all([c==targets.columns[i] for i, c in enumerate(signatures.columns)])

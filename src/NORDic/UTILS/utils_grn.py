@@ -19,34 +19,67 @@ from NORDic.UTILS.utils_state import quantile_normalize
 
 def desirability(x, f_weight_di, A=0, B=1):
     '''
-        Harrington's desirability function, used by [1]
-        Convert a list of functions to maximize into a single scalar function to maximize with values in [@A,@B]
-        @param\tx\tPoint
-        @param\tf_weight_di\tPython dictionary: function with arguments as the same type as x, and associated weight
-        @param\tA\tPython float[default=0]: lower bound of the function interval
-        @param\tB\tPython float[default=1]: upper bound of the function interval
-        @return\tdes(x)\tvalue of the desirability function at point x
-        [1] http://ceur-ws.org/Vol-2488/paper17.pdf
+    Harrington's desirability function, used by [1]
+    Converts a list of functions to maximize into a single scalar function to maximize with values in [@A,@B]
+
+    [1] http://ceur-ws.org/Vol-2488/paper17.pdf
         https://cran.r-project.org/web/packages/desirability/vignettes/desirability.pdf
+
+    ...
+
+    Parameters
+    ----------
+    x : datapoint
+        any input to functions in f_weight_di
+    f_weight_di : Python dictionary
+        function with arguments as the same type as x, and associated weight
+    A : Python float
+        [default=0] : lower bound of the function interval
+    B : Python float
+        [default=1] : upper bound of the function interval
+
+    Returns
+    ----------
+    des(x) : Python float
+        value of the desirability function at point x
     '''
     values = [np.exp(-np.exp(-((B-A)+weight/(B-A)*funct(x)))) for funct, weight in f_weight_di.items()]
     return float(np.exp(np.mean(np.log(values))))
 
 def DS(influences):
     '''
-        Computes the number of edges over the maximum number of possible connections between the nodes in the network
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes]
-        @return\tDS\tPython float: network density
+    Computes the number of edges over the maximum number of possible connections between the nodes in the network
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes]
+
+    Returns
+    ----------
+    DS : Python float
+        network density
     '''
     n = influences.shape[0]
     return 2*np.sum(np.sum(np.triu(np.abs(influences.values)), axis=1), axis=0)/float(n*(n-1))
 
 def CL(influences):
     '''
-        Computes the average of node-wise clustering coefficients
-        The clustering coefficient of a node is the ratio of the degree of the considered node and the maximum possible number of connections such that this node and its current neighbors form a clique
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes]
-        @return\tCL\tPython float: network clustering coefficient
+    Computes the average of node-wise clustering coefficients. The clustering coefficient of a node is the ratio of the degree of the considered node and the maximum possible number of connections such that this node and its current neighbors form a clique
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes]
+
+    Returns
+    ----------
+    CL : Python float
+        network clustering coefficient
     '''
     n = influences.shape[0]
     network_outdegree = np.sum(np.abs(influences.values), axis=1)
@@ -58,9 +91,19 @@ def CL(influences):
 
 def Centr(influences):
     '''
-        Computes the network centralization, which is correlated with the similarity of the network to a graph with a star topology
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes]
-        @return\tCentr\tPython float: network centralization
+    Computes the network centralization, which is correlated with the similarity of the network to a graph with a star topology
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes]
+
+    Returns
+    ----------
+    Centr : Python float
+        network centralization
     '''
     n = influences.shape[0]
     network_outdegree = np.sum(np.abs(influences.values),axis=1)
@@ -69,9 +112,19 @@ def Centr(influences):
 
 def GT(influences):
     '''
-        Computes the network heterogeneity, which quantifies the non-uniformity of the node degrees across the network
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes]
-        @return\tGT\tPython float: network heterogeneity
+    Computes the network heterogeneity, which quantifies the non-uniformity of the node degrees across the network
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes]
+
+    Returns
+    ----------
+    GT : Python float
+        network heterogeneity
     '''
     network_outdegree = np.sum(np.abs(influences.values), axis=1)
     k_mean = np.mean(network_outdegree)
@@ -79,10 +132,21 @@ def GT(influences):
 
 def general_topological_parameter(influences, weights):
     '''
-        Computes the general topological parameter (GTP) associated with the input network
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes]
-        @param\tweights\tPython dictionary of (Python character string x Python float): all keys must be in ["DS","CL","Centr","GT"]
-        @return\tscore\tPython float: return the score using the Harrington's desirability function
+    Computes the general topological parameter (GTP) associated with the input network
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes]
+    weights : Python dictionary of (Python character string x Python float)
+        all keys must be in ["DS","CL","Centr","GT"]
+
+    Returns
+    ----------
+    score : Python float
+        score using the Harrington's desirability function
     '''
     assert all([w in ["DS","CL","Centr","GT"] for w in weights])
     missing_index = [x for x in influences.index if (x not in influences.columns)]
@@ -95,13 +159,27 @@ def general_topological_parameter(influences, weights):
 
 def get_weakly_connected(network_df, gene_list, index_col="preferredName_A", column_col="preferredName_B", score_col="sscore"):
     '''
-        Depth-first search (DFS) on undirected network
-        @param\tnetwork_df\tPandas DataFrame: rows/[index] x columns/[["Input","Output"]]
-        @param\tgene_list\tPython character string list: list of genes (needed to take into account isolated genes in the network)
-        @param\tindex_col\tPython character string[default="preferredName_A"]: column in network_df (input gene)
-        @param\tcolumn_col\tPython character string[default="preferredName_B"]: column in network_df (output gene)
-        @param\tscore_col\tPython character string[default="sscore"]: column in network_df (edge weight)
-        @return\tcomponents\tType of @network_df.loc[network_df.index[0]]["Input"] Python list of Python list: list of weakly connected components in the network, ordered by decreasing size
+    Depth-first search (DFS) on undirected network
+
+    ...
+
+    Parameters
+    ----------
+    network_df : Pandas DataFrame
+        rows/[index] x columns/[["Input","Output"]]
+    gene_list : Python character string list
+        list of genes (needed to take into account isolated genes in the network)
+    index_col : Python character string
+        [default="preferredName_A"] : column in network_df (input gene)
+    column_col : Python character string
+        [default="preferredName_B"] : column in network_df (output gene)
+    score_col : Python character string
+        [default="sscore"] : column in network_df (edge weight)
+
+    Returns
+    ----------
+    components : Type of @network_df.loc[network_df.index[0]]["Input"] Python list of Python list
+        list of weakly connected components in the network, ordered by decreasing size
     '''
     adjacency = network_df.pivot_table(index=index_col, columns=column_col, values=score_col, aggfunc="mean")
     ## Undirected adjacency matrix
@@ -139,13 +217,27 @@ def get_weakly_connected(network_df, gene_list, index_col="preferredName_A", col
 
 def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=True, quiet=False):
     '''
-        Filtering edges to decrease computational cost while preserving network connectivity (if needed)
-        @param\tppi\tPandas DataFrame: rows/[index] x columns[{"preferredName_A", "preferredName_B", "sign", "directed", "score"]]; sign in {-1,1,2}, directed in {0,1}, score in [0,1]
-        @param\tconnected\tPython bool[default=True]: if set to True, preserve/enforce connectivity on the final network
-        @param\tscore\tPython float[default=0]: Lower bound on the edge-associated score
-        @param\tfiltering\tPython bool[default=True]: Whether to filter out edges by a correlation threshold
-        @param\tquiet\tPython bool[default=False]
-        @return\tppi_accepted\tPandas DataFrame: rows/[index] x columns/[["Input", "Output"]]
+    Filtering edges to decrease computational cost while preserving network connectivity (if needed)
+
+    ...
+
+    Parameters
+    ----------
+    ppi : Pandas DataFrame
+        rows/[index] x columns[{"preferredName_A", "preferredName_B", "sign", "directed", "score"]]; sign in {-1,1,2}, directed in {0,1}, score in [0,1]
+    connected : Python bool
+        [default=True] : if set to True, preserve/enforce connectivity on the final network
+    score : Python float
+        [default=0] : Lower bound on the edge-associated score
+    filtering : Python bool
+        [default=True] : Whether to filter out edges by a correlation threshold
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    ppi_accepted : Pandas DataFrame
+        rows/[index] x columns/[["Input", "Output"]]
     '''
     assert all([x in [-1,1,2] for x in list(ppi["sign"])])
     assert all([x in [0,1] for x in list(ppi["directed"])])
@@ -225,15 +317,31 @@ def get_genes_interactions_from_PPI(ppi, connected=False, score=0, filtering=Tru
 
 def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None, accept_nonRNA=False, quiet=False):
     '''
-        Filters out (and signs of unsigned) edges based on gene expression 
-        @param\tnetwork_df\tPandas DataFrame: rows/[index] x columns/[["Input", "Output", "SSign"]] interactions
-        @param\ttau\tPython float: threshold on genepairwise expression correlation
-        @param\tbeta\tPython integer[default=1]: power applied to the adjacency matrix
-        @param\tcor_method\tPython character string[default="pearson"]: type of correlation
-        @param\texpr_df\tPandas DataFrame[default=None]: rows/[genes] x columns/[samples] gene expression data
-        @param\taccept_nonRNA\tPython bool[default=False]: if set to False, ignores gene names which are not present in expr_df
-        @param\tquiet\tPython bool[default=False]
-        @return\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes] signed adjacency matrix with only interactions s.t. corr^beta>=tau
+    Filters out (and signs of unsigned) edges based on gene expression 
+
+    ...
+
+    Parameters
+    ----------
+    network_df : Pandas DataFrame
+        rows/[index] x columns/[["Input", "Output", "SSign"]] interactions
+    tau : Python float
+        threshold on genepairwise expression correlation
+    beta : Python integer
+        [default=1] : power applied to the adjacency matrix
+    cor_method : Python character string
+        [default="pearson"] : type of correlation
+    expr_df : Pandas DataFrame
+        [default=None] : rows/[genes] x columns/[samples] gene expression data
+    accept_nonRNA : Python bool
+        [default=False] : if set to False, ignores gene names which are not present in expr_df
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes] signed adjacency matrix with only interactions s.t. corr^beta>=tau
     '''
     assert network_df.shape[1]==3 and all([c in ["Input","Output", "SSign"] for c in network_df.columns])
     network = network_df.pivot_table(index="Input", columns="Output", values="SSign", aggfunc="mean")
@@ -281,12 +389,25 @@ def build_influences(network_df, tau, beta=1, cor_method="pearson", expr_df=None
 
 def create_grn(influences, exact=False, max_maxclause=3, quiet=False):
     '''
-        Create a BoneSiS InfluenceGraph
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes] of interactions, values in {-1,1,0} -1:negative,1:positive,0:absent
-        @param\texact\tPython bool[default=False]: should all interactions be preserved?
-        @param\tmax_maxclause\tPython integer[default=3]: upper bound on the number of clauses in DNF form
-        @param\tquiet\tPython bool[default=False]
-        @return\tgrn\tBoneSiS InfluenceGraph class object
+    Create a BoneSiS InfluenceGraph
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes] of interactions, values in {-1,1,0} -1:negative,1:positive,0:absent
+    exact : Python bool
+        [default=False] : should all interactions be preserved?
+    max_maxclause : Python integer
+        [default=3] : upper bound on the number of clauses in DNF form
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    grn : BoneSiS InfluenceGraph class object
+        BoneSiS GRN object
     '''
     assert all([n in [-1,1,0] for n in np.unique(influences.values)])
     maxclause = min(get_maxdegree(influences, quiet=quiet), max_maxclause)
@@ -301,11 +422,23 @@ def create_grn(influences, exact=False, max_maxclause=3, quiet=False):
 
 def get_maxdegree(influences, activatory=True, quiet=False):
     '''
-        Computes the maximum ingoing degree (or the maximum number of potential activatory regulators) in a graph
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes] of interactions: -1:negative,1:positive,0:absent
-        @param\tactivatory\tPython bool[default=True]: computes the maximum number of potential activatory regulators instead
-        @param\tquiet\tPython bool[default=False]
-        @return\tmaxindegree\tPython integer
+    Computes the maximum ingoing degree (or the maximum number of potential activatory regulators) in a graph
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes] of interactions: -1:negative,1:positive,0:absent
+    activatory : Python bool
+        [default=True] : computes the maximum number of potential activatory regulators instead
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    maxindegree : Python integer
+        maximum ingoing degree (or the maximum number of potential activatory regulators)
     '''
     assert all([n in [-1,0,1] for n in np.unique(influences.values)])
     if (not activatory):
@@ -318,12 +451,23 @@ def get_maxdegree(influences, activatory=True, quiet=False):
 
 def build_observations(grn, signatures, quiet=False):
     '''
-        Implement experimental constraints from perturbation experiments in signatures
-        Experimental constraints are of the form...
-        @param\tgrn\tInfluenceGraph (from BoneSiS): contains topological constraints
-        @param\tsignatures\tPandas DataFrame: rows/[genes] x columns/[experiment IDs]. Experiment IDs is of the form "<pert. gene>_<pert. type>_<...>_<cell line>" (treated) or "initial_<cell line>" (control)
-        @param\tquiet\tPython bool[default=False]
-        @return\tBO\tBoNesis object (from BoneSiS)
+    Implement experimental constraints from perturbation experiments in signatures. Experimental constraints are of the form Initial state masked by single-gene perturbation can lead to a steady attractor state Final
+
+    ...
+
+    Parameters
+    ----------
+    grn : InfluenceGraph (from BoneSiS)
+        contains topological constraints
+    signatures : Pandas DataFrame
+        rows/[genes] x columns/[experiment IDs]. Experiment IDs is of the form "<pert. gene>_<pert. type>_<...>_<cell line>" (treated) or "initial_<cell line>" (control)
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    BO : BoNesis object (from BoneSiS)
+        BoNesis object which can be evaluated
     '''
     data_exps = {}
     if (len(signatures)==0):
@@ -379,9 +523,19 @@ def build_observations(grn, signatures, quiet=False):
 
 def solution2influences(solution):
     '''
-        Converts a solution object into a influences object
-        @param\tsolution\tPandas Series: rows/[genes]
-        @return\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes] contains values {-1,1,0,2} -1: negative, 1: positive, 0: absent, 2: non monotonic
+    Converts a solution object into a influences object
+
+    ...
+
+    Parameters
+    ----------
+    solution : Pandas Series
+        rows/[genes]
+
+    Returns
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes] contains values {-1,1,0,2} -1: negative, 1: positive, 0: absent, 2: non monotonic
     '''
     gene_list = list(solution.index)
     N = len(gene_list)
@@ -404,7 +558,19 @@ def solution2influences(solution):
 
 def zip2df(fname):
     '''
-        Extract solutions in ZIP file as DataFrames
+    Extract solutions in ZIP file as DataFrames
+
+    ...
+
+    Parameters
+    ----------
+    fname : Python character string
+        zip file which contains BNET solutions
+
+    Returns
+    ----------
+    solutions : Pandas DataFrame
+        rows/[genes] x columns/[solutions] the GRFs for each gene in each solution
     '''
     with ZipFile(fname, "r") as zip:
         zip.extractall()
@@ -419,7 +585,19 @@ def zip2df(fname):
 
 def load_grn(fname):
     '''
-        Loads GRN as MPBN class element
+    Loads GRN as MPBN class element
+
+    ...
+
+    Parameters
+    ----------
+    fname : Python character string
+        BNET file
+
+    Returns
+    ----------
+    BN : mpbn.MPBooleanNetwork object
+        Boolean network with Most Permissive semantics
     '''
     BN = mpbn.MPBooleanNetwork(fname)
     sep=" <- " if (" <- " in str(BN)) else ", "
@@ -428,11 +606,23 @@ def load_grn(fname):
 
 def get_minimal_edges(R, maximal=False):
     '''
-       Return one of the solutions with the smallest (or greatest) number of edges
-       @param\tR\tPandas DataFrame: rows/[genes] x columns/[solution IDs]
-       @param\tconnected\tPython bool[default=False]: if set to True, return the CONNECTED solution which satisfies those constraints
-       @param\tmaximal\tPython bool[default=False]: if set to True, return the solution with the greatest number of edges
-       @return\tsolution, nedges\tPython integer x Python integer: solution and corresponding number of edges
+    Return one of the solutions with the smallest (or greatest) number of edges
+
+    ...
+
+    Parameters
+    ----------
+    R : Pandas DataFrame
+        rows/[genes] x columns/[solution IDs]
+    connected : Python bool
+        [default=False] : if set to True, return the CONNECTED solution which satisfies those constraints
+    maximal : Python bool
+        [default=False] : if set to True, return the solution with the greatest number of edges
+
+    Returns
+    ----------
+    solution, nedges : Python integer x Python integer
+        solution and corresponding number of edges
     '''
     nedges_list = [int(solution2influences(R[col]).abs().sum().sum()) for col in R.columns]
     solution_id = (np.argmax if (maximal) else np.argmin)(nedges_list)
@@ -440,9 +630,19 @@ def get_minimal_edges(R, maximal=False):
 
 def get_grfs_from_solution(solution):
     '''
-        Retrieve all gene regulatory functions (GRFs) from a given solution
-        @param\tsolution\tPandas Series: rows/[genes] 
-        @return\tgrfs\tPython dictionary: {gene: {regulator: sign, ...}, ...} where sign in {-1,1} -1: inhibitor, 1: activator
+    Retrieve all gene regulatory functions (GRFs) from a given solution
+
+    ...
+
+    Parameters
+    ----------
+    solution : Pandas Series
+        rows/[genes] 
+
+    Returns
+    ----------
+    grfs : Python dictionary
+        {gene: {regulator: sign, ...}, ...} where sign in {-1,1} -1: inhibitor, 1: activator
     '''
     sol_dict, grfs = solution.to_dict(), {}
     for gene in sol_dict:
@@ -461,14 +661,29 @@ def get_grfs_from_solution(solution):
 
 def save_grn(solution, fname, sep=", ", quiet=False, max_show=5, write=True):
     '''
-        Write and/or print .bnet file
-        @param\tsolution\tPandas Series: rows/[genes] contains gene regulatory functions (GRF)
-        @param\tfname\tPython character string: where to write the file (w/o .bnet extension)
-        @param\tsep\tPython character string: what separates regulators from regulated genes
-        @param\tquiet\tPython bool[default=False]
-        @param\tmax_show\tPython integer[default=5]: maximum number of printed GRFs
-        @param\twrite\tPython bool[default=True]: if set to True, write to a .bnet file
-        @return\tNone\t
+    Write and/or print .bnet file
+
+    ...
+
+    Parameters
+    ----------
+    solution : Pandas Series
+        rows/[genes] contains gene regulatory functions (GRF)
+    fname : Python character string
+        where to write the file (w/o .bnet extension)
+    sep : Python character string
+        what separates regulators from regulated genes
+    quiet : Python bool
+        [default=False] : prints out verbose
+    max_show : Python integer
+        [default=5] : maximum number of printed GRFs
+    write : Python bool
+        [default=True] : if set to True, write to a .bnet file
+
+    Returns
+    ----------
+    None
+        writes the GRN to a file fname
     '''
     sol = solution.to_dict()
     print_sol = ["".join([str(x) for x in [gene, sep, sol[gene]]]) for gene in sol if (len(gene)>0)]
@@ -482,11 +697,23 @@ def save_grn(solution, fname, sep=", ", quiet=False, max_show=5, write=True):
 
 def save_solutions(bnetworks, fname, limit):
     '''
-        Enumerate and save solutions
-        @param\tbnetworks\tOutput of the inference
-        @param\tfname\t
-        @param\tlimit\tPython integer: maximum number of solutions to enumerate
-        @return\tn\tPython integer: number of enumerated solutions
+    Enumerate and save solutions
+
+    ...
+
+    Parameters
+    ----------
+    bnetworks : Bonesis object
+        Output of the inference
+    fname : Python character string
+        ZIP filename to store the solutions
+    limit : Python integer
+        maximum number of solutions to enumerate
+
+    Parameters
+    ----------
+    n : Python integer
+        number of enumerated solutions
     '''
     with ZipFile(fname, "w") as bundle:
         n = 0
@@ -500,13 +727,27 @@ def save_solutions(bnetworks, fname, limit):
 
 def infer_network(BO, njobs=1, fname="solutions", use_diverse=True, limit=50, niterations=1):
     '''
-        Infer solutions matching topological & experimental constraints
-        @param\tBO\t Bonesis object (from BoneSiS): contains topological & experimental constraints
-        @param\tfname\tPython character string[default="solutions"]: path to solution files
-        @param\tuse_diverse\tPython bool[default=True]: use the "diverse" procedure in BoneSiS
-        @param\tlimit\tPython integer[default=50]: maximum number of solutions to generate per interation
-        @param\tniterations\tPython integer[default=1]: maximum number of iterations
-        @return list of # solutions per iteration
+    Infer solutions matching topological & experimental constraints
+
+    ...
+
+    Parameters
+    ----------
+    BO : Bonesis object (from BoneSiS)
+        contains topological & experimental constraints
+    fname : Python character string
+        [default="solutions"] : path to solution files
+    use_diverse : Python bool
+        [default=True] : use the "diverse" procedure in BoneSiS
+    limit : Python integer
+        [default=50] : maximum number of solutions to generate per interation
+    niterations : Python integer
+        [default=1] : maximum number of iterations
+
+    Returns
+    ----------
+    nsolutions : Python integer
+        list of # solutions per iteration
     '''
     bonesis.settings["parallel"] = njobs
     #bonesis.settings["solutions"] = "subset-minimal"
@@ -526,11 +767,23 @@ def infer_network(BO, njobs=1, fname="solutions", use_diverse=True, limit=50, ni
 
 def get_genes_downstream(network_fname, gene, n=-1):
     '''
-        Get the list of genes downstream of a gene in a network
-        @param\tnetwork_fname\tPython character string: path to the .BNET file associated with the network
-        @param\tgene\tPython character string: gene name in the network
-        @param\tn\tPython integer[default=-1]: number of recursions (if<0, recursively get all downstream genes)
-        @return\tlst_downstream\tPython character string list: list of nodes downstream of @gene
+    Get the list of genes downstream of a gene in a network
+
+    ...
+
+    Parameters
+    ----------
+    network_fname : Python character string
+        path to the .BNET file associated with the network
+    gene : Python character string
+        gene name in the network
+    n : Python integer
+        [default=-1] : number of recursions (if<0, recursively get all downstream genes)
+
+    Returns
+    ----------
+    lst_downstream : Python character string list
+        list of nodes downstream of @gene
     '''   
     with open(network_fname, "r") as f:
         grf_list = f.read().split("\n")
@@ -551,11 +804,23 @@ def get_genes_downstream(network_fname, gene, n=-1):
 
 def get_genes_most_variable(control_profiles, treated_profiles, p=0.8):
     '''
-        Get the list of genes which contribute most to the variation between two conditions (in the @pth percentile of change)
-        @param\tcontrol_profiles\tPandas DataFrame: rows/[genes] x columns/[samples] profiles from condition 1
-        @param\ttreated_profiles\tPandas DataFrame: rows/[genes] x columns/[samples] profiles from condition 1
-        @param\tp\tPython float: 100*p th percentile to consider 
-        @return\tlst_genes\tPython character string list: list of nodes which contribute most to the variation between conditions
+    Get the list of genes which contribute most to the variation between two conditions (in the @pth percentile of change)
+
+    ...
+
+    Parameters
+    ----------
+    control_profiles : Pandas DataFrame
+        rows/[genes] x columns/[samples] profiles from condition 1
+    treated_profiles : Pandas DataFrame
+        rows/[genes] x columns/[samples] profiles from condition 1
+    p : Python float
+        100*p th percentile to consider 
+
+    Returns
+    ----------
+    lst_genes : Python character string list
+        list of nodes which contribute most to the variation between conditions
     '''  
     assert p>=0 and p<=1
     model = Logit(penalty="l1",solver="saga",fit_intercept=False,random_state=0,max_iter=1000,n_jobs=njobs)
@@ -569,9 +834,19 @@ def get_genes_most_variable(control_profiles, treated_profiles, p=0.8):
 
 def reconnect_network(network_fname):
     '''
-        Write the network with all isolated nodes (no ingoing/outgoing edges) filtered out
-        @param\tnetwork_fname\tPython character string: path to the .BNET associated with the network
-        @return\tfname\tPython character string: path to the .BNET associated with the reconnected network
+    Write the network with all isolated nodes (no ingoing/outgoing edges) filtered out
+
+    ...
+
+    Parameters
+    ----------
+    network_fname : Python character string
+        path to the .BNET associated with the network
+
+    Returns
+    ----------
+    fname : Python character string
+        path to the .BNET associated with the reconnected network
     '''  
     with open(network_fname, "r") as f:
         network = pd.DataFrame({"Solution": dict([["_".join(g.split("-")) for g in x.split(", ")] for x in f.read().split("\n") if (len(x)>0)])})

@@ -8,11 +8,23 @@ import seaborn as sns
 
 def influences2graph(influences, fname, optional=False, compile2png=True, engine=["sfdp","dot"][0]):
     '''
-        Plots a network by conversion to a DOT file and then to PNG
-        @param\tinfluences\tPandas DataFrame: rows/[genes] x columns/[genes], contains {-1,1,2}
-        @param\tfname\tPython character string: filename of png file
-        @param\toptional\tPython bool[default=False]: should interactions be drawn as optional (dashed lines)?
-        @return\tNone\t
+    Plots a network by conversion to a DOT file and then to PNG
+
+    ...
+
+    Parameters
+    ----------
+    influences : Pandas DataFrame
+        rows/[genes] x columns/[genes], contains {-1,1,2}
+    fname : Python character string
+        filename of png file
+    optional : Python bool
+        [default=False] : should interactions be drawn as optional (dashed lines)?
+
+    Returns
+    ----------
+    None
+        writes a DOT file which can be converted to PNG image (if compile2png=True)
     '''
     dotfile = fname+".dot"
     filename = fname+".png"
@@ -53,12 +65,25 @@ def influences2graph(influences, fname, optional=False, compile2png=True, engine
 
 def plot_influence_graph(network_df, input_col, output_col, sign_col, direction_col=None, fname="graph.png", optional=True):
     '''
-        Converts a network into a PNG picture
-        @param\tnetwork_df\tPandas DataFrame: rows/[index] x columns/[@input_col,@output_col,@sign_col]
-        @param\tinput_col,output_col,sign_col,direction_col\tPython character string: columns of @network_df
-        @param\tfname\tPython character string[default="graph.png"]: file name for PNG picture
-        @param\toptional\tPython bool[default=True]: should edges be plotted as dashed lines?
-        @return\tNone\t
+    Converts a network into a PNG picture
+
+    ...
+
+    Parameters
+    ----------
+    network_df : Pandas DataFrame
+        rows/[index] x columns/[input_col,output_col,sign_col]
+    input_col,output_col,sign_col,direction_col : Python character string
+        columns of network_df
+    fname : Python character string
+        [default="graph.png"] : file name for PNG picture
+    optional : Python bool
+        [default=True] : should edges be plotted as dashed lines?
+
+    Returns
+    ----------
+    None
+        Creates a image of the graph in file fname
     '''
     influences = network_df.pivot_table(index=input_col, columns=output_col, values=sign_col, aggfunc='mean')
     influences[influences==0] = 2
@@ -87,13 +112,27 @@ def plot_influence_graph(network_df, input_col, output_col, sign_col, direction_
 
 def plot_signatures(signatures, perturbed_genes=None, width=10, height=10, max_show=50, fname="signatures"):
     '''
-        Print signatures
-        @param\tsignatures\tPandas DataFrame: rows/[genes] x columns/[signature IDs]
-        @param\tperturbed_genes\tPython character string list[default=None]: list of gene names perturbed in the signatures
-        @param\twidth, height\tPython integer[default=10]: dimensions of image
-        @param\tmax_show\tPython integer[default=50]: maximum number of genes shown (as only the @max_show genes with highest variance across signatures are plotted)
-        @param\tfname\tPython character string[default="signatures"]: path of resulting PNG image
-        @return\tNone\t
+    Print signatures
+
+    ...
+
+    Parameters
+    ----------
+    signatures : Pandas DataFrame
+        rows/[genes] x columns/[signature IDs]
+    perturbed_genes : Python character string list
+        [default=None] : list of gene names perturbed in the signatures
+    width, height : Python integer
+        [default=10] : dimensions of image
+    max_show : Python integer
+        [default=50] : maximum number of genes shown (as only the @max_show genes with highest variance across signatures are plotted)
+    fname : Python character string
+        [default="signatures"] : path of resulting PNG image
+
+    Returns
+    ----------
+    None
+        plots the signatures as heatmaps in file fname
     '''
     from matplotlib import colors,rc
     rc("ytick", labelsize=5)
@@ -124,11 +163,24 @@ def plot_signatures(signatures, perturbed_genes=None, width=10, height=10, max_s
 
 def plot_distributions(profiles, fname="gene_expression_distribution.png", thres=None):
     '''
-        Plots the distributions (boxplots) of gene expression across samples for each gene, and the selected threshold for binarization
-        @param\tprofiles\tPandas DataFrame: rows/[genes+annotations] x columns/[samples]
-        @param\tfname\tPython character string[default="gene_expression_distribution.png"]
-        @param\tthres\tPython float or None[default=None]: binarization threshold
-        @return\tNone\t
+    Plots the distributions (boxplots) of gene expression across samples for each gene, and the selected threshold for binarization
+
+    ...
+
+    Parameters
+    ----------
+    profiles : Pandas DataFrame
+        rows/[genes+annotations] x columns/[samples]
+    fname : Python character string
+        [default="gene_expression_distribution.png"] : file name
+    thres : Python float or None
+        [default=None] : binarization threshold (if there is any)
+
+
+    Returns
+    ----------
+    None
+        plots boxplots of expression for each gene in profiles
     '''
     add_rows_profiles = ["annotation", "perturbed", "perturbation", "cell_line", "sigid"]
     bp = profiles.loc[[g for g in profiles.index if (g not in add_rows_profiles)]].T.apply(pd.to_numeric).boxplot(rot=90, figsize=(25,15))
@@ -144,10 +196,21 @@ def plot_distributions(profiles, fname="gene_expression_distribution.png", thres
 
 def plot_discrete_distributions(signatures, fname="signature_expression_distribution.png"):
     '''
-        Plots the distributions (histograms) of genes with determined status across signatures
-        @param\tsignatures\tPandas DataFrame: rows/[genes] x columns/[samples] with values in {0,NaN,1}. Determined status is either 0 or 1.
-        @param\tfname\tPython character string[default="signature_expression_distribution.png"]
-        @return\tNone\t
+    Plots the distributions (histograms) of genes with determined status across signatures
+
+    ...
+
+    Parameters
+    ----------
+    signatures : Pandas DataFrame
+        rows/[genes] x columns/[samples] with values in {0,NaN,1}. Determined status is either 0 or 1.
+    fname : Python character string
+        [default="signature_expression_distribution.png"] : file name
+
+    Returns
+    ----------
+    None
+        plots the number of genes with expression values 0, 1 or NaN in each signature
     '''
     N = int(np.sqrt(signatures.shape[1]))+1
     fig, axes = plt.subplots(nrows=N, ncols=N, figsize=(25,15))
@@ -167,15 +230,29 @@ def plot_discrete_distributions(signatures, fname="signature_expression_distribu
 
 def plot_boxplots(scores, patient_scores, ground_truth=None, fsize=12, msize=5, fname="boxplots.pdf"):
     '''
-        Plots one boxplot per treatment (all values obtained on patient profiles)
-        @param\tscores\tPandas DataFrame: rows/[drug names] x column/[value]
-        @param\tpatient_scores\tPandas DataFrame: rows/[drug names] x columns/[patient samples]
-        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
-        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
-        @param\tfsize\tPython integer[default=18]: font size
-        @param\tmsize\tPython integer[default=5]: marker size
-        @param\tfname\tPython character string[default="boxplots"]: file name for the plot
-        @return\tNone
+    Plots one boxplot per treatment (all values obtained on patient profiles)
+
+    ...
+
+    Parameters
+    ----------
+    scores : Pandas DataFrame
+        rows/[drug names] x column/[value]
+    patient_scores : Pandas DataFrame
+        rows/[drug names] x columns/[patient samples]
+    ground_truth : Pandas DataFrame
+        [default=None] : rows/[drug names] x column/[class] Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
+    fsize : Python integer
+        [default=18] : font size
+    msize : Python integer
+        [default=5] : marker size
+    fname : Python character string
+        [default="boxplots"] : file name for the plot
+
+    Returns
+    ----------
+    None
+        create boxplots of reward scores across patients for each drug
     '''
     scores_ = deepcopy(scores).sort_values(by=scores.columns[0], ascending=False)
     drug_names = list(scores_.index)
@@ -212,16 +289,31 @@ def plot_boxplots(scores, patient_scores, ground_truth=None, fsize=12, msize=5, 
 
 def plot_heatmap(X, ground_truth=None, fname="heatmap.pdf", w=20, h=20, bfsize=20, fsize=20, rot=75):
     '''
-        Plots an heatmap of the signatures, with the potential ground truth
-        @param\tX\tPandas DataFrame: rows/[features] x columns/[drug names]
-        @param\tground_truth\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
-        Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
-        @param\tfname\tPython character string[default="heatmap.pdf"]: file name for the plot
-        @param\tw\tPython integer[default=20]: figure width
-        @param\th\tPython integer[default=20]: figure height
-        @param\tbfsize\tPython integer[default=20]: font size in the color bar
-        @param\trot\tPython integer[default=75]: rotation angle of labels
-        @return\tNone
+    Plots an heatmap of the signatures, with the potential ground truth
+
+    ...
+
+    Parameters
+    ----------
+    X : Pandas DataFrame
+        rows/[features] x columns/[drug names]
+    ground_truth : Pandas DataFrame
+        [default=None] : rows/[drug names] x column/[class] Values in 1: treatment, 0: unknown, -1: aggravating. If not provided: does not color boxplots according to the class
+    fname : Python character string
+        [default="heatmap.pdf"] : file name for the plot
+    w : Python integer
+        [default=20] : figure width
+    h : Python integer
+        [default=20] : figure height
+    bfsize : Python integer
+        [default=20] : font size in the color bar
+    rot : Python integer
+        [default=75] : rotation angle of labels
+
+    Returns
+    ----------
+    None
+        plots an heatmap of similarity across drugs based on the Pearson correlation
     '''
     colors = {1: "green", -1: "red", 0: "black"}
     if (ground_truth is not None):
@@ -246,14 +338,30 @@ def plot_heatmap(X, ground_truth=None, fname="heatmap.pdf", w=20, h=20, bfsize=2
 
 def plot_roc_curve(pr, prs, tr, fname="ROC.pdf", method_name="predictor", fsize=18):
     '''
-        Plots a ROC curve (with variations across samples)
-        @param\tpr\tPandas DataFrame: rows/[drug names] x column/[value]
-        @param\tprs\tPandas DataFrame: rows/[drug names] x columns/[patient samples]
-        @param\ttr\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
-        @param\tfname\tPython character string[default="ROC.pdf"]: file name for the plot
-        @param\tmethod_name\tPython character string[default="predictor"]: name of the predictor
-        @param\tfsize\tPython integer[default=18]: font size
-        @return\tNone
+    Plots a ROC curve (with variations across samples)
+
+    ...
+
+    Parameters
+    ----------
+    pr : Pandas DataFrame
+        rows/[drug names] x column/[value]
+    prs : Pandas DataFrame
+        rows/[drug names] x columns/[patient samples]
+    tr : Pandas DataFrame
+        [default=None] : rows/[drug names] x column/[class] 
+    fname : Python character string
+        [default="ROC.pdf"] : file name for the plot
+    method_name : Python character string
+        [default="predictor"] : name of the predictor
+    fsize : Python integer
+        [default=18] : font size
+
+
+    Returns
+    ----------
+    None
+        Plots a ROC curve based on the drug repurposing predictions
     '''
     from sklearn.metrics import roc_curve, roc_auc_score
     from scipy import interp
@@ -293,16 +401,34 @@ def plot_roc_curve(pr, prs, tr, fname="ROC.pdf", method_name="predictor", fsize=
 
 def plot_precision_recall(pr, prs, tr, beta=1, thres=0.5, fname="PRC.pdf", method_name="predictor", fsize=18):
     '''
-        Plots a Precision-Recall curve (with variations across samples)
-        @param\tpr\tPandas DataFrame: rows/[drug names] x column/[value]
-        @param\tprs\tPandas DataFrame: rows/[drug names] x columns/[patient samples]
-        @param\ttr\tPandas DataFrame[default=None]: rows/[drug names] x column/[class] 
-        @param\tbeta\tPython float[default=1]: value of coefficient beta for the F-measure
-        @param\tthres\tPython float[default=0.5]: decision threshold
-        @param\tfname\tPython character string[default="PRC.pdf"]: file name for the plot
-        @param\tmethod_name\tPython character string[default="predictor"]: name of the predictor
-        @param\tfsize\tPython integer[default=18]: font size
-        @return\tNone
+    Plots a Precision-Recall curve (with variations across samples)
+
+    ...
+
+    Parameters
+    ----------
+    pr : Pandas DataFrame
+        rows/[drug names] x column/[value]
+    prs : Pandas DataFrame
+        rows/[drug names] x columns/[patient samples]
+    tr : Pandas DataFrame
+        [default=None] : rows/[drug names] x column/[class] 
+    beta : Python float
+        [default=1] : value of coefficient beta for the F-measure
+    thres : Python float
+        [default=0.5] : decision threshold
+    fname : Python character string
+        [default="PRC.pdf"] : file name for the plot
+    method_name : Python character string
+        [default="predictor"] : name of the predictor
+    fsize : Python integer
+        [default=18] : font size
+
+
+    Returns
+    ----------
+    None
+        Plots a Precision-Recall curve based on the drug repurposing predictions
     '''
     from sklearn.metrics import precision_recall_curve, fbeta_score
     from scipy import interp

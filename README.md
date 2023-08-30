@@ -53,6 +53,27 @@ pip install -U colomoto-docker
 colomoto-docker
 ```
 
+## Quick access to NORDic
+
+The easiest way not to having to deal with environment configuration is to use the CoLoMoTo-Docker. First ensure that [Docker](https://docs.docker.com/engine/install/) is installed for your distribution:
+
+```bash
+service docker start
+docker run hello-world # downloads a test image, runs it in a container (prints a confirmation message), exits
+```
+
+Then install the [CoLoMoTo-Docker](https://github.com/colomoto/colomoto-docker):
+
+```bash
+conda create -n nordic_colomoto python=3.10 -y
+conda activate nordic_colomoto
+pip install -U colomoto-docker
+mkdir notebooks
+colomoto-docker -v notebooks:local-notebooks ## or any version later than 2023-03-01
+```
+
+In the Jupyter browser, you will see a ``local-notebooks`` directory which is bound to your ``notebooks`` directory, where you can find all tutorial notebooks in CoLoMoTo, the one for NORDic included (``NORDic-demo.ipynb``).
+
 ## Example usage
 
 Once installed, to import **NORDic**

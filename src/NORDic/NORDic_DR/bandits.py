@@ -9,7 +9,7 @@ from time import time
 import NORDic.NORDic_DR.utils as utils
 
 bandit_types = ["MisLid", "LinGapE"]
-beta_types = ["heuristic", "linear", "lucb1", "misspecified", "gaussian", "subheuristic"]
+beta_types = ["heuristic", "misspecified", "gaussian", "subheuristic"]
 learner_types = ["AdaHedge", "Greedy"]
 
 ####################################################

@@ -21,18 +21,37 @@ from NORDic.UTILS.utils_state import compare_states
 
 def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, repeat=1, exp_name="", quiet=False):
     '''
-        Compute similarities between any attractor in WT and in mutants, weighted by their probabilities
-        @param\tf\tBoolean Network (MPBN) object: the mutated network
-        @param\tx0\tMPBN object: initial state
-        @param\tA\tAttractor list: list of attractors in mutant
-        @param\tA_WT\tAttractor list: list of attractors in WT
-        @param\tgene_outputs\tPython character string list: list of node names to check
-        @param\tnb_sims\tPython integer: number of iterations to compute the probabilities
-        @param\texperiments\tPython dictionary list: list of experiments (different rates/depths)
-        @param\trepeat\tPython integer[default=1]: how many times should these experiments be repeated
-        @param\texp_name\tPython character string[default=""]: printed info about the experiment (if quiet=True)
-        @param\tquiet\tPython bool[default=False]
-        @return\tsim\tPython float: change in attractors induced by the mutation
+    Compute similarities between any attractor in WT and in mutants, weighted by their probabilities
+
+    ...
+
+    Parameters
+    ----------
+    f : Boolean Network (MPBN) object
+        the mutated network
+    x0 : MPBN object
+        initial state
+    A : Attractor list
+        list of attractors in mutant
+    A_WT : Attractor list
+        list of attractors in WT
+    gene_outputs : Python character string list
+        list of node names to check
+    nb_sims : Python integer
+        number of iterations to compute the probabilities
+    experiments : Python dictionary list
+        list of experiments (different rates/depths)
+    repeat : Python integer
+        [default=1] : how many times should these experiments be repeated
+    exp_name : Python character string
+        [default=""] : printed info about the experiment (if quiet=True)
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    sim : Python float
+        change in attractors induced by the mutation
     '''
     for exp in experiments:
         if "name" not in exp:
@@ -86,18 +105,33 @@ def run_experiments(network_name, spreader, gene_list, state, gene_outputs, simu
 
 def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, seednb=0, quiet=False):
     '''
-        Compute the spread of each gene in @gene_inputs+@spreader with initial state @state on genes @gene_outputs
-        Here, the (single state) spread is defined as the indicator of the emptyness of the intersection between WT and mutant attractors
-        @param\tnetwork_name\tPython character string: filename of the network in .bnet (needs to be pickable)
-        @param\tspreader\tPython character string list: subset of node names
-        @param\tgene_list\tPython character string list: list of node names to perturb in addition to the spreader
-        @param\tstate\tPandas DataFrame: binary initial state rows/[genes] x columns/[values in {-1,0,1}]
-        @param\tgene_outputs\tPython character string list: list of node names to check
-        @param\tsimu_params\tPython dictionary: arguments to MPBN-SIM
-        @param\tseednb\tPython integer[default=0]
-        @param\tquiet\tPython bool[default=False]
-        @return\tspds\tPython float dictionary: change in mutant attractor states for each gene in @gene_list
-        that is, the similarity between any attractor reachable from @state in WT and any in mutant spreader+{g} where g in gene_list
+    Compute the spread of each gene in gene_inputs+spreader with initial state state on genes gene_outputs. Here, the (single state) spread is defined as the indicator of the emptyness of the intersection between WT and mutant attractors
+
+    ...
+
+    Parameters
+    ----------
+    network_name : Python character string
+        filename of the network in .bnet (needs to be pickable)
+    spreader : Python character string list
+        subset of node names
+    gene_list : Python character string list
+        list of node names to perturb in addition to the spreader
+    state : Pandas DataFrame
+        binary initial state rows/[genes] x columns/[values in {-1,0,1}]
+    gene_outputs : Python character string list
+        list of node names to check
+    simu_params : Python dictionary
+        arguments to MPBN-SIM
+    seednb : Python integer
+        [default=0] : random seed
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    spds : Python float dictionary
+        change in mutant attractor states for each gene in gene_list that is, the similarity between any attractor reachable from state in WT and any in mutant spreader+{g} where g in gene_list
     '''
     random.seed(seednb)
     np.random.seed(seednb)
@@ -146,18 +180,33 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
 
 def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, im_params, simu_params, quiet=False):
     '''
-        Compute the spread of each gene in @gene_inputs+@spreader with initial states in @states on genes @gene_outputs
-        Here, the (single state) spread is defined as the indicator of the emptyness of the intersection between WT and mutant attractors
-        @param\tnetwork_name\tPython character string: filename of the network in .bnet (needs to be pickable)
-        @param\tspreader\tPython character string list: subset of node names
-        @param\tgene_list\tPython character string list: list of node names to perturb in addition to the spreader
-        @param\tstates\tPandas DataFrame: binary initial state rows/[genes] x columns/[state ID]
-        @param\tgene_outputs\tPython character string list: list of node names to check
-        @param\tim_params\tPython dictionary: arguments to Influence Maximization
-        @param\tsimu_params\tPython dictionary: arguments to MPBN-SIM
-        @param\tquiet\tPython bool[default=False]
-        @return\tspds\tPython float dictionary: change in mutant attractor states for each gene in @gene_list
-        that is, the geometric mean of similarities between any attractor reachable from state in @states in WT and any in mutant spreader+{g} where g in gene_list
+    Compute the spread of each gene in gene_inputs+spreader with initial states in states on genes gene_outputs. Here, the (single state) spread is defined as the indicator of the emptyness of the intersection between WT and mutant attractors
+
+    ...
+
+    Parameters
+    ----------
+    network_name : Python character string
+        filename of the network in .bnet (needs to be pickable)
+    spreader : Python character string list
+        subset of node names
+    gene_list : Python character string list
+        list of node names to perturb in addition to the spreader
+    states : Pandas DataFrame
+        binary initial state rows/[genes] x columns/[state ID]
+    gene_outputs : Python character string list
+        list of node names to check
+    im_params : Python dictionary
+        arguments to Influence Maximization
+    simu_params : Python dictionary
+        arguments to MPBN-SIM
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    spds : Python float dictionary
+        change in mutant attractor states for each gene in gene_list that is, the geometric mean of similarities between any attractor reachable from state in states in WT and any in mutant spreader+{g} where g in gene_list
     '''
     from multiprocessing import cpu_count
     assert simu_params.get('thread_count', 1)>=1 and simu_params.get('thread_count', 1)<=max(1,cpu_count()-2)
@@ -182,15 +231,29 @@ def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, i
 
 def greedy(network_name, k, states, im_params, simu_params, save_folder=None, quiet=False):
     '''
-        Greedy Influence Maximization Algorithm [Kempe et al., 2003]
-        Finds iteratively the maximum spreader and adds it to the list until the list is of size k
-        @param\tnetwork_name\tPython character string: bnet network
-        @param\tk\tPython integer: maximum size of the spreader
-        @param\tim_params\tPython dictionary or None[default=None]: parameters of the influence maximization
-        @param\tstates\tPandas DataFrame or None[default=None]: list of initial states to consider
-        @param\tsave_folder\tPython character string[default=None]: where to save intermediary results (if None: do not save intermediary results)
-        @param\tquiet\tPython bool[default=False]
-        @return\tS, spreads\tPython character string list: nodes in the spreader set, Python dictionary: spread value associated with every tested subset of nodes
+    Greedy Influence Maximization Algorithm [Kempe et al., 2003]. Finds iteratively the maximum spreader and adds it to the list until the list is of size k
+
+    ...
+
+    Parameters
+    ----------
+    network_name : Python character string
+        bnet network
+    k : Python integer
+        maximum size of the spreader
+    im_params : Python dictionary or None
+        [default=None] : parameters of the influence maximization
+    states : Pandas DataFrame or None
+        [default=None] : list of initial states to consider
+    save_folder : Python character string
+        [default=None] : where to save intermediary results (if None: do not save intermediary results)
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    S, spreads : Python character string list
+        nodes in the spreader set, Python dictionary: spread value associated with every tested subset of nodes
     '''
     random.seed(im_params.get("seed", 0))
     np.random.seed(im_params.get("seed", 0))

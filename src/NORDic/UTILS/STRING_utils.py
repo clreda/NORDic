@@ -14,9 +14,19 @@ string_api_url = lambda v : "https://version-"+"-".join(v.split("."))+".string-d
 
 def get_app_name_STRING(fname):
     '''
-        Retrieves app name from STRING to interact with the API
-        @param\tfname\tPython character string: path to file with a unique line = email adress
-        @return\tapp_name\tPython character string: identifier for the STRING API
+    Retrieves app name from STRING to interact with the API
+
+    ...
+
+    Parameters
+    ----------
+    fname : Python character string
+        path to file with a unique line = email adress
+
+    Returns
+    ----------
+    app_name : Python character string
+        identifier for the STRING API
     '''
     with open(fname, "r") as f:
         app_name = f.read().split("\n")[0]
@@ -24,13 +34,27 @@ def get_app_name_STRING(fname):
 
 def get_protein_names_from_STRING(gene_list, taxon_id, app_name=None, version="11.5", quiet=False):
     '''
-        Retrieves protein IDs in STRING associated with input genes in the correct species
-        @param\tgenes_list\tPython character list: list of gene symbols
-        @param\ttaxon_id\tPython integer: taxon ID from NCBI
-        @param\tversion\tPython character string[default="11.5"]: STRING version
-        @param\tapp_name\tPython character string[default=None]
-        @param\tquiet\tPython bool[default=False]
-        @returns\tres_df\tPandas DataFrame: rows/[row number] x columns/["queryItem", "stringId", "preferredName", "annotation"]
+    Retrieves protein IDs in STRING associated with input genes in the correct species
+
+    ...
+
+    Parameters
+    ----------
+    genes_list : Python character list
+        list of gene symbols
+    taxon_id : Python integer
+        taxon ID from NCBI
+    version : Python character string
+        [default="11.5"] : STRING version
+    app_name : Python character string
+        [default=None] : identifier to access STRING
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    res_df : Pandas DataFrame
+        rows/[row number] x columns/["queryItem", "stringId", "preferredName", "annotation"]
     '''
     assert app_name
     assert taxon_id
@@ -58,16 +82,33 @@ def get_protein_names_from_STRING(gene_list, taxon_id, app_name=None, version="1
 
 def get_image_from_STRING(my_genes, taxon_id, file_name="network.png", min_score=0, network_flavor="evidence", network_type="functional", app_name=None, version="11.5", quiet=False):
     '''
-        Retrieves protein IDs in STRING associated with input genes in the correct species
-        @param\tgenes_list\tPython character list: list of gene symbols
-        @param\ttaxon_id\tPython integer: taxon ID from NCBI
-        @param\tfile_name\tPython character string[default="network.png"]: image file name
-        @param\tmin_score\tPython float[default=0]: confidence lower threshold (in [0,1])
-        @param\tnetwork_flavor\tPython character string[default="evidence"]: show links related to ["confidence", "action", "evidence"]
-        @param\tnetwork_type\tPython character string[default="functional"]: show "functional" or "physical" network
-        @param\tapp_name\tPython character string
-        @param\tquiet\tPython bool[default=False]
-        @returns\tNone\t
+    Retrieves protein IDs in STRING associated with input genes in the correct species
+
+    ...
+
+    Parameters
+    ----------
+    genes_list : Python character list
+        list of gene symbols
+    taxon_id : Python integer
+        taxon ID from NCBI
+    file_name : Python character string
+        [default="network.png"] : image file name
+    min_score : Python float
+        [default=0] : confidence lower threshold (in [0,1])
+    network_flavor : Python character string
+        [default="evidence"] : show links related to ["confidence", "action", "evidence"]
+    network_type : Python character string
+        [default="functional"] : show "functional" or "physical" network
+    app_name : Python character string
+        [default=None] : identifier for STRING
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    None
+        writes the network image to a file file_name
     '''
     assert app_name
     assert taxon_id
@@ -99,16 +140,33 @@ def get_image_from_STRING(my_genes, taxon_id, file_name="network.png", min_score
 
 def get_network_from_STRING(gene_list, taxon_id, min_score=0, network_type="functional", add_nodes=0, app_name=None, version="11.5", quiet=False):
     '''
-        Retrieves undirected and unsigned interactions from the STRING database
-        @param\tgene_list\tPython character string list: list of gene symbols
-        @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tmin_score\tPython integer[default=0]: minimum STRING combined edge score in [0,1]
-        @param\tnetwork_type\tPython character string[default="functional"]: returns "functional" or "physical" network
-        @param\tadd_nodes\tPython integer[default=0]: add nodes *in the closest interaction neighborhood* involved with the genes in @gene_list if set to 1
-        @param\tapp_name\tPython character string
-        @param\tversion\tPython character string[default="11.5"]: STRING version
-        @param\tquiet\tPython bool[default=False]
-        @return\tnetwork\tPandas DataFrame: rows/[row number] x columns/["preferredName_A","preferredName_B","score","directed"]
+    Retrieves undirected and unsigned interactions from the STRING database
+
+    ...
+
+    Parameters
+    ----------
+    gene_list : Python character string list
+        list of gene symbols
+    taxon_id : Python integer
+        NCBI taxonomy ID
+    min_score : Python integer
+        [default=0] : minimum STRING combined edge score in [0,1]
+    network_type : Python character string
+        [default="functional"] : returns "functional" or "physical" network
+    add_nodes : Python integer
+        [default=0] : add nodes *in the closest interaction neighborhood* involved with the genes in @gene_list if set to 1
+    app_name : Python character string
+        [default=None] : identifier for STRING
+    version : Python character string
+        [default="11.5"] : STRING version
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    network : Pandas DataFrame
+        rows/[row number] x columns/["preferredName_A","preferredName_B","score","directed"]
     '''
     assert app_name
     assert taxon_id
@@ -151,16 +209,33 @@ def get_network_from_STRING(gene_list, taxon_id, min_score=0, network_type="func
 
 def get_interactions_partners_from_STRING(gene_list, taxon_id, min_score=0, network_type="functional", add_nodes=0, limit=5, app_name=None, version="11.5", quiet=False):
     '''
-        Retrieves undirected and unsigned interactions from the STRING database
-        @param\tgene_list\tPython character string list: list of gene symbols
-        @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tmin_score\tPython integer[default=0]: minimum STRING combined edge score in [0,1]
-        @param\tnetwork_type\tPython character string[default="functional"]: returns "functional" or "physical" network
-        @param\tlimit\tPython integer[default=5]: limits the number of interaction partners retrieved per protein (most confident interactions come first)
-        @param\tapp_name\tPython character string
-        @param\tversion\tPython character string[default="11.5"]: STRING version
-        @param\tquiet\tPython bool[default=False]
-        @return\tnetwork\tPandas DataFrame: rows/[row number] x columns/["preferredName_A","preferredName_B","score","directed"]
+    Retrieves undirected and unsigned interactions from the STRING database
+
+    ...
+
+    Parameters
+    ----------
+    gene_list : Python character string list
+        list of gene symbols
+    taxon_id : Python integer
+        NCBI taxonomy ID
+    min_score : Python integer
+        [default=0] : minimum STRING combined edge score in [0,1]
+    network_type : Python character string
+        [default="functional"] : returns "functional" or "physical" network
+    limit : Python integer
+        [default=5] : limits the number of interaction partners retrieved per protein (most confident interactions come first)
+    app_name : Python character string
+        [default=None] : identifier for STRING
+    version : Python character string
+        [default="11.5"] : STRING version
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    network : Pandas DataFrame
+        rows/[row number] x columns/["preferredName_A","preferredName_B","score","directed"]
     '''
     assert app_name
     assert taxon_id
@@ -202,16 +277,33 @@ def get_interactions_partners_from_STRING(gene_list, taxon_id, min_score=0, netw
 
 def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None, file_folder=None, version="11.0", strict=False, quiet=False):
     '''
-        Retrieves (un)directed and (un)signed physical interactions from the STRING database
-        @param\tgene_list\tPython character string list: list of genes
-        @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tmin_score\tPython integer[default=0]: in [0,1] STRING combined score
-        @param\tapp_name\tPython character string
-        @param\tfile_folder\tPython character string[default=None]: where to save the file from STRING (if None, the file is not saved)
-        @param\tversion\tPython character string[default="v11.0"]: STRING database version
-        @param\tstrict\tPython bool[default=False]: if set to True, only keep interactions involving genes BOTH in @gene_list
-        @param\tquiet\tPython bool[default=False]
-        @return\tres_df\tPandas Dataframe: rows/[] x columns/[]
+    Retrieves (un)directed and (un)signed physical interactions from the STRING database
+
+    ...
+
+    Parameters
+    ----------
+    gene_list : Python character string list
+        list of genes
+    taxon_id : Python integer
+        NCBI taxonomy ID
+    min_score : Python integer
+        [default=0] : in [0,1] STRING combined score
+    app_name : Python character string
+        [default=None] : identifier for STRING
+    file_folder : Python character string
+        [default=None]: where to save the file from STRING (if None, the file is not saved)
+    version : Python character string
+        [default="v11.0"] : STRING database version
+    strict : Python bool
+        [default=False] : if set to True, only keep interactions involving genes BOTH in @gene_list
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    res_df : Pandas Dataframe
+        rows/[interation number] x columns/["preferredName_A", "preferredName_B", "sign", "directed", "score"]
     '''
     assert version!="11.5"
     assert app_name

@@ -12,9 +12,19 @@ from functools import reduce
 
 def get_user_key(fname):
     '''
-        Retrieves user key for interacting with LINCS L1000 CLUE API
-        @param\tfname\tPython character string: path to file containing credentials for LINCS L1000 (first line: username, second line: password, third line: user key)
-        @return\tuser_key\tPython character string: identifier for the LINCS L1000 CLUE API
+    Retrieves user key for interacting with LINCS L1000 CLUE API
+
+    ...
+
+    Parameters
+    ----------
+    fname : Python character string
+        path to file containing credentials for LINCS L1000 (first line: username, second line: password, third line: user key)
+
+    Returns
+    ----------
+    user_key : Python character string
+        identifier for the LINCS L1000 CLUE API
     '''
     with open(fname, "r") as f:
         user_key = f.read().split("\n")[2]
@@ -22,10 +32,20 @@ def get_user_key(fname):
 
 def convert_ctrlgenes_EntrezGene(taxon_id):
     '''
-        Retrieves EntrezID from control genes in LINCS L1000 [1]
-        @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @return\tlincs_specific_ctl_genes\tPython character string list: list of EntrezGene IDs for all genes in input list
-        [1] doi.org/10.1002/psp4.12107 
+    Retrieves EntrezID from control genes in LINCS L1000 [1]
+    [1] doi.org/10.1002/psp4.12107 
+
+    ...
+
+    Parameters
+    ----------
+    taxon_id : Python integer
+        NCBI taxonomy ID
+
+    Returns
+    ----------
+    lincs_specific_ctl_genes : Python character string list
+        list of EntrezGene IDs for all genes in input list
     '''
     lincs_specific_ctl_genes = ["ACTB", "CHMP2A", "EEF1A1", "EMC7", "GAPDH", "GPI", "PSMB2", "PSMB4", "RAB7A", "REEP5", "SNRPD3", "TUBA1A", "VCP"]
     from NORDic.UTILS.utils_data import request_biodbnet
@@ -41,12 +61,25 @@ lincs_api_url = "https://api.clue.io/api"
 
 def build_url(endpoint, method, params, user_key=None):
     '''
-        Builds the request to CLUE API
-        @param\tendpoint\tPython character string: in ["sigs", "cells", "genes", "perts", "plates", "profiles", "rep_drugs", "rep_drug_indications", "pcls"]
-        @param\tmethod\tPython character string: in ["count", "filter", "distinct"]
-        @param\tparams\tPython dictionary: additional arguments for the request
-        @param\tuser_key\tPython character string
-        @return\turl\tPython character string: URL of request
+    Builds the request to CLUE API
+
+    ...
+
+    Parameters
+    ----------
+    endpoint : Python character string
+        in ["sigs", "cells", "genes", "perts", "plates", "profiles", "rep_drugs", "rep_drug_indications", "pcls"]
+    method : Python character string
+        in ["count", "filter", "distinct"]
+    params : Python dictionary
+        additional arguments for the request
+    user_key : Python character string
+        [default=None] : API key for LINCS CLUE.io
+
+    Returns
+    ----------
+    url : Python character string
+        URL of request
     '''
     assert user_key
     assert endpoint in ["sigs", "cells", "genes", "perts", "plates", "profiles", "rep_drugs", "rep_drug_indications", "pcls"]
@@ -81,11 +114,23 @@ def build_url(endpoint, method, params, user_key=None):
 
 def post_request(url, quiet=True, pause_time=1):
     '''
-        Post request to API
-        @param\turl\tPython character string: URL formatted as in build_url
-        @param\tquiet\tPython bool[default=True]
-        @param\tpause_time\tPython integer[default=1]: minimum time in seconds between each request
-        @return\tdata\tPython dictionary (JSON) / Python character string list [if request was method="distinct"]
+    Post request to API
+
+    ...
+
+    Parameters
+    ----------
+    url : Python character string
+        URL formatted as in build_url
+    quiet : Python bool
+        [default=True] : prints out verbose
+    pause_time : Python integer
+        [default=1] : minimum time in seconds between each request
+
+    Returns
+    ----------
+    data : Python dictionary 
+        (JSON) or Python character string list (if request was method="distinct")
     '''
     if (not quiet):
         print("> POST "+url.split("&")[0])
@@ -102,14 +147,28 @@ def post_request(url, quiet=True, pause_time=1):
 
 def binarize_via_CD(df, samples, binarize=1, nperm=10000, quiet=False):
     '''
-        Run a differential expression analysis on a dataframe using Characteristic Direction (CD) [1] (implementation: www.maayanlab.net/CD/)
-        @param\tdf\tPandas DataFrame: 1 transcriptional profile per column (/!\ if #genes>25,000, then the 25,000 genes with highest variance will be considered)
-        @param\tsamples\tPython integer list: indicates which columns correspond to control (=1) / treated (=2) samples
-        @param\tbinarize\tPython integer[default=1]: whether to return a binary signature or a real-valued column ~magnitude of change in expression
-        @param\tnperm\tPython integer[default=10000]: number of iterations to build the null distribution on which p-values will be computed
-        @param\tquiet\tPython bool[default=False]
-        @return\tsignature\tPandas DataFrame: rows/[gene index] x columns/["aggregated"]: 0=down-regulated (DR), 1=up-regulated (UR) (if binarize=1) else <0=DR, >0=UR
-        [1] doi.org/10.1186/1471-2105-15-79
+    Run a differential expression analysis on a dataframe using Characteristic Direction (CD) [1] (implementation: www.maayanlab.net/CD/)
+    [1] doi.org/10.1186/1471-2105-15-79
+
+    ...
+
+    Parameters
+    ----------
+    df : Pandas DataFrame
+        one transcriptional profile per column (/!\ if #genes>25,000, then the 25,000 genes with highest variance will be considered)
+    samples : Python integer list
+        indicates which columns correspond to control (=1) / treated (=2) samples
+    binarize : Python integer
+        [default=1] : whether to return a binary signature or a real-valued column ~magnitude of change in expression
+    nperm : Python integer
+        [default=10000] : number of iterations to build the null distribution on which p-values will be computed
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    signature : Pandas DataFrame
+        rows/[gene index] x columns/["aggregated"]: 0=down-regulated (DR), 1=up-regulated (UR) (if binarize=1) else <0=DR, >0=UR
     '''
     sbcheck_output("pip install git+https://github.com/Maayanlab/geode.git", shell=True)
     from geode import chdir
@@ -148,14 +207,29 @@ def binarize_via_CD(df, samples, binarize=1, nperm=10000, quiet=False):
 
 def download_file(path_to_lincs, file_name, base_url, file_sha, check_SHA=True, quiet=False):
     '''
-        Downloads automatically LINCS L1000-related files from Gene Expression Omnibus (GEO) (/!\ can be time-consuming: expect waiting times up to 20 min with a good Internet connection)
-        @param\tpath_to_lincs\tPython character string: path to local LINCS L1000 folder in which the files will be downloaded
-        @param\tfile_name\tPython character string: file name to download on GEO
-        @param\tbase_url\tPython character string: path to GEO repository
-        @param\tfile_sha\tPython character string: file name of corresponding SHA hash to check file integrity
-        @param\tcheck_SHA\tPython bool[default=True]: whether to check the file integrity
-        @params\tquiet\tPython bool[default=False]
-        @return\t0\tmeaning that the download was successful
+    Downloads automatically LINCS L1000-related files from Gene Expression Omnibus (GEO) (/!\ can be time-consuming: expect waiting times up to 20 min with a good Internet connection)
+
+    ...
+
+    Parameters
+    ----------
+    path_to_lincs : Python character string
+        path to local LINCS L1000 folder in which the files will be downloaded
+    file_name : Python character string
+        file name to download on GEO
+    base_url : Python character string
+        path to GEO repository
+    file_sha : Python character string
+        file name of corresponding SHA hash to check file integrity
+    check_SHA : Python bool
+        [default=True] : whether to check the file integrity
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    0 : Python integer
+        0 means that the download was successful
     '''
     if (not os.path.exists(path_to_lincs+file_name)):
         if (not os.path.exists(path_to_lincs+file_name+".gz")):
@@ -192,10 +266,21 @@ def download_file(path_to_lincs, file_name, base_url, file_sha, check_SHA=True, 
 
 def download_lincs_files(path_to_lincs, which_lvl):
     '''
-        Returns and downloads the proper LINCS L1000 files from Gene Expression Omnibus (GEO)
-        @param\tpath_to_lincs\tPython character string: path to folder in which LINCS L1000-related files will be locally stored
-        @param\twhich_lvl\tPython integer list: LINCS L1000 Level to download (either [3] -normalized gene expression-, [5] -binary experimental signatures-, [3,5])
-        @return\tfile_list\tList of 4 Python character string lists: gene_files, sig_files, lvl3_files, lvl5_files Python lists of character strings
+    Returns and downloads the proper LINCS L1000 files from Gene Expression Omnibus (GEO)
+
+    ...
+
+    Parameters
+    ----------
+    path_to_lincs : Python character string
+        path to folder in which LINCS L1000-related files will be locally stored
+    which_lvl : Python integer list
+        LINCS L1000 Level to download (either [3] -normalized gene expression-, [5] -binary experimental signatures-, [3,5])
+
+    Returns
+    ----------
+    file_list : Python list of 4 Python character string lists
+        gene_files, sig_files, lvl3_files, lvl5_files Python lists of character strings
     '''
     assert all([x in [3,5] for x in which_lvl])
     ## Latest versions of LINCS L1000 as of September 2022
@@ -240,14 +325,29 @@ def download_lincs_files(path_to_lincs, which_lvl):
 
 def create_restricted_drug_signatures(sig_ids, entrezid_list, path_to_lincs, which_lvl=[3], strict=True, quiet=False):
     '''
-        Create dataframe of drug signatures from LINCS L1000 from a subset of signature and gene IDs
-        @param\tsig_ids\tPython character string list: list of signature IDs from LINCS L1000 (Level 3: "distil_id", Level 5: "sig_id")
-        @param\tentrezid_list\tPython character string list: list of EntrezIDs 
-        @param\tpath_to_lincs\tPython character string: folder in which LINCS L1000-related files are stored
-        @param\twhich_lvl\tPython integer list: [3] for Level 3, [5] for Level 5 
-        @param\tstrict\tPython bool[default=True]: if set to True, if not all signatures are retrieved, then return None. If set to False, return the (sub)set of retrievable signatures
-        @param\tquiet\tPython bool[default=False]
-        @return\tsigs\tPandas DataFrame: rows/[] x columns/[]
+    Create dataframe of drug signatures from LINCS L1000 from a subset of signature and gene IDs
+
+    ...
+
+    Parameters
+    ----------
+    sig_ids : Python character string list
+        list of signature IDs from LINCS L1000 (Level 3: "distil_id", Level 5: "sig_id")
+    entrezid_list : Python character string list
+        list of EntrezIDs 
+    path_to_lincs : Python character string
+        folder in which LINCS L1000-related files are stored
+    which_lvl : Python integer list
+        [3] for Level 3, [5] for Level 5 
+    strict : Python bool
+        [default=True] : if set to True, if not all signatures are retrieved, then return None. If set to False, return the (sub)set of retrievable signatures
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    sigs\tPandas DataFrame
+        rows/[genes] x columns/[drugs]
     '''
     assert all([x in [3,5] for x in which_lvl])
     assert len(which_lvl)==1
@@ -296,15 +396,31 @@ def create_restricted_drug_signatures(sig_ids, entrezid_list, path_to_lincs, whi
 
 def select_best_sig(params, filters, user_key, selection="distil_ss", nsigs=2, same_plate=True, iunit=None, quiet=False):
     '''
-        Select "best" set of profiles ("experiment") (in terms of quality, or criterion "selection") according to filters
-        @param\tparams\tPython dictionary: additional arguments for the request
-        @param\tfilters\tPython dictionary: additional arguments for filtering the results of the request (defined with params)
-        @param\tselection\tPython character string[default="distil_ss"]: name of the metric in LINCS L1000 to define the best signature
-        @param\tnsigs\tPython integer[default=2]: minimum number of signatures to retrieve
-        @param\tsame_plate\tPython bool[default=True]: retrieve signatures from the same plate or not
-        @param\tiunit\tPython character string
-        @param\tquiet\tPython bool[default=False]
-        @return\tdata\tPython dictionary list:
+    Select "best" set of profiles ("experiment") (in terms of quality, or criterion "selection") according to filters
+
+    ...
+
+    Parameters
+    ----------
+    params : Python dictionary
+        additional arguments for the request
+    filters : Python dictionary
+        additional arguments for filtering the results of the request (defined with params)
+    selection : Python character string
+        [default="distil_ss"] : name of the metric in LINCS L1000 to define the best signature
+    nsigs : Python integer
+        [default=2] : minimum number of signatures to retrieve
+    same_plate : Python bool
+        [default=True] : whether to retrieve signatures from the same plate or not
+    iunit : Python character string or None
+        [default=None] : unit of dose (if None, any)
+    quiet : Python bool
+        [default=False] : prints out verbose
+
+    Returns
+    ----------
+    data : Python dictionary list
+        the list of profile IDs to retrieve from LINCS L1000
     '''
     assert len(selection) == 0 or (selection in list(filters.keys()) or selection in params.get("fields", []))
     id_fields = ["brew_prefix"]
@@ -368,15 +484,34 @@ def select_best_sig(params, filters, user_key, selection="distil_ss", nsigs=2, s
 
 def compute_interference_scale(sigs, samples, entrez_id, is_oe, taxon_id, lincs_specific_ctl_genes, quiet=True, eps=2e-7):
     '''
-        Computes the interference scale [1] which determines whether a genetic perturbation was successful
-	@param\tsigs\tPandas DataFrame: rows/[genes] x columns/[control and treated samples]
-	@param\tsamples\tPython integer list: contains 1 for control samples, 2 for treated ones for each column of @sigs
-	@param\tentrez_id\tPython integer: EntrezID of the perturbed gene 
-	@param\tis_oe\tPython bool: is the experiment an overexpression of the perturbed gene (is_oe=True) or a knockdown
-	@param\tquiet\tPython bool[default=True]
-	@param\teps\tPython float[default=2e-7]
-	@return\tiscale\tPython float: interference scale for the input experiment
-        [1] doi.org/10.1002/psp4.12107 
+    Computes the interference scale [1] which determines whether a genetic perturbation was successful
+    [1] doi.org/10.1002/psp4.12107 
+
+    ...
+
+    Parameters
+    ----------
+    sigs : Pandas DataFrame
+        rows/[genes] x columns/[control and treated samples]
+    samples : Python integer list
+        contains 1 for control samples, 2 for treated ones for each column of @sigs
+    entrez_id : Python integer
+        EntrezID of the perturbed gene 
+    is_oe : Python bool
+        is the experiment an overexpression of the perturbed gene (is_oe=True) or a knockdown
+    taxon_id : Python integer
+        NCBI taxonomy ID
+    lincs_specific_ctl_genes : Python string list
+        list of HNCG gene symbols for housekeeping genes
+    quiet : Python bool
+        [default=True] : prints out verbose
+    eps : Python float
+        [default=2e-7] : avoids numerical errors for low-expression housekeeping genes
+
+    Returns
+    ----------
+    iscale : Python float
+        interference scale for the input experiment
     '''
     assert len(sigs.columns) == len(samples)
     assert all([s in [1,2] for s in samples])
@@ -400,27 +535,55 @@ def compute_interference_scale(sigs, samples, entrez_id, is_oe, taxon_id, lincs_
 
 def get_treated_control_dataset(treatment, pert_type, cell, filters, entrez_ids, taxon_id, user_key, path_to_lincs, entrez_id=None, selection="distil_ss", dose=None, iunit=None, itime=None, which_lvl=[[3,5][1]], nsigs=2, same_plate=True, quiet=False, trim_w_interference_scale=True, return_metrics=[]):
     '''
-        Retrieve set of experimental profiles, with at least @nsigs treated and control sample
-        @param\ttreatment\tPython character string: HUGO gene symbol
-        @param\tpert_type\tPython character string: type of perturbation as accepted by LINCS L1000
-        @param\tcell\tPython character string: cell line existing in LINCS L1000
-        @param\tfilters\tPython dictionary: additional parameters for the LINCS L1000 requests
-        @param\tentrez_ids\tPython integer list: EntrezID genes
-        @param\ttaxon_id\tPython integer: NCBI taxonomy ID
-        @param\tuser_key\tPython character string: LINCS L1000 user API key
-        @param\tpath_to_lincs\tPython character string: path where LINCS L1000 files are locally stored
-        @param\tentrez_id\tPython integer: EntrezID identifier for HUGO gene symbol @treatment
-        @param\tselection\tPython character string[default="distil_ss"]: LINCS L1000 metric which is maximized by a given experiment
-        @param\tdose\tPython character string or None[default=None]
-        @param\tiunit\tPython character string or None[default=None]
-        @param\titime\tPython character string or None[default=None]
-        @param\twhich_lvl\tPython integer list[default=[3]]
-        @param\tnsigs\tPython integer[default=2]: minimal number of samples of each condition in each experiment
-        @param\tsame_plate\tPython bool[default=True]: select samples from the same plate for each experiment and condition
-        @param\tquiet\tPython bool[default=True]
-        @param\ttrim_w_interference_scale\tPython bool[default=True]: computes the interference scale criteria for further trimming
-        @param\treturn_metrics\tPython character string list: list of LINCS L1000 metrics to return as the same time as the profiles
-        @return\tsigs\tPandas DataFrame: rows/[genes+"annotation"+"signame"+"sigid"] x columns/[profiles] or None
+    Retrieve set of experimental profiles, with at least nsigs treated and control sample
+
+    ...
+
+    Parameters
+    ----------
+    treatment : Python character string
+        HUGO gene symbol
+    pert_type : Python character string
+        type of perturbation as accepted by LINCS L1000
+    cell : Python character string
+        cell line existing in LINCS L1000
+    filters : Python dictionary
+        additional parameters for the LINCS L1000 requests
+    entrez_ids : Python integer list
+        EntrezID genes
+    taxon_id : Python integer
+        NCBI taxonomy ID
+    user_key : Python character string
+        LINCS L1000 user API key
+    path_to_lincs : Python character string
+        path where LINCS L1000 files are locally stored
+    entrez_id : Python integer
+        EntrezID identifier for HUGO gene symbol treatment
+    selection : Python character string
+        [default="distil_ss"] : LINCS L1000 metric which is maximized by a given experiment
+    dose : Python character string or None
+        [default=None] : filter by dose (if not None)
+    iunit : Python character string or None
+        [default=None] : unit of dose
+    itime : Python character string or None
+        [default=None] : filter by exposure time (if not None)
+    which_lvl : Python integer list
+        [default=[3]] : LINCS L1000 data level to consider (either 3 or 5)
+    nsigs : Python integer
+        [default=2] : minimal number of samples of each condition in each experiment
+    same_plate : Python bool
+        [default=True] : select samples from the same plate for each experiment and condition
+    quiet : Python bool
+        [default=True] : prints out verbose
+    trim_w_interference_scale : Python bool
+        [default=True] : computes the interference scale criteria for further trimming
+    return_metrics : Python character string list
+        [default=[]] : list of LINCS L1000 metrics to return as the same time as the profiles
+
+    Returns
+    ----------
+    sigs : Pandas DataFrame
+        rows/[genes+"annotation"+"signame"+"sigid"] x columns/[profiles] or None
     '''
     assert all([x in [3,5] for x in which_lvl])
     assert len(which_lvl)==1

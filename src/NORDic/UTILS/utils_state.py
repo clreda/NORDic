@@ -10,13 +10,26 @@ def quantile_normalize(df, njobs=1):
 
 def binarize_experiments(data, thres=0.5, method="binary", strict=True, njobs=1):
     '''
-        Binarize experimental profiles
-        @param\tdata\tPandas DataFrame: rows/[genes] x columns/[samples]
-        @param\tthres\tPython float[default=0.5]: threshold for @method="binary" (in [0,0.5])
-        @param\tmethod\tPython character string[default="binary"]: binarization method in ["binary","probin"]
-        @param\tstrict\tPython bool[default=True]: takes into account equalities (if set to True, value=thres will lead to undefined for the corresponding gene)
-        @param\tnjobs\tPython integer[default=1]: parallelism if needed
-        @return\tsignatures\tPandas DataFrame: rows/[genes] x columns[samples] with values in [0,1,NaN]
+    Binarize experimental profiles
+
+    ...
+
+    Parameters
+    ----------
+    data : Pandas DataFrame
+        rows/[genes] x columns/[samples]
+    thres : Python float
+        [default=0.5] : threshold for @method="binary" (in [0,0.5])
+    method : Python character string
+        [default="binary"] : binarization method in ["binary","probin"]
+    strict : Python bool
+        [default=True] : takes into account equalities (if set to True, value=thres will lead to undefined for the corresponding gene)
+    njobs : Python integer
+        [default=1] : parallelism if needed
+
+    Returns
+    ----------
+    signatures : Pandas DataFrame: rows/[genes] x columns[samples] with values in [0,1,NaN]
     '''
     assert method in ["binary","probin"]
     assert thres <= 0.5 and thres >= 0
@@ -48,12 +61,25 @@ def binarize_experiments(data, thres=0.5, method="binary", strict=True, njobs=1)
 
 def compare_states(x, y, genes=None):
     '''
-        Computes the similarity between two sets of Boolean states
-        @param\tx\tPandas DataFrame: rows/[genes] x columns/[state IDs] contains (0, 1, NaN)
-        @param\ty\tPandas DataFrame: rows/[genes] x columns/[state IDs] contains (0, 1, NaN)
-        @param\tgenes\tPython character string list: list of gene symbols 
-        @returns\tsims, N\tSimilarities between each column of x and each columns of y, on the list of N present genes in @genes (if provided) 
-        otherwise on the union of N genes in x and y
+    Computes the similarity between two sets of Boolean states
+
+    ...
+
+    Parameters
+    ----------
+    x : Pandas DataFrame
+        rows/[genes] x columns/[state IDs] contains (0, 1, NaN)
+    y : Pandas DataFrame
+        rows/[genes] x columns/[state IDs] contains (0, 1, NaN)
+    genes : Python character string list
+        list of gene symbols 
+
+    Returns
+    ----------
+    sims : NumPy array
+        similarities between each column of x and each columns of y, on the list of N present genes in genes (if provided) otherwise on the union of N genes in x and y
+    N : Python integer
+        number of genes on which the similarity is computed
     '''
     assert all([(zx in [0,1] or np.isnan(zx)) for zx in np.unique(x.values)])
     assert all([(zy in [0,1] or np.isnan(zy)) for zy in np.unique(y.values)])
@@ -81,18 +107,37 @@ def compare_states(x, y, genes=None):
 
 def finetune_binthres(df, samples, network_fname, mutation, step=0.005, maxt=0.5, mint=0, score_binthres=lambda itc,ita_c,ita_t:(1-itc)*ita_c*ita_t, njobs=1, verbose=True):
     '''
-        Select the binarization threshold (in function @binarize_experiments) which maximize the dissimilarity interconditions and the similarity intracondition
-        @param\tdf\t
-        @param\tsamples\t
-        @param\tnetwork_fname\t
-        @param\tmutation\t
-        @param\tstep\t
-        @param\tmaxt\t
-        @param\tmint\t
-        @param\tscore_binthres\t
-        @param\tnjobs\t
-        @param\tverbose\t
-        @returns\tmax_thres\t
+    Select the binarization threshold (in function @binarize_experiments) which maximize the dissimilarity interconditions and the similarity intracondition
+    ...
+
+    Parameters
+    ----------
+    df : Pandas DataFrame
+        rows/[genes] x columns/[samples]: profiles
+    samples : Python character string list
+        annotations of conditions for each sample in df
+    network_fname : Python character string
+        file name containing the network
+    mutation : Python dictionary
+        dictionary (key=gene, value=perturbation type) gene perturbations which are considered
+    step : Python float
+        [default=0.005] step in the interval to look for the threshold value
+    maxt : Python float
+        [default=0.5] maximum threshold value
+    mint : Python float
+        [default=0.] minimum threshold value
+    score_binthres : Python lambda function
+        [default=lambda itc,ita_c,ita_t:(1-itc)*ita_c*ita_t] fitness function for the threshold value
+    njobs : Python integer
+        [default=1] number of parallel jobs
+    verbose : Python bool
+        [default=True] prints out verbose
+
+    Returns
+    ----------
+    max_thres : Python float
+        threshold value maximizing the fitness function
+        
     '''
     assert mint>=0 and maxt<=0.5
     with open(network_fname, "r") as f:
