@@ -88,6 +88,8 @@ Please check out the associated Jupyter notebooks in folder [*notebooks/*](https
 help(func)
 ```
 
+The documentation website is up at [this page](https://clreda.github.io/NORDic).
+
 ## Cite
 
 If you use **NORDic** in academic research, please cite the following preliminary work (which relied on the same type of pipeline as **NORDic NI** and **NORDic PMR**, but with different implementations):
