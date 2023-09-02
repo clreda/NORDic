@@ -1,0 +1,37 @@
+NORDic.NORDic\_DS package
+=========================
+
+Submodules
+----------
+
+NORDic.NORDic\_DS.functions module
+----------------------------------
+
+.. automodule:: NORDic.NORDic_DS.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+NORDic.NORDic\_DS.get\_drug\_signatures module
+----------------------------------------------
+
+.. automodule:: NORDic.NORDic_DS.get_drug_signatures
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+NORDic.NORDic\_DS.get\_drug\_targets module
+-------------------------------------------
+
+.. automodule:: NORDic.NORDic_DS.get_drug_targets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: NORDic.NORDic_DS
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,21 @@
+NORDic.NORDic\_PMR package
+==========================
+
+Submodules
+----------
+
+NORDic.NORDic\_PMR.functions module
+-----------------------------------
+
+.. automodule:: NORDic.NORDic_PMR.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: NORDic.NORDic_PMR
+   :members:
+   :undoc-members:
+   :show-inheritance:

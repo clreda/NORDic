@@ -1,0 +1,29 @@
+NORDic.NORDic\_NI package
+=========================
+
+Submodules
+----------
+
+NORDic.NORDic\_NI.cytoscape\_style module
+-----------------------------------------
+
+.. automodule:: NORDic.NORDic_NI.cytoscape_style
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+NORDic.NORDic\_NI.functions module
+----------------------------------
+
+.. automodule:: NORDic.NORDic_NI.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: NORDic.NORDic_NI
+   :members:
+   :undoc-members:
+   :show-inheritance:

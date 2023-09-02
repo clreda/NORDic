@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Statement of need &mdash; NORDic v2.4.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f9fa89a7"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NORDic" href="modules.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            NORDic
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Statement of need</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-access-to-nordic">Quick access to NORDic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environment">Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-usage">Example usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">NORDic</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NORDic</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Statement of need</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/content.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="statement-of-need">
+<h1>Statement of need<a class="headerlink" href="#statement-of-need" title="Permalink to this heading"></a></h1>
+<p>Being able to build in an automated and reproducible way a model of gene interactions and their influences on gene activity will allow to consider more complex diseases and biological phenomena, on a larger set of genes. These models might speed up the understanding of the gene regulation hierarchy by bioinformaticians and biologists, allow to predict novel drugs or gene targets which might be investigated later for healthcare purposes. In particular, the network-oriented approach allow to predict off-targets, which are non-specific drug targets which might lead to otherwise unexpected toxic side effects.</p>
+<p><a class="reference external" href="https://github.com/clreda/NORDic">NORDic</a> is an open-source package which allows to focus on a network-oriented approach to identify regulatory mechanisms linked to a disease, to detect master regulators in a diseased transcriptomic context, to simulate drug effects on a patient through a network, and adaptively test drugs to perform sample-efficient, error-bound drug repurposing. As such, it is comprised of four distinct submodules:</p>
+<ul class="simple">
+<li><p>NORDic NI identifies a disease-associated gene regulatory network (as a Boolean network) with its dynamics combining several biological sources and methods. The main contribution is that this inference can be performed even in the absence of previously curated experiments and prior knowledge networks.</p></li>
+<li><p>NORDic PMR detects master regulators in a Boolean network, given examples of diseased transcriptomic profiles. In contrast to prior works, the score assigned to (groups of) master regulators takes into account the network topology as well as its dynamics with respect to the diseased profiles.</p></li>
+<li><p>NORDic DS (since version 2.0.0) scores the effect of a treatment on a patient (the higher the score, the most promising the treatment) based on a Boolean network. This approach computes the similarity of a predicted treated patient profile to control profiles to output a signature reversal score associated with the considered drug. The signature reversion approach has already been applied with some success.</p></li>
+<li><p>NORDic DR (since version 2.0.0) uses the routine in NORDic DS and a bandit algorithm to adaptively test treatments and perform drug repurposing. This novel approach allows to get recommendations with a bounded probability of false discovery, while remaining sample efficient.</p></li>
+</ul>
+</section>
+<section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
+<section id="quick-access-to-nordic">
+<h2>Quick access to NORDic<a class="headerlink" href="#quick-access-to-nordic" title="Permalink to this heading"></a></h2>
+<p>The easiest way not to having to deal with environment configuration is to use the CoLoMoTo-Docker. First ensure that <a class="reference external" href="https://docs.docker.com/engine/install/">Docker</a> is installed for your distribution:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ service docker start
+$ docker run hello-world # downloads a test image, runs it in a container (prints a confirmation message), exits
+</pre></div>
+</div>
+<p>Then install the <a class="reference external" href="https://github.com/colomoto/colomoto-docker">CoLoMoTo-Docker</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda create -n nordic_colomoto python=3.10 -y
+$ conda activate nordic_colomoto
+$ pip install -U colomoto-docker
+$ mkdir notebooks
+$ colomoto-docker -v notebooks:local-notebooks ## or any version later than 2023-03-01
+</pre></div>
+</div>
+<p>In the Jupyter browser, you will see a local-notebooks directory which is bound to your notebooks directory, where you can find all tutorial notebooks in CoLoMoTo, the one for NORDic included (NORDic-demo.ipynb).</p>
+</section>
+<section id="environment">
+<h2>Environment<a class="headerlink" href="#environment" title="Permalink to this heading"></a></h2>
+<p>In order to run notebook <a class="reference external" href="https://github.com/clreda/NORDic/blob/main/notebooks/NORDic%20CoLoMoTo.ipynb">Introduction to NORDic.ipynb</a>, it is strongly advised to create a virtual environment using Conda (python&gt;=3.8):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda create -n test_NORDic python=3.8 -y
+$ conda activate test_NORDic
+$ conda install -c creda -y -q nordic
+$ python3 -m pip install notebook&gt;=6.5.4 markupsafe==2.0.1 ## packages for Jupyter notebook
+$ conda deactivate ## refresh the virtual environment
+$ conda activate test_NORDic
+$ cd notebooks/ &amp;&amp; jupyter notebook
+</pre></div>
+</div>
+<p>The complete list of dependencies for NORDic can be found at <a class="reference external" href="https://raw.githubusercontent.com/clreda/NORDic/main/pip/requirements.txt">requirements.txt</a> (pip) or <a class="reference external" href="https://raw.githubusercontent.com/clreda/NORDic/main/conda/meta.yaml">meta.yaml</a> (conda).</p>
+</section>
+<section id="example-usage">
+<h2>Example usage<a class="headerlink" href="#example-usage" title="Permalink to this heading"></a></h2>
+<p>Once installed, to import NORDic into your Python code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ import NORDic
+</pre></div>
+</div>
+<p>Please check out notebook <a class="reference external" href="https://github.com/clreda/NORDic/blob/main/notebooks/NORDic%20CoLoMoTo.ipynb">Introduction to NORDic.ipynb</a>. All functions are documented, so one can check out the inputs and outputs of a function func by typing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ &gt; help(func)
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="NORDic" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Clémence Réda, Andrée Delahaye-Duriez.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
