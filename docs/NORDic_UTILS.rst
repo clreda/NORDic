@@ -80,11 +80,3 @@ NORDic.UTILS.utils_state module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: NORDic
-   :members:
-   :undoc-members:
-   :show-inheritance:
