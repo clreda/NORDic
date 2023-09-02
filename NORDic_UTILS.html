@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NORDic_UTILS module &mdash; NORDic v2.4.3 documentation</title>
+  <title>NORDic UTILS module &mdash; NORDic v2.4.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,8 @@
         <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="NORDic DR module" href="NORDic_DR.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,11 +41,126 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="content.html">Statement of need</a></li>
 <li class="toctree-l1"><a class="reference internal" href="content.html#usage">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">NORDic</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">NORDic</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="NORDic_NI.html">NORDic NI module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_PMR.html">NORDic PMR module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_DS.html">NORDic DS module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_DR.html">NORDic DR module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">NORDic UTILS module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.DISGENET_utils">NORDic.UTILS.DISGENET_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.DISGENET_utils.get_genes_evidences_from_DISGENET"><code class="docutils literal notranslate"><span class="pre">get_genes_evidences_from_DISGENET()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.DISGENET_utils.get_genes_proteins_from_DISGENET"><code class="docutils literal notranslate"><span class="pre">get_genes_proteins_from_DISGENET()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.DISGENET_utils.get_user_key_DISGENET"><code class="docutils literal notranslate"><span class="pre">get_user_key_DISGENET()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.LINCS_utils">NORDic.UTILS.LINCS_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.binarize_via_CD"><code class="docutils literal notranslate"><span class="pre">binarize_via_CD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.build_url"><code class="docutils literal notranslate"><span class="pre">build_url()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.compute_interference_scale"><code class="docutils literal notranslate"><span class="pre">compute_interference_scale()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.convert_ctrlgenes_EntrezGene"><code class="docutils literal notranslate"><span class="pre">convert_ctrlgenes_EntrezGene()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.create_restricted_drug_signatures"><code class="docutils literal notranslate"><span class="pre">create_restricted_drug_signatures()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.download_lincs_files"><code class="docutils literal notranslate"><span class="pre">download_lincs_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.get_treated_control_dataset"><code class="docutils literal notranslate"><span class="pre">get_treated_control_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.get_user_key"><code class="docutils literal notranslate"><span class="pre">get_user_key()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.post_request"><code class="docutils literal notranslate"><span class="pre">post_request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.LINCS_utils.select_best_sig"><code class="docutils literal notranslate"><span class="pre">select_best_sig()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.STRING_utils">NORDic.UTILS.STRING_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.STRING_utils.get_app_name_STRING"><code class="docutils literal notranslate"><span class="pre">get_app_name_STRING()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.STRING_utils.get_image_from_STRING"><code class="docutils literal notranslate"><span class="pre">get_image_from_STRING()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.STRING_utils.get_interactions_from_STRING"><code class="docutils literal notranslate"><span class="pre">get_interactions_from_STRING()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.STRING_utils.get_interactions_partners_from_STRING"><code class="docutils literal notranslate"><span class="pre">get_interactions_partners_from_STRING()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.STRING_utils.get_network_from_STRING"><code class="docutils literal notranslate"><span class="pre">get_network_from_STRING()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.STRING_utils.get_protein_names_from_STRING"><code class="docutils literal notranslate"><span class="pre">get_protein_names_from_STRING()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.STRING_utils.string_api_url"><code class="docutils literal notranslate"><span class="pre">string_api_url()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.utils_data">NORDic.UTILS.utils_data module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_data.convert_EntrezGene_LINCSL1000"><code class="docutils literal notranslate"><span class="pre">convert_EntrezGene_LINCSL1000()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_data.convert_genes_EntrezGene"><code class="docutils literal notranslate"><span class="pre">convert_genes_EntrezGene()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_data.get_all_celllines"><code class="docutils literal notranslate"><span class="pre">get_all_celllines()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_data.request_biodbnet"><code class="docutils literal notranslate"><span class="pre">request_biodbnet()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.utils_exp">NORDic.UTILS.utils_exp module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_exp.get_experimental_constraints"><code class="docutils literal notranslate"><span class="pre">get_experimental_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_exp.profiles2signatures"><code class="docutils literal notranslate"><span class="pre">profiles2signatures()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.utils_grn">NORDic.UTILS.utils_grn module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.CL"><code class="docutils literal notranslate"><span class="pre">CL()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.Centr"><code class="docutils literal notranslate"><span class="pre">Centr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.DS"><code class="docutils literal notranslate"><span class="pre">DS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.GT"><code class="docutils literal notranslate"><span class="pre">GT()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.build_influences"><code class="docutils literal notranslate"><span class="pre">build_influences()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.build_observations"><code class="docutils literal notranslate"><span class="pre">build_observations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.create_grn"><code class="docutils literal notranslate"><span class="pre">create_grn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.desirability"><code class="docutils literal notranslate"><span class="pre">desirability()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.general_topological_parameter"><code class="docutils literal notranslate"><span class="pre">general_topological_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.get_genes_downstream"><code class="docutils literal notranslate"><span class="pre">get_genes_downstream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.get_genes_interactions_from_PPI"><code class="docutils literal notranslate"><span class="pre">get_genes_interactions_from_PPI()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.get_genes_most_variable"><code class="docutils literal notranslate"><span class="pre">get_genes_most_variable()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.get_grfs_from_solution"><code class="docutils literal notranslate"><span class="pre">get_grfs_from_solution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.get_maxdegree"><code class="docutils literal notranslate"><span class="pre">get_maxdegree()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.get_minimal_edges"><code class="docutils literal notranslate"><span class="pre">get_minimal_edges()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.get_weakly_connected"><code class="docutils literal notranslate"><span class="pre">get_weakly_connected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.infer_network"><code class="docutils literal notranslate"><span class="pre">infer_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.load_grn"><code class="docutils literal notranslate"><span class="pre">load_grn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.reconnect_network"><code class="docutils literal notranslate"><span class="pre">reconnect_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.save_grn"><code class="docutils literal notranslate"><span class="pre">save_grn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.save_solutions"><code class="docutils literal notranslate"><span class="pre">save_solutions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.solution2influences"><code class="docutils literal notranslate"><span class="pre">solution2influences()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_grn.zip2df"><code class="docutils literal notranslate"><span class="pre">zip2df()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.utils_network">NORDic.UTILS.utils_network module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_network.aggregate_networks"><code class="docutils literal notranslate"><span class="pre">aggregate_networks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_network.capture"><code class="docutils literal notranslate"><span class="pre">capture()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_network.determine_edge_threshold"><code class="docutils literal notranslate"><span class="pre">determine_edge_threshold()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_network.get_network_from_OmniPath"><code class="docutils literal notranslate"><span class="pre">get_network_from_OmniPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_network.merge_network_PPI"><code class="docutils literal notranslate"><span class="pre">merge_network_PPI()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_network.remove_isolated"><code class="docutils literal notranslate"><span class="pre">remove_isolated()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.utils_plot">NORDic.UTILS.utils_plot module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.influences2graph"><code class="docutils literal notranslate"><span class="pre">influences2graph()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_boxplots"><code class="docutils literal notranslate"><span class="pre">plot_boxplots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_discrete_distributions"><code class="docutils literal notranslate"><span class="pre">plot_discrete_distributions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_distributions"><code class="docutils literal notranslate"><span class="pre">plot_distributions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_heatmap"><code class="docutils literal notranslate"><span class="pre">plot_heatmap()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_influence_graph"><code class="docutils literal notranslate"><span class="pre">plot_influence_graph()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_precision_recall"><code class="docutils literal notranslate"><span class="pre">plot_precision_recall()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_roc_curve"><code class="docutils literal notranslate"><span class="pre">plot_roc_curve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_plot.plot_signatures"><code class="docutils literal notranslate"><span class="pre">plot_signatures()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.utils_sim">NORDic.UTILS.utils_sim module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_sim.BN_SIM"><code class="docutils literal notranslate"><span class="pre">BN_SIM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_sim.BONESIS_SIM"><code class="docutils literal notranslate"><span class="pre">BONESIS_SIM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_sim.MABOSS_SIM"><code class="docutils literal notranslate"><span class="pre">MABOSS_SIM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_sim.MPBN_SIM"><code class="docutils literal notranslate"><span class="pre">MPBN_SIM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_sim.capture"><code class="docutils literal notranslate"><span class="pre">capture()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_sim.choice"><code class="docutils literal notranslate"><span class="pre">choice()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_sim.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.UTILS.utils_state">NORDic.UTILS.utils_state module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_state.binarize_experiments"><code class="docutils literal notranslate"><span class="pre">binarize_experiments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_state.compare_states"><code class="docutils literal notranslate"><span class="pre">compare_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_state.finetune_binthres"><code class="docutils literal notranslate"><span class="pre">finetune_binthres()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.UTILS.utils_state.quantile_normalize"><code class="docutils literal notranslate"><span class="pre">quantile_normalize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -61,7 +177,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">NORDic_UTILS module</li>
+          <li class="breadcrumb-item"><a href="modules.html">NORDic</a></li>
+      <li class="breadcrumb-item active">NORDic UTILS module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/NORDic_UTILS.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -72,7 +189,7 @@
            <div itemprop="articleBody">
              
   <section id="nordic-utils-module">
-<h1>NORDic_UTILS module<a class="headerlink" href="#nordic-utils-module" title="Permalink to this heading"></a></h1>
+<h1>NORDic UTILS module<a class="headerlink" href="#nordic-utils-module" title="Permalink to this heading"></a></h1>
 <section id="module-NORDic.UTILS.DISGENET_utils">
 <span id="nordic-utils-disgenet-utils-module"></span><h2>NORDic.UTILS.DISGENET_utils module<a class="headerlink" href="#module-NORDic.UTILS.DISGENET_utils" title="Permalink to this heading"></a></h2>
 <dl class="py function">
@@ -2284,7 +2401,9 @@ instead of just integers. For instance:</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="NORDic_DR.html" class="btn btn-neutral float-left" title="NORDic DR module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 

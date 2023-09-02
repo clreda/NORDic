@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NORDic_DR module &mdash; NORDic v2.4.3 documentation</title>
+  <title>NORDic DR module &mdash; NORDic v2.4.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,9 @@
         <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NORDic UTILS module" href="NORDic_UTILS.html" />
+    <link rel="prev" title="NORDic DS module" href="NORDic_DS.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,11 +42,56 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="content.html">Statement of need</a></li>
 <li class="toctree-l1"><a class="reference internal" href="content.html#usage">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">NORDic</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">NORDic</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="NORDic_NI.html">NORDic NI module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_PMR.html">NORDic PMR module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_DS.html">NORDic DS module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">NORDic DR module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.NORDic_DR.bandits">NORDic.NORDic_DR.bandits module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.AdaHedge"><code class="docutils literal notranslate"><span class="pre">AdaHedge</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.Greedy"><code class="docutils literal notranslate"><span class="pre">Greedy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.Learner"><code class="docutils literal notranslate"><span class="pre">Learner</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.LinGapE"><code class="docutils literal notranslate"><span class="pre">LinGapE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.MisLid"><code class="docutils literal notranslate"><span class="pre">MisLid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.Misspecified"><code class="docutils literal notranslate"><span class="pre">Misspecified</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.gaussian"><code class="docutils literal notranslate"><span class="pre">gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.heuristic"><code class="docutils literal notranslate"><span class="pre">heuristic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.misspecified"><code class="docutils literal notranslate"><span class="pre">misspecified()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.bandits.subheuristic"><code class="docutils literal notranslate"><span class="pre">subheuristic()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.NORDic_DR.functions">NORDic.NORDic_DR.functions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.functions.adaptive_testing"><code class="docutils literal notranslate"><span class="pre">adaptive_testing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.functions.testing_problem"><code class="docutils literal notranslate"><span class="pre">testing_problem</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.NORDic_DR.utils">NORDic.NORDic_DR.utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.argmax_m"><code class="docutils literal notranslate"><span class="pre">argmax_m()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.barycentric_spanner"><code class="docutils literal notranslate"><span class="pre">barycentric_spanner()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.c_kt"><code class="docutils literal notranslate"><span class="pre">c_kt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.closest_alternative"><code class="docutils literal notranslate"><span class="pre">closest_alternative()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.cnorm"><code class="docutils literal notranslate"><span class="pre">cnorm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.lambert"><code class="docutils literal notranslate"><span class="pre">lambert()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.mahalanobis"><code class="docutils literal notranslate"><span class="pre">mahalanobis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.optimistic_gradient"><code class="docutils literal notranslate"><span class="pre">optimistic_gradient()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.projection"><code class="docutils literal notranslate"><span class="pre">projection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.quadprog_solve_qp"><code class="docutils literal notranslate"><span class="pre">quadprog_solve_qp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.randf"><code class="docutils literal notranslate"><span class="pre">randf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.sherman_morrison"><code class="docutils literal notranslate"><span class="pre">sherman_morrison()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.solve_alternative_quadprog"><code class="docutils literal notranslate"><span class="pre">solve_alternative_quadprog()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.tracking_rule"><code class="docutils literal notranslate"><span class="pre">tracking_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DR.utils.update_misspecified"><code class="docutils literal notranslate"><span class="pre">update_misspecified()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_UTILS.html">NORDic UTILS module</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -61,7 +108,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">NORDic_DR module</li>
+          <li class="breadcrumb-item"><a href="modules.html">NORDic</a></li>
+      <li class="breadcrumb-item active">NORDic DR module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/NORDic_DR.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -72,7 +120,7 @@
            <div itemprop="articleBody">
              
   <section id="nordic-dr-module">
-<h1>NORDic_DR module<a class="headerlink" href="#nordic-dr-module" title="Permalink to this heading"></a></h1>
+<h1>NORDic DR module<a class="headerlink" href="#nordic-dr-module" title="Permalink to this heading"></a></h1>
 <section id="module-NORDic.NORDic_DR.bandits">
 <span id="nordic-nordic-dr-bandits-module"></span><h2>NORDic.NORDic_DR.bandits module<a class="headerlink" href="#module-NORDic.NORDic_DR.bandits" title="Permalink to this heading"></a></h2>
 <dl class="py class">
@@ -358,7 +406,10 @@
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="NORDic_DS.html" class="btn btn-neutral float-left" title="NORDic DS module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NORDic_UTILS.html" class="btn btn-neutral float-right" title="NORDic UTILS module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

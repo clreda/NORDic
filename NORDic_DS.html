@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NORDic_DS module &mdash; NORDic v2.4.3 documentation</title>
+  <title>NORDic DS module &mdash; NORDic v2.4.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,9 @@
         <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NORDic DR module" href="NORDic_DR.html" />
+    <link rel="prev" title="NORDic PMR module" href="NORDic_PMR.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,11 +42,47 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="content.html">Statement of need</a></li>
 <li class="toctree-l1"><a class="reference internal" href="content.html#usage">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">NORDic</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">NORDic</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="NORDic_NI.html">NORDic NI module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_PMR.html">NORDic PMR module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">NORDic DS module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.NORDic_DS.functions">NORDic.NORDic_DS.functions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.functions.baseline"><code class="docutils literal notranslate"><span class="pre">baseline()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.functions.compute_frontier"><code class="docutils literal notranslate"><span class="pre">compute_frontier()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.functions.compute_metrics"><code class="docutils literal notranslate"><span class="pre">compute_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.functions.compute_score"><code class="docutils literal notranslate"><span class="pre">compute_score()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.functions.empirical_pvalue"><code class="docutils literal notranslate"><span class="pre">empirical_pvalue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.functions.simulate"><code class="docutils literal notranslate"><span class="pre">simulate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.functions.simulate_treatment"><code class="docutils literal notranslate"><span class="pre">simulate_treatment()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.NORDic_DS.get_drug_signatures">NORDic.NORDic_DS.get_drug_signatures module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_signatures.compute_drug_signatures_L1000"><code class="docutils literal notranslate"><span class="pre">compute_drug_signatures_L1000()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_signatures.drugname2pubchem"><code class="docutils literal notranslate"><span class="pre">drugname2pubchem()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_signatures.get_ranking"><code class="docutils literal notranslate"><span class="pre">get_ranking()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_signatures.pubchem2drugname"><code class="docutils literal notranslate"><span class="pre">pubchem2drugname()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_signatures.retrieve_drug_signature"><code class="docutils literal notranslate"><span class="pre">retrieve_drug_signature()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-NORDic.NORDic_DS.get_drug_targets">NORDic.NORDic_DS.get_drug_targets module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_targets.get_targets_DrugBank"><code class="docutils literal notranslate"><span class="pre">get_targets_DrugBank()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_targets.get_targets_DrugCentral"><code class="docutils literal notranslate"><span class="pre">get_targets_DrugCentral()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_targets.get_targets_LINCS"><code class="docutils literal notranslate"><span class="pre">get_targets_LINCS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_targets.get_targets_MINERVA"><code class="docutils literal notranslate"><span class="pre">get_targets_MINERVA()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_targets.get_targets_TTD"><code class="docutils literal notranslate"><span class="pre">get_targets_TTD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NORDic.NORDic_DS.get_drug_targets.retrieve_drug_targets"><code class="docutils literal notranslate"><span class="pre">retrieve_drug_targets()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_DR.html">NORDic DR module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NORDic_UTILS.html">NORDic UTILS module</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -61,7 +99,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">NORDic_DS module</li>
+          <li class="breadcrumb-item"><a href="modules.html">NORDic</a></li>
+      <li class="breadcrumb-item active">NORDic DS module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/NORDic_DS.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -72,7 +111,7 @@
            <div itemprop="articleBody">
              
   <section id="nordic-ds-module">
-<h1>NORDic_DS module<a class="headerlink" href="#nordic-ds-module" title="Permalink to this heading"></a></h1>
+<h1>NORDic DS module<a class="headerlink" href="#nordic-ds-module" title="Permalink to this heading"></a></h1>
 <section id="module-NORDic.NORDic_DS.functions">
 <span id="nordic-nordic-ds-functions-module"></span><h2>NORDic.NORDic_DS.functions module<a class="headerlink" href="#module-NORDic.NORDic_DS.functions" title="Permalink to this heading"></a></h2>
 <dl class="py function">
@@ -581,7 +620,10 @@
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="NORDic_PMR.html" class="btn btn-neutral float-left" title="NORDic PMR module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NORDic_DR.html" class="btn btn-neutral float-right" title="NORDic DR module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
