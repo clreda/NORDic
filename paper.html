@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction to NORDic &mdash; NORDic v2.4.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f9fa89a7"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" />
+    <link rel="prev" title="Welcome to NORDic’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            NORDic
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction to NORDic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#statement-of-need">Statement of need</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#automated-identification-of-disease-related-boolean-networks-nordic-ni">Automated identification of disease-related Boolean networks (NORDic NI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prioritization-of-master-regulators-in-boolean-networks-nordic-pmr">Prioritization of master regulators in Boolean networks (NORDic PMR)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#novel-approaches-for-scoring-drug-effects-repurposing-drugs-nordic-ds-dr">Novel approaches for scoring drug effects &amp; repurposing drugs (NORDic DS &amp; DR)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extraction-of-information-from-large-public-data-sets-simulation-module-nordic-utils">Extraction of information from large public data sets &amp; simulation module (NORDic UTILS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="content.html">Statement of need</a></li>
+<li class="toctree-l1"><a class="reference internal" href="content.html#usage">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">NORDic</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NORDic</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Introduction to NORDic</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/paper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction-to-nordic">
+<h1>Introduction to NORDic<a class="headerlink" href="#introduction-to-nordic" title="Permalink to this heading"></a></h1>
+<p>Genes, proteins and messenger RNAs are shown to interact on each other in order to modulate gene activity. Conversely, gene activity impacts protein production, and consequently triggers the chemical reactions needed for survival in healthy individuals. As such, perturbations of these gene regulatory interactions, through (epi)genetic and/or environmental factors, might cause diseases: e.g., the suppression of the activity of gene SCN1A is linked to a specific type of epilepsy called Dravet syndrome, both in mice and humans <a class="reference external" href="https://doi.org/10.1172/JCI66220">[Kalume et al., 2013]</a>. Gene regulatory networks, which are graphs connecting biological entities according to their known regulatory interactions, are useful models that enable a better understanding of those regulatory mechanisms <a class="reference external" href="https://doi.org/10.1038/nrm2503">[Karlebach and Shamir, 2008]</a>.</p>
+<p>In particular, one type of gene regulatory networks, called Boolean networks, allows the definition of so-called regulatory functions <a class="reference external" href="https://doi.org/10.1016/0022-5193(74)90172-6">[Thomas, 1973]</a>; <a class="reference external" href="https://doi.org/10.1016/0022-5193(69)90015-0">[Kauffman, 1969]</a>. Those functions are specific to each node in the graph, and determine the activity of this node according to its regulators. Those functions are defined on the Boolean domain (<strong>True</strong> or <strong>False</strong>), meaning that we only consider binary gene activities. Subsequently, studying this type of networks as a dynamical system (and determining their basins of attraction, for instance) remains rather tractable <a class="reference external" href="https://doi.org/10.48550/arXiv.2212.12756">[Moon, Lee and Pauleve, 2022]</a>. The potential applications are numerous. Taking into account network dynamics should improve tools originally developed using non Boolean networks, such as the Transcription Factor Influence score in CoRegNet <a class="reference external" href="https://doi.org/10.1093/bioinformatics/btv305">[Nicolle, Radvanyi and Elati, 2015]</a> for the identification of interesting biomarkers, or drug repurposing.</p>
+<p>For the latter, a library of druggable molecules can be screened for good candidates based on the paradigm of “signature reversion”; a good drug candidate should be able to “reverse” the gene activity profile
+associated with a diseased individual <a class="reference external" href="https://doi.org/10.1038/npjsba.2016.15">[Duan et al., 2016]</a>; <a class="reference external" href="https://doi.org/10.1186/s13059-016-1097-7">[Delahaye et al., 2016]</a>; <a class="reference external" href="https://doi.org/10.1093/bib/bbw112">[Musa et al., 2018]</a>. That is, such a drug would stimulate abnormally weakly activated genes with respect to healthy individuals, and vice-versa. This screening approach may considerably speed up drug development, especially for rare or tropical neglected diseases <a class="reference external" href="https://doi.org/10.1093/cid/ciab350">[Walker et al., 2021]</a>.</p>
+<p>However, the construction and analysis of Boolean networks become extremely tedious and time-consuming in the absence of experimental data or when considering the activity of a large number of genes at a time <a class="reference external" href="https://doi.org/10.1073/pnas.1610622114">[Collombet et al., 2017]</a>.</p>
+<p>Moreover, the identification of interesting drug targets, via the detection of master regulators –genes at the top of the regulatory hierarchy– suffers from, first, not exploiting the full network topology, and thus, being oblivious to transcriptional regulatory cascades, which might account for toxic unexpected side effects <a class="reference external" href="https://doi.org/10.1073/pnas.1533293100">[Bolouri et al., 2003]</a>; <a class="reference external" href="https://doi.org/10.1038/s41598-019-54180-4">[Huang et al., 2019]</a>. Second, those detection methods might not take into account the gene activity information relative to diseased patients.</p>
+<p>Finally, regulatory mechanisms at (post-)transcriptomic level are inherently stochastic <a class="reference external" href="https://doi.org/10.1016/j.cell.2008.09.050">[Raj and Van Oudenaarden, 2008]</a>. As a consequence, naive algorithms for Boolean network-based <em>in silico</em> drug repurposing rely on testing a given drug a large number of times, in order to get a good estimate of its effect on gene activity. Such methods might resort to the simulation of drug treatment on Boolean network in either a patient-specific approach <a class="reference external" href="https://doi.org/10.1101/2020.05.27.119016">[Montagud et al., 2022]</a>, or by ignoring the stochastic part of gene regulation. In both cases, this might incur a potential loss of robustness in the recommendations. Indeed, those approaches do not provide clear guarantees on the probability of error in recommendation, and might not be sample-efficient. In addition, they do not take advantage of supplementary information on drugs which might help to test drugs more efficiently (e.g., leveraging similarities between drugs in terms of effects on gene activity to infer their effect on gene activity).</p>
+<section id="statement-of-need">
+<h2>Statement of need<a class="headerlink" href="#statement-of-need" title="Permalink to this heading"></a></h2>
+<p>As a general rule, the development of <strong>NORDic</strong> relies on avoiding <em>ad hoc</em> solutions, by implementation of approaches which are relevant to all kinds of diseases regardless of the level of knowledge present in the literature –contrary to approaches which rely on knowing the relation between membrane receptors and a set of genes which activity characterizes the presence of the disease, for instance “Causal Reasoning Analytical Framework for Target discovery” (CRAFT) <a class="reference external" href="https://doi.org/10.1038/s41467-018-06008-4">[Srivastava et al., 2018]</a>. Solutions proposed in this package emphasize on, first, the modularity of the methods, by providing functions which can tackle different types of regulatory dynamics for instance; second, on the transparency of the approaches, by allowing the finetuning of each method through parameters with a clearly defined impact on the result.</p>
+</section>
+<section id="automated-identification-of-disease-related-boolean-networks-nordic-ni">
+<h2>Automated identification of disease-related Boolean networks (NORDic NI)<a class="headerlink" href="#automated-identification-of-disease-related-boolean-networks-nordic-ni" title="Permalink to this heading"></a></h2>
+<p>Most prior works about building Boolean networks assume the existence of either a Prior Knowledge Network (PKN) –that is, a preselected set of known regulatory interactions among genes of interest– and/or a set of perturbation experiments, where the gene activity of a subset of genes is measured after a single gene perturbation. Those works then propose approaches to infer in an automated way a Boolean network based on these data (e.g., PROFILE <a class="reference external" href="https://doi.org/10.1371/journal.pcbi.1007900">[Beal et al., 2021]</a>, or BoolNet <a class="reference external" href="https://doi.org/10.1093/bioinformatics/btq124">[Mussel, Hopfensitz and Kestler, 2010]</a>), by studying gene activity correlations (ARACNE <a class="reference external" href="https://doi.org/10.1186/1471-2105-7-S1-S7">[Margolin et al., 2006]</a>, <em>parmigene</em> <a class="reference external" href="https://doi.org/10.1093/bioinformatics/btr274">[Sales and Romualdi, 2011]</a>), or through answer-set programming, having converted experimental measures into a set of Boolean constraints (BoneSiS <a class="reference external" href="https://doi.org/10.1109/ictai.2019.00014">[Chevalier et al., 2019]</a>, Re:IN <a class="reference external" href="https://doi.org/10.1038/npjsba.2016.10">[Yordanov et al., 2016]</a>). However, for rare diseases for instance, pinpointing a subset of genes of interest is already a difficult task by itself.</p>
+<p>One approach, called CasQ <a class="reference external" href="https://doi.org/10.1093/bioinformatics/btaa484">[Aghamiri et al., 2020]</a>, has specifically proposed a direct, automated conversion from regulatory maps in the MINERVA database <a class="reference external" href="https://doi.org/10.1038/npjsba.2016.20">[Gawron et al., 2016]</a> to Boolean networks. However, not only does this method need the definition of prior regulatory maps, but it also relies on automatically assigning gene regulatory functions based on the regulators of each gene according to the map. This automated procedure asserts that a given gene is considered active if and only if every one of its reported activatory regulators is active, and all of its inhibitory regulators are inactive. However, since this choice does not take into account dynamical information from experiments, resulting regulatory functions might impact the quality of gene activity predictions.</p>
+<p>Moreover, there exist two hurdles to building Boolean networks which are specific to the Boolean framework. First, gene activity data must be binarized, meaning that one has to decide when a given gene is considered active or inactive in each sample. Such a process leads to an unavoidable loss of information. In order to avoid bias in the inference process, this step should be data-driven and user-controlled. For instance, when using PROFILE <a class="reference external" href="https://doi.org/10.1371/journal.pcbi.1007900">[Beal et al., 2021]</a>, a majority of genes might end up with an undetermined status –meaning that they are considered neither significantly strongly nor weakly active– which considerably undermines the input from experimental constraints.</p>
+<p>Second, the problem of identification of a Boolean network is usually underdetermined, as there is too few of experiments and measurements in practice, compared to the size of the considered gene set.</p>
+<p>Module <strong>NORDic Network Identification (NI)</strong> addresses these issues in an automated and user-controllable manner, by performing information extraction from large online sources of biological data, and data quality filtering according to user-selected parameters, which control every step of the process. As such, the hope is that <strong>NORDic</strong> makes the generation of disease-specific Boolean networks easier, reproducible, even in the absence of previously curated experiments, prior knowledge networks, or even a set of disease-associated genes. The pipeline implemented in <strong>NORDic</strong> was applied to epilepsy in a preliminary work <a class="reference external" href="https://doi.org/10.1007/978-3-031-15034-0_5">[Reda and Delahaye-Duriez, 2022]</a>.</p>
+</section>
+<section id="prioritization-of-master-regulators-in-boolean-networks-nordic-pmr">
+<h2>Prioritization of master regulators in Boolean networks (NORDic PMR)<a class="headerlink" href="#prioritization-of-master-regulators-in-boolean-networks-nordic-pmr" title="Permalink to this heading"></a></h2>
+<p>The identification of master regulators might relate to the disease onset or affected biological pathways of interest. Some methods targeted at their detection emphasize on the centrality of the location of the gene in the network, e.g., by computing a centrality-associated value for each gene in the network, and recommending top genes. For instance, one might compute the outgoing degrees using built-in application Network Analysis in Cytoscape <a class="reference external" href="https://doi.org/10.1101/gr.1239303">[Shannon et al., 2003]</a>, or the Control Centrality value <a class="reference external" href="https://doi.org/10.1371/journal.pone.0044459">[Liu et al., 2012]</a> using the CytoCtrlAnalyser <a class="reference external" href="https://doi.org/10.1093/bioinformatics/btx764">[Wu et al., 2018]</a> application. Yet those functions only leverage topological information about the network, and do not take into account gene activity data related to the disease. That is, the gene activity context does not impact the genewise values computed on the network.</p>
+<p>A notable exception is the work by <a class="reference external" href="https://doi.org/10.1038/s41598-020-73147-4">[Zerrouck et al., 2020]</a>, which considers gene activity data from patients afflicted with rheumatoid arthritis, and compute a gene activity-based influence score using tool CoRegNet <a class="reference external" href="https://doi.org/10.1093/bioinformatics/btv305">[Nicolle, Radvanyi and Elati, 2015]</a>. However, that computation does not take into account downstream transcriptional cascades <a class="reference external" href="https://doi.org/10.1073/pnas.1533293100">[Bolouri et al., 2003]</a>, that is, regulatory effects which trickle down the network, beyond the targets directly regulated by the gene.</p>
+<p>Module <strong>NORDic PMR</strong> detects master regulators in a Boolean network, given examples of gene activity profiles from patients. In contrast to prior works, the score assigned to (groups of) master regulators takes into account the network topology as well as its dynamics with respect to the diseased profiles. The approach, based on a machine learning algorithm solving the influence maximization problem <a class="reference external" href="https://doi.org/10.1145/956750.956769">[Kempe et al, 2003]</a>, is described in <a class="reference external" href="https://doi.org/10.1007/978-3-031-15034-0_5">[Reda and Delahaye-Duriez, 2022]</a>.</p>
+</section>
+<section id="novel-approaches-for-scoring-drug-effects-repurposing-drugs-nordic-ds-dr">
+<h2>Novel approaches for scoring drug effects &amp; repurposing drugs (NORDic DS &amp; DR)<a class="headerlink" href="#novel-approaches-for-scoring-drug-effects-repurposing-drugs-nordic-ds-dr" title="Permalink to this heading"></a></h2>
+<p><strong>NORDic</strong> also proposes to tackle two problems related to drug repurposing: first, drug scoring, based on its ability to reverse the diseased gene activity profile (<strong>NORDic DS</strong>); second, the computation of an online sampling procedure which determines which drugs to test during drug screening for repurposing, in order to guarantee a bound on the error in recommendation, while remaining as sample-efficient as possible (<strong>NORDic DR</strong>).</p>
+<p>There exist other approaches performing signature reversion, as mentioned in introduction. However, module <strong>NORDic DS</strong> (since version 2.0 of <strong>NORDic</strong>) is the first package to implement drug scoring based on Boolean networks, which can apply to any disease –for instance, it does not need the definition of specific biological phenotypes that should
+be observed after exposure to treatment <a class="reference external" href="https://doi.org/10.1101/2020.05.27.119016">[Montagud et al., 2022]</a>. The method implemented in <strong>NORDic DS</strong> is described in <a class="reference external" href="https://hal.science/tel-03846072/file/REDA_PhD.pdf">[Réda, 2022]</a>.</p>
+<p>Similarly, module <strong>NORDic DR</strong> is the first approach that aims at solving the lack of guarantees in recommendation error. <strong>NORDic DR</strong> relies on bandit algorithms, which are sequential reinforcement learning algorithms that enable the recommendation of most efficient drugs. Based on Boolean network simulations performed on the fly, those algorithms can adaptively select the next drug to test in order to perform recommendations with as few samples as possible. Algorithms implemented in <strong>NORDic DR</strong> are described and theoretically analyzed in <a class="reference external" href="https://doi.org/10.48550/arXiv.2103.10070">[Réda, Kaufmann and Delahaye-Duriez, 2021]</a> (for the <em>m-LinGapE</em> algorithm), and in <a class="reference external" href="https://doi.org/10.48550/arXiv.2111.01479">[Réda, Tirinzoni and Degenne, 2021]</a> (<em>MisLid</em> algorithm).</p>
+</section>
+<section id="extraction-of-information-from-large-public-data-sets-simulation-module-nordic-utils">
+<h2>Extraction of information from large public data sets &amp; simulation module (NORDic UTILS)<a class="headerlink" href="#extraction-of-information-from-large-public-data-sets-simulation-module-nordic-utils" title="Permalink to this heading"></a></h2>
+<p>In all four present modules in <strong>NORDic</strong>, helper functions in module <strong>NORDic UTILS</strong> are implemented in order to extract and curate data in a transparent way from the LINCS L1000 <a class="reference external" href="https://doi.org/10.1016/j.cell.2017.10.049">[Subramanian et al., 2017]</a>, OmniPath <a class="reference external" href="https://doi.org/10.1038/nmeth.4077">[Turei et al., 2016]</a>, DisGeNet <a class="reference external" href="https://doi.org/10.1093/nar/gkw943">[Pinero et al., 2016]</a> and STRING <a class="reference external" href="https://doi.org/10.1093/nar/gkaa1074">[Szklarczyk et al., 2021]</a> databases. <strong>NORDic</strong> also proposes a simulation module, which allows to test the accuracy of the predictions made by the network compared to known measurements. This module also enables the study and the visualization of the behaviour of the network under various perturbations and types of regulatory dynamics.</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this heading"></a></h2>
+<p>Building a representation of gene interactions and their influences on gene activity, in an automated and reproducible way, helps to model more complex diseases and biological phenomena on a larger set of genes. These models might speed up the understanding of the gene regulation hierarchy by bioinformaticians and biologists; and allow to predict novel drugs or gene targets which might be investigated later for healthcare purposes. In particular, the network-oriented approach might be able to predict off-targets. The <strong>NORDic</strong> Python package aims at tackling those problems, with a focus on reproducibility and modularity. It primarily relies on popular formats for network description files, such
+as the .bnet format. Moreover, <strong>NORDic</strong> enables further study of the network in Cytoscape, by providing a direct conversion to .sif formats, along with a dedicated style file. The different pipelines present in <strong>NORDic</strong> produce intermediary files, which might be checked by the user, and can be fed again to the pipeline in order to reproduce the results.</p>
+<p>To get started with the different modules proposed in <strong>NORDic</strong>, please check out the tutorials (Jupyter notebooks) on the GitHub repository <a class="reference external" href="https://doi.org/10.5281/zenodo.7239047">[Reda et Delahaye-Duriez, 2023]</a>, which provides an application to a disease called Congenital Central Hypoventilation Syndrome (CCHS).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to NORDic’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Clémence Réda, Andrée Delahaye-Duriez.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

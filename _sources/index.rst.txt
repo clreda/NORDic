@@ -13,6 +13,7 @@ Being able to build in an automated and reproducible way a model of gene interac
 .. toctree::
    :maxdepth: 4
 
+   paper
    install
    content
    modules
