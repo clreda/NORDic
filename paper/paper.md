@@ -45,12 +45,12 @@ for toxic unexpected side effects [@Bolouri2003; @Huang2019]. Finally, regulator
 
 # Statement of need
 
-As a general rule, the development of **NORDic** relies on avoiding *ad hoc* solutions, by implementation of approaches which are relevant to all kinds of 
-diseases regardless of the level of knowledge present in the literature --contrary to approaches which rely on knowing the relation between membrane receptors 
-and a set of genes which activity characterizes the presence of the disease, for instance "Causal Reasoning Analytical Framework for Target discovery" 
-(CRAFT) [@Srivastava2018]. Please refer to Figure 1 for an overview of the package. Solutions proposed in this package emphasize on, first, the modularity of the methods, by providing functions which can tackle different 
+The development of **NORDic** relies on avoiding *ad hoc* solutions, by implementation of approaches which are relevant to all kinds of 
+diseases regardless of the level of knowledge present in the literature. Please refer to Figure 1 for an overview of the package. Solutions proposed in this package emphasize on, first, the modularity of the methods, by providing functions which can tackle different 
 types of regulatory dynamics for instance; second, on the transparency of the approaches, by allowing the finetuning of each method through parameters with a clearly 
 defined impact on the result.
+
+![Overview of the different modules in NORDic.](overview.png)
 
 ## Automated identification of disease-related Boolean networks
 
@@ -78,8 +78,6 @@ The identification of master regulators might relate to the disease onset or aff
 Module **NORDic PMR** detects master regulators in a Boolean network, given examples of gene activity profiles from patients. In contrast to prior works, the score assigned to 
 (groups of) master regulators takes into account the network topology as well as its dynamics with respect to the diseased profiles. The approach, based on a machine learning 
 algorithm solving the influence maximization problem [@Kempe2003], is described in @Reda22022.
-
-![Overview of the different modules in NORDic.](overview.png)
 
 ## Novel approaches for scoring drug effects & repurposing drugs
 
