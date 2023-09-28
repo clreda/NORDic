@@ -63,8 +63,6 @@ one has to decide when a given gene is considered active or inactive in each sam
 data-driven and user-controlled. For instance, when using PROFILE [@Beal2021], a majority of genes might end up with an undetermined status --meaning that they are considered 
 neither significantly strongly nor weakly active-- which considerably undermines the input from experimental constraints. 
 
-![Overview of the different modules in NORDic.](overview.png)
-
 Second, the problem of identification of a Boolean 
 network is usually underdetermined, as there is too few of experiments and measurements in practice, compared to the size of the considered gene set.
 
@@ -80,6 +78,8 @@ The identification of master regulators might relate to the disease onset or aff
 Module **NORDic PMR** detects master regulators in a Boolean network, given examples of gene activity profiles from patients. In contrast to prior works, the score assigned to 
 (groups of) master regulators takes into account the network topology as well as its dynamics with respect to the diseased profiles. The approach, based on a machine learning 
 algorithm solving the influence maximization problem [@Kempe2003], is described in @Reda22022.
+
+![Overview of the different modules in NORDic.](overview.png)
 
 ## Novel approaches for scoring drug effects & repurposing drugs
 

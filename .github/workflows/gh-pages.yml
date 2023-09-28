@@ -1,9 +1,8 @@
 name: NORDic documentation
 
-on: [push]
-#on:
-#  release:
-#    types: [published]
+on:
+  release:
+    types: [published]
 
 jobs:
   docs:
