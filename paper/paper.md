@@ -27,33 +27,21 @@ bibliography: paper.bib
 
 # Introduction
 
-Genes, proteins and messenger RNAs are shown to interact on each other in order to modulate gene activity. Conversely, gene activity impacts
-protein production, and consequently triggers the chemical reactions needed for survival in healthy individuals. As such, perturbations
-of these gene regulatory interactions, through (epi)genetic and/or environmental factors, might cause diseases: e.g., the suppression of the 
-activity of gene SCN1A is linked to a specific type of epilepsy called Dravet syndrome, both in mice and humans [@Kalume2013]. Gene 
+Genes, proteins and messenger RNAs are shown to interact on each other in order to modulate gene activity. Gene 
 regulatory networks, which are graphs connecting biological entities according to their known regulatory interactions, are useful models 
 that enable a better understanding of those regulatory mechanisms [@Karlebach2008]. 
 
 In particular, one type of gene regulatory networks, called Boolean networks, allows the definition of so-called regulatory functions 
 [@Thomas1973; @Kauffman1969]. Those functions are specific to each node in the graph, and determine the activity of this node 
 according to its regulators. Those functions are defined on the Boolean domain (**True** or **False**), meaning that we only consider binary 
-gene activities. Subsequently, studying this type of networks as a dynamical system (and determining their basins of attraction, for instance) 
-remains rather tractable [@Moon2022]. The potential applications are numerous. Taking into account network dynamics should improve tools originally developed using non Boolean networks, such as the Transcription Factor Influence score in CoRegNet [@Nicolle2015] for the identification of interesting 
-biomarkers, or drug repurposing. For the latter, a library of druggable molecules can be screened for good candidates based on the paradigm of "signature reversion"; a good drug candidate should be able to "reverse" the gene activity profile 
-associated with a diseased individual [@Duan2016; @Delahaye2016; @Musa2018]. That is, such a drug would stimulate abnormally weakly activated genes with 
-respect to healthy individuals, and vice-versa.
-This screening approach may considerably speed up drug development, especially for rare or tropical neglected diseases [@Walker2021].
+gene activities. Subsequently, studying this type of networks as a dynamical system 
+remains rather tractable [@Moon2022]. The potential applications are numerous. Taking into account network dynamics should improve tools originally developed using non Boolean networks for the identification of interesting 
+biomarkers [@Nicolle2015] or drug repurposing. 
 
 However, the construction and analysis of Boolean networks become extremely tedious and time-consuming in the absence of experimental data or 
-when considering the activity of a large number of genes at a time [@Collombet2017]. 
-
-Moreover, the identification of interesting drug targets, via the detection of master regulators --genes at the top of the regulatory hierarchy-- suffers 
-from, first, not exploiting the full network topology, and thus, being oblivious to transcriptional regulatory cascades, which might account 
-for toxic unexpected side effects [@Bolouri2003; @Huang2019]. Second, those detection methods might not take into account the gene activity information relative to diseased 
-patients. 
-
-Finally, regulatory mechanisms at (post-)transcriptomic level are inherently stochastic [@Raj2008]. As a consequence, naive algorithms for Boolean network-based *in silico* drug repurposing rely on testing a given drug a large number of times, in order to get a good estimate of its effect on gene activity. Such methods might resort to the simulation of drug treatment on Boolean network in either a patient-specific approach [@Montagud2022], or by ignoring the stochastic part of gene regulation. In both cases, this might incur a potential loss of robustness in the recommendations. Indeed, those approaches do not provide clear guarantees on the probability of error in recommendation, and might not be sample-efficient. In addition, they do not take advantage of supplementary information on drugs which might help to test drugs more efficiently (e.g., leveraging similarities between drugs in terms of effects on gene activity to infer 
-their effect on gene activity).
+when considering the activity of a large number of genes at a time [@Collombet2017]. Moreover, the identification of interesting drug targets, via the detection of master regulators suffers 
+from not exploiting the full network topology, which might account 
+for toxic unexpected side effects [@Bolouri2003; @Huang2019]. Finally, regulatory mechanisms at transcriptomic level are inherently stochastic [@Raj2008]. As a consequence, naive algorithms for Boolean network-based *in silico* drug repurposing rely on testing a given drug a large number of times, in order to get a good estimate of its effect on gene activity. Such methods might resort to the simulation of drug treatment on Boolean network in either a patient-specific approach [@Montagud2022], or by ignoring the stochastic part of gene regulation. 
 
 # Statement of need
 
@@ -66,19 +54,9 @@ defined impact on the result.
 
 ## Automated identification of disease-related Boolean networks
 
-Most prior works about building Boolean networks assume the existence of either a Prior Knowledge Network (PKN) --that is, a preselected set of known regulatory 
-interactions among genes of interest-- and/or a set of perturbation experiments, where the gene activity of a subset of genes is measured after a single gene 
-perturbation. Those works then propose approaches to infer in an automated way a Boolean network based on these data (e.g., PROFILE [@Beal2021], or BoolNet 
-[@Mussel2010]), by studying gene activity correlations (ARACNE [@Margolin2006], *parmigene* [@Sales2011]), or through answer-set programming, having converted 
-experimental measures into a set of Boolean constraints (BoneSiS [@Chevalier2019], Re:IN [@Yordanov2016]). However, for rare diseases for instance, pinpointing a 
+Most prior works about building Boolean networks assume the existence of a preselected set of known regulatory 
+interactions and/or a set of perturbation experiments, where the gene activity of a subset of genes is measured after a single gene perturbation, for a group of genes of interest. However, for rare diseases for instance, pinpointing a 
 subset of genes of interest is already a difficult task by itself.
-
-One approach, called CasQ [@Aghamiri2020], has specifically proposed a direct, automated conversion from regulatory maps in the MINERVA database [@Gawron2016] to 
-Boolean networks. However, not only does this method need the definition of prior regulatory maps, but 
-it also relies on automatically assigning gene regulatory functions based on the regulators of each 
-gene according to the map. This automated procedure asserts that a given gene is considered active if and only if every one of its reported activatory regulators is active, 
-and all of its inhibitory regulators are inactive. However, since this choice does not take into account dynamical information from experiments, resulting regulatory functions 
-might impact the quality of gene activity predictions.
 
 Moreover, there exist two hurdles to building Boolean networks which are specific to the Boolean framework. First, gene activity data must be binarized, meaning that 
 one has to decide when a given gene is considered active or inactive in each sample. Such a process leads to an unavoidable loss of information. In order to avoid bias in the inference process, this step should be 
@@ -97,12 +75,7 @@ pipeline implemented in **NORDic** was applied to epilepsy in a preliminary work
 
 ## Prioritization of master regulators in Boolean networks
 
-The identification of master regulators might relate to the disease onset or affected biological pathways of interest. Some methods targeted at their detection emphasize on the 
-centrality of the location of the gene in the network, e.g., by computing a centrality-associated value for each gene in the network, and recommending top genes. For instance, one might compute the outgoing degrees using built-in application Network Analysis in Cytoscape [@Shannon2003], or the Control Centrality value [@Liu2012] using the CytoCtrlAnalyser [@Wu2018] application. Yet those functions only leverage 
-topological information about the network, and do not take into account gene activity data related to the disease. That is, the gene activity context does not impact the genewise values computed on the network.
-
-A notable exception is the work by @Zerrouk2020, which considers gene activity data from patients afflicted with rheumatoid arthritis, and compute a gene activity-based influence score using tool CoRegNet [@Nicolle2015]. However, that computation does not take into account downstream transcriptional cascades [@Bolouri2003], that 
-is, regulatory effects which trickle down the network, beyond the targets directly regulated by the gene. 
+The identification of master regulators might relate to the disease onset or affected biological pathways of interest. Most prior works [@Wu2018] either only leverage topological information about the network, and do not take into account gene activity data related to the disease; or do not take into account regulatory effects which trickle down the network, beyond the targets directly regulated by the gene [@Zerrouk2020]. That is, the gene activity context does not impact the genewise values computed on the network.
 
 Module **NORDic PMR** detects master regulators in a Boolean network, given examples of gene activity profiles from patients. In contrast to prior works, the score assigned to 
 (groups of) master regulators takes into account the network topology as well as its dynamics with respect to the diseased profiles. The approach, based on a machine learning 

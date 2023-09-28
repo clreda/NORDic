@@ -1,6 +1,9 @@
 name: NORDic post-pushing testing
 
-on: [push]
+#on: [push]
+on:
+  release:
+    types: [published]
 
 jobs:
   build:
