@@ -15,11 +15,11 @@ authors:
     orcid:  0000-0003-4324-7372
     affiliation: "1, 2, 3"
 affiliations:
- - name: Université Paris Cité, Neurodiderot, Inserm, F-75019 Paris
+ - name: Université Paris Cité, Neurodiderot, Inserm, F-75019 Paris, France
    index: 1
- - name: Université Sorbonne Paris Nord, UFR de santé, médecine et biologie humaine, F-93000 Bobigny
+ - name: Université Sorbonne Paris Nord, UFR de santé, médecine et biologie humaine, F-93000 Bobigny, France
    index: 2
- - name: Unité fonctionnelle de médecine génomique et génétique clinique, Hôpital Jean Verdier, AP-HP, F-93140 Bondy
+ - name: Unité fonctionnelle de médecine génomique et génétique clinique, Hôpital Jean Verdier, AP-HP, F-93140 Bondy, France
    index: 3
 date: 1 March 2023
 bibliography: paper.bib
