@@ -1,5 +1,5 @@
 # Network Oriented Repurposing of Drugs (NORDic)
-[![Anaconda version](https://anaconda.org/creda/nordic/badges/version.svg)](https://anaconda.org/creda/nordic) [![PyPI version](https://badge.fury.io/py/nordic.svg)](https://badge.fury.io/py/nordic) [![Zenodo version](https://zenodo.org/badge/DOI/10.5281/zenodo.7239047.svg)](https://doi.org/10.5281/zenodo.7239047)
+[![Anaconda version](https://anaconda.org/creda/nordic/badges/version.svg)](https://anaconda.org/creda/nordic) [![PyPI version](https://badge.fury.io/py/nordic.svg)](https://badge.fury.io/py/nordic) [![Zenodo version](https://zenodo.org/badge/DOI/10.5281/zenodo.7239047.svg)](https://doi.org/10.5281/zenodo.7239047) [![publication](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d/status.svg)](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d)
 
 ## Statement of need
 
@@ -92,22 +92,22 @@ The documentation website is up at [this page](https://clreda.github.io/NORDic).
 
 ## Cite
 
-If you use **NORDic** in academic research, please cite the following preliminary work (which relied on the same type of pipeline as **NORDic NI** and **NORDic PMR**, but with different implementations):
+If you use **NORDic** in academic research, please cite the following JOSS paper:
+
+[![publication](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d/status.svg)](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d)
 
 + Formatted citation:
 
-> Réda, C., & Delahaye-Duriez, A. (2022, August). Prioritization of Candidate Genes Through Boolean Networks. In Computational Methods in Systems Biology: 20th International Conference, CMSB 2022, Bucharest, Romania, September 14–16, 2022, Proceedings (pp. 89-121). Cham: Springer International Publishing.
+> Réda, C., & Delahaye-Duriez, A. (2023, October). NORDic: a Network-Oriented package for the Repurposing of Drugs. In Journal of Open Source Software. Under Press.
 
 + BibTeX citation:
 
 ```bash
-@inproceedings{reda2022prioritization,
-  title={Prioritization of Candidate Genes Through Boolean Networks},
+@inproceedings{reda2023nordic,
+  title={NORDic: a Network-Oriented package for the Repurposing of Drugs},
   author={R{\'e}da, Cl{\'e}mence and Delahaye-Duriez, Andr{\'e}e},
-  booktitle={Computational Methods in Systems Biology: 20th International Conference, CMSB 2022, Bucharest, Romania, September 14--16, 2022, Proceedings},
-  pages={89--121},
-  year={2022},
-  organization={Springer}
+  journal={Journal of Open Source Software},
+  year={2023}
 }
 ```
 
