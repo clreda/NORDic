@@ -98,17 +98,23 @@ If you use **NORDic** in academic research, please cite the following JOSS paper
 
 + Formatted citation:
 
-> Réda, C., & Delahaye-Duriez, A. (2023, October). NORDic: a Network-Oriented package for the Repurposing of Drugs. In Journal of Open Source Software. Under Press.
+> Réda et al., (2023). NORDic: a Network-Oriented package for the Repurposing of Drugs. Journal of Open Source Software, 8(90), 5532, https://doi.org/10.21105/joss.05532
 
 + BibTeX citation:
 
 ```bash
-@inproceedings{reda2023nordic,
-  title={NORDic: a Network-Oriented package for the Repurposing of Drugs},
-  author={R{\'e}da, Cl{\'e}mence and Delahaye-Duriez, Andr{\'e}e},
-  journal={Journal of Open Source Software},
-  year={2023}
-}
+@article{Réda2023, 
+    doi = {10.21105/joss.05532}, 
+    url = {https://doi.org/10.21105/joss.05532}, 
+    year = {2023}, 
+    publisher = {The Open Journal}, 
+    volume = {8}, 
+    number = {90}, 
+    pages = {5532}, 
+    author = {Clémence Réda and Andrée Delahaye-Duriez}, 
+    title = {NORDic: a Network-Oriented package for the Repurposing of Drugs}, 
+    journal = {Journal of Open Source Software} 
+} 
 ```
 
 ## License

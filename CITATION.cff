@@ -1,13 +1,33 @@
-cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+cff-version: "1.2.0"
 authors:
-  - family-names: R\'{e}da
-    given-names: Cl\'{e}mence
-    orcid: https://orcid.org/0000-0003-3238-0258
+- family-names: Réda
+  given-names: Clémence
+  orcid: "https://orcid.org/0000-0003-3238-0258"
+- family-names: Delahaye-Duriez
+  given-names: Andrée
+  orcid: "https://orcid.org/0000-0003-4324-7372"
+doi: 10.5281/zenodo.8355529
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Réda
+    given-names: Clémence
+    orcid: "https://orcid.org/0000-0003-3238-0258"
   - family-names: Delahaye-Duriez
-    given-names: Andr\'{e}e
-    orcid: https://orcid.org/0000-0003-4324-7372
-title: "Network Oriented Repurposing of Drugs (NORDic)"
-version: 2.4.1
-doi: 10.5281/zenodo.7239047
-date-released: 2023-03-03
+    given-names: Andrée
+    orcid: "https://orcid.org/0000-0003-4324-7372"
+  date-published: 2023-10-05
+  doi: 10.21105/joss.05532
+  issn: 2475-9066
+  issue: 90
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 5532
+  title: "NORDic: a Network-Oriented package for the Repurposing of
+    Drugs"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.05532"
+  volume: 8
+title: "NORDic: a Network-Oriented package for the Repurposing of Drugs"
