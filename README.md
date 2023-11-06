@@ -44,6 +44,7 @@ All dependencies are retrievable from Anaconda:
 
 ```bash
 conda install -c creda -y -q nordic
+conda install -c bioconda -y -q nordic
 ```
 
 ### Using [CoLoMoTo-Docker](https://github.com/colomoto/colomoto-docker) (since March 1st, 2023)
