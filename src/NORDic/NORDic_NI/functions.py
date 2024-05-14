@@ -377,7 +377,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
 
     profiles = pd.read_csv(profiles_fname, index_col=0, low_memory=False)
     if (not pd.isnull(profiles.values).all()):
-        nconds = len(set(["_".join([profiles.loc[v][c] for v in ["perturbed","perturbation","cell_line"]]) for c in profiles.columns]))
+        nconds = len(set(["_".join([str(profiles.loc[v][c]) for v in ["perturbed","perturbation","cell_line"]]) for c in profiles.columns]))
     else:
         nconds = 0
     ngenes = len([p for p in profiles.index if (p not in add_rows_profiles)])
