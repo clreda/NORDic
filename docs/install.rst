@@ -28,9 +28,10 @@ We need to install missing dependencies from PyPI: ::
 Using conda (package hosted on Anaconda.org)
 ::::::::::::::::::::::::::::::::::::::::::::
 
-All dependencies are retrievable from Anaconda: ::
+All dependencies (except for clingo) are retrievable from Anaconda: ::
 
-    $ conda install -c creda -y -q nordic
+    $ conda install -c potassco clingo
+    $ conda install -c bioconda -y -q nordic
 
 Using `CoLoMoTo-Docker <https://github.com/colomoto/colomoto-docker>`_ (since March 1st, 2023)
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
