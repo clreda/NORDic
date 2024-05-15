@@ -488,7 +488,7 @@ def build_observations(grn, signatures, quiet=False):
 
         ## Compatible with perturbation experiment
         data_df = data_df.T
-        pert, sign = exps[exp_nb].split("_")[0], 0 if (exps[exp_nb].split("_")[1]=="KD") else 1
+        pert, sign = exps[exp_nb-1].split("_")[0], 0 if (exps[exp_nb-1].split("_")[1]=="KD") else 1
         data_df[pert] = sign 
         data_df = data_df.T
 
@@ -502,7 +502,7 @@ def build_observations(grn, signatures, quiet=False):
     BO = bonesis.BoNesis(grn, data_exps)
     ## 2. Instantiate reachability & fixed point constraints
     for exp_nb in exps_ids:
-        exp = exps[exp_nb]
+        exp = exps[exp_nb-1]
         pert, sign = exp.split("_")[:2]
         cell = exp.split("_")[-1]
         sign = int(sign!="KD")
