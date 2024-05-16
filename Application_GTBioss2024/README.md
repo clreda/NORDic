@@ -9,6 +9,7 @@ Note that NORDic relies on [BoneSiS](https://github.com/bioasp/bonesis) for the 
 conda create -n nordic_env python=3.8 -y
 conda activate nordic_env
 
+conda install -c colomoto -y -q maboss
 python3 -m pip install nordic jupyter
 
 ## clean up (if needed)
