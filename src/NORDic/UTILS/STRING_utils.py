@@ -321,7 +321,7 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
     if (not quiet):
         print("<STRING> Retrieving the file from STRING", end="... ")
     if (file_folder is not None and not os.path.exists(protein_action_fname)):
-        proc = Popen(("wget -qO- \""+STRING_url+"\" | gzip -d -c > "+protein_action_fname).split(" "), shell=True)
+        proc = Popen(("wget -qO- \""+STRING_url+"\" | gzip -d -c > "+protein_action_fname).split(" "))
         proc.wait()
     if (file_folder is not None):
         if (not quiet):
