@@ -8,7 +8,7 @@ import numpy as np
 from io import StringIO
 from copy import deepcopy
 from subprocess import check_output as sbcheck_output
-from subprocess import Popen
+from subprocess import call as sbcall
 
 string_api_url = lambda v : "https://version-"+"-".join(v.split("."))+".string-db.org/api"
 
@@ -321,8 +321,7 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
     if (not quiet):
         print("<STRING> Retrieving the file from STRING", end="... ")
     if (file_folder is not None and not os.path.exists(protein_action_fname)):
-        proc = Popen(("wget -qO- \""+STRING_url+"\" | gzip -d -c > "+protein_action_fname).split(" "))
-        proc.wait()
+        sbcall("wget -qO- \""+STRING_url+"\" | gzip -d -c > "+protein_action_fname, shell=True)
     if (file_folder is not None):
         if (not quiet):
             print("Saved at %s" % protein_action_fname)
