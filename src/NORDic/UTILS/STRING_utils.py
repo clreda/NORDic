@@ -78,9 +78,6 @@ def get_protein_names_from_STRING(gene_list, taxon_id, app_name=None, version="1
     if ("Error" in res_df.columns):
         print("<STRING_utils> Error from STRING: %s" % str(res_df["ErrorMessage"]))
         return None
-    print(gene_list[:5])
-    print(len(gene_list))
-    print(res_df.columns)
     return res_df[["queryItem", "stringId", "preferredName", "annotation"]]
 
 def get_image_from_STRING(my_genes, taxon_id, file_name="network.png", min_score=0, network_flavor="evidence", network_type="functional", app_name=None, version="11.5", quiet=False):
