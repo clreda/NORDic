@@ -38,7 +38,7 @@ setup(name=NAME,
 	"openpyxl>=3.0.10",
 	"quadprog>=0.1.11",
 	"seaborn>=0.12.1",
-	"omnipath>=1.0.6",
+	"omnipath==1.0.6",
 	"maboss>=0.8.4"
     ],
     entry_points={},
