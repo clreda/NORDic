@@ -85,7 +85,7 @@ def network_identification(file_folder, taxon_id, path_to_genes=None, disgenet_a
 
     return solution
 
-def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False,preserve_network_sign=True):
+def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args=None, network_fname=None, string_args=None, experiments_fname=None, lincs_args=None, edge_args=None, sig_args=None, bonesis_args=None, weights=None, seed=0, njobs=1, force_experiments=True, accept_nonRNA=False,preserve_network_sign=True, pause_time=0.3):
     '''
     Generates or retrieves the optimal network model
 
@@ -123,6 +123,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         [default=True] : if set to True, returns an error if no experimental profile associated with the genes is found
     accept_nonRNA : Python bool
         [default=False] : if set to False, ignores gene names which cannot be converted to EntrezIDs or which are not present in LINCS L1000
+    pause_time : Python float
+    	[default=0.3] : pause between requests to the CLUE.io API
 
     Returns
     ----------
@@ -292,7 +294,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         symbols_fname=file_folder+"SYMBOLS.csv"
         if (not os.path.exists(symbols_fname)):
             user_key = get_user_key(lincs_args["credentials"])
-            pert_df = convert_EntrezGene_LINCSL1000(file_folder, list(probes["Gene ID"]), user_key)
+            pert_df = convert_EntrezGene_LINCSL1000(file_folder, list(probes["Gene ID"]), user_key, pause_time=pause_time)
             pert_df.to_csv(symbols_fname)
         pert_df = pd.read_csv(symbols_fname, index_col=0)
 

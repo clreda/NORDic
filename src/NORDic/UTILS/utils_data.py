@@ -137,7 +137,7 @@ def convert_genes_EntrezGene(gene_list, taxon_id, app_name, chunksize=100, missi
         print("%d probes (successful %d, unsuccessful %d)" % (len(probes), len(probes.loc[probes["Gene ID"]!='-']), len(probes.loc[probes["Gene ID"]=="-"])))
     return probes
 
-def convert_EntrezGene_LINCSL1000(file_folder, EntrezGenes, user_key, quiet=False):
+def convert_EntrezGene_LINCSL1000(file_folder, EntrezGenes, user_key, pause_time=3.7, quiet=False):
     '''
     Converts EntrezIDs to Gene Symbols present in LINCS L1000
 
@@ -180,7 +180,7 @@ def convert_EntrezGene_LINCSL1000(file_folder, EntrezGenes, user_key, quiet=Fals
         for entrezid in all_entrezid:
             params = {"where":{"entrez_id": str(entrezid)},"fields":["gene_symbol"]}
             request_url = build_url(endpoint, method, params, user_key=user_key)
-            data = post_request(request_url, quiet=True, pause_time=0.3)
+            data = post_request(request_url, quiet=True, pause_time=pause_time)
             if (len(data)==0):
                 continue
             else:
