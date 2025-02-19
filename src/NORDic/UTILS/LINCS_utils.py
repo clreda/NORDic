@@ -239,7 +239,7 @@ def download_file(path_to_lincs, file_name, base_url, file_sha, check_SHA=True, 
                 ## Checks file integrity
                 sha_table = pd.read_csv(path_to_lincs+file_sha, sep="  ", names=["sha", "file"], engine='python')
                 true_sha_id = list(sha_table[sha_table["file"] == file_name+".gz"]["sha"])[0]
-                sha_id = sb.check_output("sha512sum "+path_to_lincs+file_name+".gz", shell=True).decode("utf-8").split("  ")[0]
+                sha_id = sbcheck_output("sha512sum "+path_to_lincs+file_name+".gz", shell=True).decode("utf-8").split("  ")[0]
                 assert sha_id == true_sha_id
         sbcall("gzip -df "+path_to_lincs+file_name+".gz", shell=True)
         if (not quiet):
@@ -249,7 +249,7 @@ def download_file(path_to_lincs, file_name, base_url, file_sha, check_SHA=True, 
         if (check_SHA and os.path.exists(path_to_lincs+file_name+".gz")):
             sha_table = pd.read_csv(path_to_lincs+file_sha, sep="  ", names=["sha", "file"], engine='python')
             true_sha_id = list(sha_table[sha_table["file"] == file_name+".gz"]["sha"])[0]
-            sha_id = sb.check_output("sha512sum "+path_to_lincs+file_name+".gz", shell=True).decode("utf-8").split("  ")[0]
+            sha_id = sbcheck_output("sha512sum "+path_to_lincs+file_name+".gz", shell=True).decode("utf-8").split("  ")[0]
             if (not (sha_id == true_sha_id)):
                 cmd = "wget "+("" if (not quiet) else "-q ")+"-c -O "+path_to_lincs+file_name+".gz "+base_url+file_name+".gz"
                 sbcall(cmd, shell=True)
@@ -257,7 +257,7 @@ def download_file(path_to_lincs, file_name, base_url, file_sha, check_SHA=True, 
                     ## Checks file integrity
                     sha_table = pd.read_csv(path_to_lincs+file_sha, sep="  ", names=["sha", "file"], engine='python')
                     true_sha_id = list(sha_table[sha_table["file"] == file_name+".gz"]["sha"])[0]
-                    sha_id = sb.check_output("sha512sum "+path_to_lincs+file_name+".gz", shell=True).decode("utf-8").split("  ")[0]
+                    sha_id = sbcheck_output("sha512sum "+path_to_lincs+file_name+".gz", shell=True).decode("utf-8").split("  ")[0]
                     assert sha_id == true_sha_id
                 sbcall("gzip -df "+path_to_lincs+file_name+".gz", shell=True)
                 if (not quiet):

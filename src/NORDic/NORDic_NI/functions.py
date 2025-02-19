@@ -170,9 +170,9 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         user_key = get_user_key_DISGENET(disgenet_args["credentials"])
         gene_df = get_genes_proteins_from_DISGENET(disgenet_args["disease_cids"], 
                             min_score=disgenet_args.get("min_score", 0), 
-                            min_ei=disgenet_args.get("min_ei", 0),
                             min_dsi=disgenet_args.get("min_dsi", 0.25),
                             min_dpi=disgenet_args.get("min_dpi", 0),
+                            min_pli=disgenet_args.get("min_pli", 0.25),
                             user_key=user_key
         )
         model_genes = list(set([g for x in gene_df["Gene Name"] for g in x.split("; ")]))
