@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           miniforge-version: latest
-          use-mamba: true
+          use-mamba: false
           mamba-version: "*"
           channels: colomoto
       - name: Set up Graphviz
