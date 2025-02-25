@@ -34,7 +34,7 @@ jobs:
           pip install -r pip/requirements.txt
           pip install --use-pep517 -e . 
           python -c "import NORDic; print('NORDic has been successfully installed and importable in Python.')"
-          cp "tests/ToyOndine (save)" "tests/ToyOndine"
+          cp -r "tests/ToyOndine (save)" "tests/ToyOndine"
       - name: Test NI (CCHS)
         run: |
           pip freeze | grep "bonesis"
