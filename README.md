@@ -1,5 +1,5 @@
 # Network Oriented Repurposing of Drugs (NORDic)
-[![Anaconda version](https://anaconda.org/creda/nordic/badges/version.svg)](https://anaconda.org/creda/nordic) [![PyPI version](https://badge.fury.io/py/nordic.svg)](https://badge.fury.io/py/nordic) [![Zenodo version](https://zenodo.org/badge/DOI/10.5281/zenodo.7239047.svg)](https://doi.org/10.5281/zenodo.7239047) [![publication](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d/status.svg)](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d)
+[![Python Version](https://img.shields.io/badge/python-3.8%7C3.10-pink)](https://badge.fury.io/py/nordic) [![Anaconda version](https://anaconda.org/creda/nordic/badges/version.svg)](https://anaconda.org/creda/nordic) [![PyPI version](https://badge.fury.io/py/nordic.svg)](https://badge.fury.io/py/nordic) [![Zenodo version](https://zenodo.org/badge/DOI/10.5281/zenodo.7239047.svg)](https://doi.org/10.5281/zenodo.7239047) [![publication](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d/status.svg)](https://joss.theoj.org/papers/a8173d7864bf1bc8dd074c7ce80d6d7d)
 
 ## Statement of need
 
