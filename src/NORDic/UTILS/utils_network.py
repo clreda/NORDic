@@ -135,7 +135,7 @@ def merge_network_PPI(network, PPI, quiet=True):
 
 ## https://workflows.omnipathdb.org/tissue-hpa.pdf
 ## https://workflows.omnipathdb.org/networks-r.html
-def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human", sources_int="omnipath", domains_int=None, types_int=None, min_curation_effort=-1, domains_annot='HPA_tissue', quiet=False):
+def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human", sources_int=None, domains_int=None, types_int=None, min_curation_effort=-1, domains_annot=None, quiet=False):
     '''
     Retrieve a network from OmniPath
 
@@ -148,17 +148,17 @@ def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human"
     disease_name : Python character string
         [default=None] : Disease name (in letters) to consider
     species : Python character string
-        [default=None] : Species to consider (either "human", "mouse", or "rat")
+        [default='human'] : Species to consider (either "human", "mouse", or "rat")
     sources_int : Python character string
-        [default=None] : Which databases for interactions to consider (if =None, consider them all)
+        [default=None] : Which databases for interactions to consider, in list(op.interactions.AllInteractions.resources()), consider all if None
     domains_int : Python character string
-        [default=None] : source of interactions in OmniPath
+        [default=None] : source of interactions in OmniPath, in ['collectri', 'dorothea', 'kinaseextra', 'ligrecextra', 'lncrna_mrna', 'mirnatarget', 'omnipath', 'pathwayextra', 'small_molecule', 'tf_mirna', 'tfregulons', 'tf_target'], consider all if None
     types_int : Python character string
         [default=None] : Types of interactions, e.g., "post_translational", "transcriptional", "post_transcriptional", "mirna_transcriptional"
     min_curation_effort : Python integer
         [default=-1] : if positive, select edges based on that criteria (the higher, the better). Counts the unique database-citation pairs, i.e. how many times was an interaction described in a paper and mentioned in a database
     domain_annot : Python character string
-        [default='HPA_tissue'] : source of annotations in OmniPath
+        [default=None] : source of annotations in OmniPath, in list(op.requests.Annotations.resources()), consider all if None
     quiet : Python bool
         [default=False] : prints out verbose  
 
@@ -171,9 +171,8 @@ def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human"
     '''
     assert species in ['human', 'mouse', 'rat']
     assert types_int in [None, "post_translational", "transcriptional", "post_transcriptional", "mirna_transcriptional"]
-    assert sources_int in list(op.interactions.AllInteractions.resources())
-    assert domains_int in ["DOROTHEA", "KINASE_EXTRA", "LIGREC_EXTRA", "LNCRNA_MRNA", "MIRNA_TARGET","OMNIPATH",
-        "PATHWAY_EXTRA", "SMALL_MOLECULE", "TF_MIRNA", "TF_REGULONS", "TF_TARGET"]
+    assert sources_int in [None]+list(op.interactions.AllInteractions.resources())
+    assert domains_int in [None]+['collectri', 'dorothea', 'kinaseextra', 'ligrecextra', 'lncrna_mrna', 'mirnatarget', 'omnipath', 'pathwayextra', 'small_molecule', 'tf_mirna', 'tfregulons', 'tf_target']
     assert domains_annot in [None]+list(op.requests.Annotations.resources())
     assert (gene_list is not None) or (disease_name is not None)
     params = {"organisms": species, "include": domains_int, "sources": sources_int, "fields": ['curation_effort'], #'references', 'sources', 'type'], 

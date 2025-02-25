@@ -359,7 +359,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
 
         else:
 
-            profiles = pd.read_csv(experiments_fname, sep=",", index_col=0, na_filter=False)
+            profiles = pd.read_csv(experiments_fname, sep=",", index_col=0, keep_default_na=False)
+            profiles[profiles==""] = np.nan
             ## Pandas DataFrame with index=HUGO gene symbols, columns=sample names, and 5 additional rows
             ## 'annotation' 2 if the sample is treated, 1 otherwise
             ## 'perturbed' gene which is perturbed

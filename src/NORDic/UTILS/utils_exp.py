@@ -169,7 +169,6 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
     assert len(pert_types) > 0
     assert nsigs > 1
     entrez_ids, pert_inames = list(pert_di.values()), list(pert_di.keys())
-    signatures, perturbed_genes = [], []
     ## 1. For each cell line
     for il, line in enumerate(cell_lines):
         ids = {}
@@ -206,7 +205,8 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
                 res_pert_ = post_request(build_url(endpoint, method, params=p, user_key=user_key), quiet=True, pause_time=0.3)
                 if (len(res_pert_)>0 and not quiet):
                     print("\t<UTILS_EXP> (%s,%s,%s): %d" % (gene, line, pert_type, len(res_pert_)))
-                data_pert_ += [dt for dt in res_pert_ if (len(dt["distil_id"])>=nsigs)]
+                add_data_pert_ = [dt for dt in res_pert_ if (len(dt["distil_id"])>=nsigs)]
+                data_pert_ += add_data_pert_
                 seen_genes.append(gene)
                 with open(data_pert_fname, "wb") as f:
                     pickle.dump({"data_pert": data_pert_, "seen_genes": seen_genes}, f)
@@ -215,28 +215,36 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
             data_pert_ = results["data_pert"]
             sigs_fname = file_folder+"sigs_cellline=%s_perttype=%s.csv" % (line, pert_type)
             if (os.path.exists(sigs_fname)):
-                sigs = pd.read_csv(sigs_fname, index_col=0)
-                signatures = [sigs[[c for c in sigs.columns if (sigs.loc["perturbed"][c]==gene)]] for gene in list(sigs.T["perturbed"])]
-                perturbed_genes = list(set(list(sigs.loc["perturbed"])))
+                sigs_cell = pd.read_csv(sigs_fname, index_col=0)
+                perturbed_genes = list(set(list(sigs_cell.loc["perturbed"])))
+                #signatures = [sigs[[c for c in sigs.columns if (sigs.loc["perturbed"][c]==gene)]] for gene in perturbed_genes]
+            else:
+                sigs_cell, perturbed_genes = None, []
+            signatures = {}
             for data in data_pert_:
                 entrez_id = pert_di[data["pert_iname"]]
                 if (not quiet):
                     print("<UTILS_EXP> %d experiments so far" % len(signatures))
                 treatment, perturbation = str(data["pert_iname"]), "OE" if ("_oe" in pert_type) else "KD"
                 ## avoid duplicates
-                if (treatment in perturbed_genes and not quiet):
-                    print("\t<UTILS_EXP> Duplicated treatment:%s, cell:%s, type:%s" % (treatment, str(data["cell_id"]), str(data["pert_type"])))
+                if ((((treatment in perturbed_genes) and (sigs_cell is not None)) or (treatment in signatures)) and not quiet):
+                    if (not quiet):
+                        print("\t<UTILS_EXP> Duplicated treatment:%s, cell:%s, type:%s" % (treatment, str(data["cell_id"]), str(data["pert_type"])))
+                    if (treatment not in signatures):
+                        sigs = sigs_cell[[c for c in sigs_cell.columns if (sigs_cell.loc["perturbed"][c]==treatment)]]
+                        signatures.setdefault(treatment, sigs)
                     continue
                 elif (not quiet):
                     print("\t<UTILS_EXP> Treatment %s (entrez_id %d)... " % (treatment, entrez_id), end="")
                 ## 6. Returns control & treated profiles from LINCS L1000
-                sigs = get_treated_control_dataset(treatment, pert_type, line, {}, entrez_ids, taxon_id, user_key, path_to_lincs, entrez_id=entrez_id,
-                        which_lvl=[3], nsigs=nsigs, same_plate=True, selection=selection, quiet=quiet, trim_w_interference_scale=True)
+                sigs = get_treated_control_dataset(treatment, pert_type, line, {}, entrez_ids, taxon_id, user_key,
+                            path_to_lincs, entrez_id=entrez_id, which_lvl=[3], nsigs=nsigs, same_plate=True,
+                            selection=selection, quiet=quiet, trim_w_interference_scale=True)
                 if (sigs is None or len(sigs)==0):
                     continue
                 if (not quiet):
                     print("... %d genes, %d profiles" % (sigs.shape[0]-3, sigs.shape[1]))
-                perturbed_genes.append(treatment)
+                #perturbed_genes.append(treatment)
                 sigs.loc["perturbed"] = [treatment]*sigs.shape[1]
                 sigs.loc["perturbation"] = [perturbation]*sigs.shape[1]
                 sigs.loc["cell_line"] = [line]*sigs.shape[1]
@@ -246,10 +254,10 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
                 if (len(signatures)==0):
                     sigs.to_csv(sigs_fname)
                 else:
-                    signatures[0].join(signatures[1:], how="outer").to_csv(sigs_fname)
-                signatures.append(sigs)
+                    sigs.join(signatures.values(), how="outer").to_csv(sigs_fname)
+                signatures.setdefault(treatment, sigs)
     if (len(signatures)==0):
         return pd.DataFrame([], index=pert_inames)
-    signatures = signatures[0].join(signatures[1:], how="outer")
+    signatures = pd.join(signatures.values(), how="outer")
     signatures = signatures.loc[~signatures.index.duplicated()]
     return signatures

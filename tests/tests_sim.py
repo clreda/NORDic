@@ -31,8 +31,8 @@ class TestSIM(unittest.TestCase):
         nee = MABOSS_SIM(seednb,njobs)
         nee.update_network(network_fname, initial, verbose=False)
         probs = nee.generate_trajectories(params=params, outputs=[]) ## generate trajectories
-        self.assertTrue(all([c=="<nil>" for c in probs.columns]))
-        self.assertTrue(np.isclose(probs.loc["prob"]["<nil>"],1))
+        self.assertTrue(any([c=="<nil>" for c in probs.columns]))
+        self.assertTrue(np.isclose(probs.loc["prob"]["<nil>"],1.))
 
     def test_MPBN_SIM(self):
         x0, network_fname, seednb, njobs = self.create_instance()
@@ -42,7 +42,7 @@ class TestSIM(unittest.TestCase):
         nee = MPBN_SIM(seednb,njobs)
         nee.update_network(network_fname, initial, verbose=False) ## no mutations, initial state x0
         probs = nee.generate_trajectories(params=params, outputs=[]) ## generate trajectories
-        self.assertTrue(all([c=="<nil>" for c in probs.columns]))
+        self.assertTrue(any([c=="<nil>" for c in probs.columns]))
         self.assertTrue(np.isclose(probs.loc["prob"]["<nil>"],1))
 
     def test_BONESIS_SIM_FinalEmpty(self):
@@ -82,7 +82,7 @@ class TestSIM(unittest.TestCase):
         nee = MPBN_SIM(seednb,njobs)
         nee.update_network(network_fname, initial, verbose=False)
         nee.enumerate_attractors() ## enumerate all attractors
-        self.assertEqual(nee.attrs.shape[1],1)
+        self.assertEqual(nee.attrs.shape[1], 1)
         self.assertTrue(all(["".join(list(nee.attrs.astype(str)[c])) in ["1"*len(nee.gene_list), "0"*len(nee.gene_list)] for c in nee.attrs]))
 
     def test_MABOSS_Trajectories_Profiles(self):

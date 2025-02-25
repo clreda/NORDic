@@ -1,4 +1,6 @@
-on: [published]
+on:
+  release:
+    types: [published]
 
 jobs:
   paper:
