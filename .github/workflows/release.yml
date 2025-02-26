@@ -31,7 +31,9 @@ jobs:
     - run: sed -i "s:9999:${VERSION//*v/}:" setup.py conda/meta.yaml
       env:
           VERSION: ${{ github.ref }}
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3.1.0
+      with:
+          miniconda-version: "latest"
     - name: prepare
       run: |
         python setup.py sdist bdist_wheel
@@ -39,6 +41,7 @@ jobs:
         conda config --set solver libmamba
         conda config --set channel_priority flexible
         conda config --set anaconda_upload yes
+        conda remove --name base -y conda-anaconda-telemetry
     - name: build
       run: |
         cd conda

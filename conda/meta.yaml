@@ -1,5 +1,5 @@
 {% set name = "NORDic" %}
-{% set version = "9999" %}
+{% set version = "2.6.0" %}
 
 package:
   name: "{{ name|lower }}"
