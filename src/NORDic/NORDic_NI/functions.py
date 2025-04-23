@@ -195,7 +195,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
         ## Import prepared gene set: one gene name per line
         assert os.path.exists(path_to_genes)
         with open(path_to_genes, "r") as f:
-            model_genes = f.read().split("\n")[:-1]
+            model_genes = f.read().split("\n")
+        model_genes = list(set([g for g in model_genes if (len(g)!=0)]))
 
     with open(gene_set_file, "w") as f:
         f.write(("\n".join(model_genes))+"\n")
@@ -260,7 +261,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     ## Get cell line names from LINCS L1000
     if (len(lincs_args.get("cell_lines", []))==0):
         user_key = get_user_key(lincs_args["credentials"])
-        cell_lines = get_all_celllines(pert_inames, user_key)
+        cell_lines = get_all_celllines(model_genes, user_key)
     else:
         cell_lines = lincs_args["cell_lines"]
 
@@ -326,7 +327,8 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             path_to_lincs = lincs_args.get("path_to_lincs", "./")
             nsigs = lincs_args.get("nsigs", 2)
             user_key = get_user_key(lincs_args["credentials"])
-            pert_di = pert_df[["Entrez ID","Gene Symbol"]].to_dict()["Entrez ID"]
+            pert_di = pert_df[["Entrez ID","Gene Symbol"]].to_dict()["Entrez ID"] 
+            #pert_di = {v:int(k.split("; ")[0]) for k, v in pert_df[["Entrez ID","Gene Symbol"]].to_dict()["Gene Symbol"].items()} ## TODO
             if (not os.path.exists(full_profiles_fname)):
                 full_profiles = get_experimental_constraints(file_folder, cell_lines, pert_types, pert_di, taxon_id, selection, user_key, path_to_lincs, thres_iscale=thres_iscale, nsigs=nsigs, quiet=False)
                 full_profiles.to_csv(full_profiles_fname)

@@ -127,7 +127,7 @@ def profiles2signatures(profiles_df, user_key, path_to_lincs, save_fname, backgr
         signatures_list.append(signatures)
     signatures_df = signatures_list[0].join(signatures_list[1:], how="outer")
     return signatures_df
-
+    
 def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, taxon_id, selection, user_key, path_to_lincs, thres_iscale=None, nsigs=2, quiet=False):
     '''
     Retrieve experimental profiles from the provided cell lines, perturbation types, list of genes, in the given species (taxon ID)
@@ -170,6 +170,7 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
     assert nsigs > 1
     entrez_ids, pert_inames = list(pert_di.values()), list(pert_di.keys())
     ## 1. For each cell line
+    signatures = {}
     for il, line in enumerate(cell_lines):
         ids = {}
         pert_types_ = [p for p in pert_types if (p != "ctl_untrt")]
@@ -217,22 +218,21 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
             if (os.path.exists(sigs_fname)):
                 sigs_cell = pd.read_csv(sigs_fname, index_col=0)
                 perturbed_genes = list(set(list(sigs_cell.loc["perturbed"])))
-                #signatures = [sigs[[c for c in sigs.columns if (sigs.loc["perturbed"][c]==gene)]] for gene in perturbed_genes]
+                #signatures = {gene: sigs[[c for c in sigs.columns if (sigs.loc["perturbed"][c]==gene)]] for gene in perturbed_genes}
             else:
                 sigs_cell, perturbed_genes = None, []
-            signatures = {}
             for data in data_pert_:
                 entrez_id = pert_di[data["pert_iname"]]
                 if (not quiet):
                     print("<UTILS_EXP> %d experiments so far" % len(signatures))
                 treatment, perturbation = str(data["pert_iname"]), "OE" if ("_oe" in pert_type) else "KD"
                 ## avoid duplicates
-                if ((((treatment in perturbed_genes) and (sigs_cell is not None)) or (treatment in signatures)) and not quiet):
+                if ((((treatment in perturbed_genes) and (sigs_cell is not None)) or ((treatment,pert_type,line) in signatures)) and not quiet):
                     if (not quiet):
                         print("\t<UTILS_EXP> Duplicated treatment:%s, cell:%s, type:%s" % (treatment, str(data["cell_id"]), str(data["pert_type"])))
                     if (treatment not in signatures):
                         sigs = sigs_cell[[c for c in sigs_cell.columns if (sigs_cell.loc["perturbed"][c]==treatment)]]
-                        signatures.setdefault(treatment, sigs)
+                        signatures.setdefault((treatment,pert_type,line), sigs)
                     continue
                 elif (not quiet):
                     print("\t<UTILS_EXP> Treatment %s (entrez_id %d)... " % (treatment, entrez_id), end="")
@@ -255,9 +255,10 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
                     sigs.to_csv(sigs_fname)
                 else:
                     sigs.join(signatures.values(), how="outer").to_csv(sigs_fname)
-                signatures.setdefault(treatment, sigs)
-    if (len(signatures)==0):
+                signatures.setdefault((treatment,pert_type,line), sigs)
+    if (len(signatures)==0): 
         return pd.DataFrame([], index=pert_inames)
-    signatures = pd.join(signatures.values(), how="outer")
+    all_sigs = list(signatures.values())
+    signatures = all_sigs[0].join(all_sigs[1:], how="outer") 
     signatures = signatures.loc[~signatures.index.duplicated()]
     return signatures
