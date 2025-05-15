@@ -64,6 +64,8 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
             depth_args = exp.get("depth_args", {})
             if (not quiet):
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
+            #print(x0)
+            #print((x0['LRPAP1'], A[0]['LRPAP1'], exp_name))
             probs = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float)
             probs = {i: x for i,x in list(probs.items()) if (x>0)}
@@ -80,6 +82,8 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
             probs = np.array([probs[ia]/100 for ia in probs])
             attrs_init = pd.DataFrame({"WT_%d"%ia: a for ia, a in enumerate(A_WT)}).replace("*",np.nan).astype(float)
             sims, nb_gene = compare_states(attrs, attrs_init, gene_outputs)
+            #print((attrs.shape, attrs_init.shape))
+            #print((nb_gene, len(gene_outputs)))
             assert nb_gene == len(gene_outputs)
             sims = probs.T.dot(sims)
             dt = 1-np.max(sims) #max: minimum of change in (*different*) attractors induced by the subset S
@@ -143,6 +147,7 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     x0 = f.zero()
     for i in list(state.loc[state[state.columns[0]]==1].index):
         x0[i] = 1
+    #print(x0['LRPAP1'])
     ## 3. Get the reachable attractors from initial state in the absence of perturbation ("wild type")
     experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
     A_WT = [a for a in tqdm(list(f.attractors(reachable_from=x0)))]
@@ -167,11 +172,27 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     ## 4. Create the mutated networks
     def patch_model(f, patch):
         f = mpbn.MPBooleanNetwork(f)
+        #print(patch)
         for i, fi in patch.items():
             f[i] = fi
         return f
     perts, perts_S = [(state.loc[[g for g in lst if (g in state.index)]]+1)%2 for lst in [gene_list, spreader]]
+    #print(perts)
+    #print(perts_S)
+    #mutants = {}
+    #for g in list(perts.index):
+    #    mutants_ = {}
+    #    for gx in [g]+spreader:
+    #        print("****")
+    #        xx = pd.concat((perts,perts_S),axis=0)
+    #        #print(xx)
+    #        #print(xx.loc[gx])
+    #        x = str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]])
+    #        #print((g, gx, x))
+    #        mutants_.update({gx : x})
+    #    mutants.update({g : mutants_})
     mutants = {g: {gx: str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]]) for gx in [g]+spreader} for g in list(perts.index)}
+    #print(mutants)
     f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
     ## 5. Get the reachable attractors from initial state in the presence of mutations ("mutants" KO/OE)
     ## 6. Estimate probabilities of attractors from Mutants and compute similarities
@@ -222,7 +243,8 @@ def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, i
     if (states.shape[1]>1):
         spds = [(gmean([(s[ig]+1) for s in sprds_multistate])-1) for ig, g in enumerate(gene_list)]
     else:
-        spds = [sprds_multistate[ig][0] for ig, g in enumerate(gene_list)]
+        spds = [sprds_multistate[0][ig] for ig, g in enumerate(gene_list)] ## todo
+        ##spds = [sprds_multistate[ig][0] for ig, g in enumerate(gene_list)]
     return spds
 
 #######################################
@@ -301,8 +323,8 @@ def greedy(network_name, k, states, im_params, simu_params, save_folder=None, qu
             S_unfold += [nodes]
             S += [[nodes]]
         spreads.update({str(S):{g: sprds_lst[ig] if (g not in S_unfold) else S_spread for ig, g in enumerate(gene_list)}})
-        with open(save_folder+"application_regulators.json", "w") as f:
-            json.dump({"spreads": spreads, "S": S, "S_unfold": S_unfold, "k": current_k}, f)
-            pd.DataFrame(spreads).to_csv(save_folder+"application_regulators.csv")
+        #with open(save_folder+"application_regulators.json", "w") as f:
+        #    json.dump({"spreads": spreads, "S": S, "S_unfold": S_unfold, "k": current_k}, f)
+        #    pd.DataFrame(spreads).to_csv(save_folder+"application_regulators.csv")
     spreads_df = pd.DataFrame(spreads)
     return S, spreads_df

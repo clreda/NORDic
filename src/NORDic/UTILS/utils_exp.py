@@ -230,7 +230,7 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
                 if ((((treatment in perturbed_genes) and (sigs_cell is not None)) or ((treatment,pert_type,line) in signatures)) and not quiet):
                     if (not quiet):
                         print("\t<UTILS_EXP> Duplicated treatment:%s, cell:%s, type:%s" % (treatment, str(data["cell_id"]), str(data["pert_type"])))
-                    if (treatment not in signatures):
+                    if (((treatment,pert_type,line) not in signatures) and (sigs_cell is not None)):
                         sigs = sigs_cell[[c for c in sigs_cell.columns if (sigs_cell.loc["perturbed"][c]==treatment)]]
                         signatures.setdefault((treatment,pert_type,line), sigs)
                     continue

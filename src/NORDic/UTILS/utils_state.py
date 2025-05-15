@@ -86,11 +86,14 @@ def compare_states(x, y, genes=None):
     xx = pd.DataFrame(x.values, index=x.index, columns=["X%d" %d for d in range(x.shape[1])])
     yy = pd.DataFrame(y.values, index=y.index, columns=["Y%d" %d for d in range(y.shape[1])])
     z = xx.join(yy, how="outer")
+    #print((xx.shape, yy.shape))
+    #print(z.shape)
     if (genes is not None):
         gene_list = [g for g in genes if (g in z.index)]
         z = z.loc[gene_list]
         if (len(gene_list)==0):
             raise ValueError("None of the genes in the list is present in any of the vectors!")
+    #print(z.shape)
     N = z.shape[0]
     x_, y_ = [z[u.columns] for u in [xx,yy]]
     ## Compute separately distances between 1's and 0's
@@ -103,6 +106,7 @@ def compare_states(x, y, genes=None):
     dists[np.isclose(dists, 0)] = 0
     dists[np.isclose(dists, 1)] = 1
     sims = 1-dists
+    #print((sims, N))
     return sims, N
 
 def finetune_binthres(df, samples, network_fname, mutation, step=0.005, maxt=0.5, mint=0, score_binthres=lambda itc,ita_c,ita_t:(1-itc)*ita_c*ita_t, njobs=1, verbose=True):
