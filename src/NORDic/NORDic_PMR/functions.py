@@ -1,9 +1,10 @@
 #coding:utf-8
 
 import pandas as pd
+import os
+import subprocess as sb
 import numpy as np
 import json
-import os
 from scipy.stats.mstats import gmean
 import random
 from joblib import Parallel, delayed
@@ -18,6 +19,27 @@ from NORDic.UTILS.utils_state import compare_states
 ####################
 ## Spread process ##
 ####################
+
+def run_experiments(network_name, spreader, gene_list, state, gene_outputs, simu_params, quiet=False):
+    ## Create file
+    import json
+    from subprocess import call as sbcall
+    perts, perts_S = [(state.loc[[g for g in lst if (g in state.index)]]+1)%2 for lst in [gene_list, spreader]]
+    experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
+    experiments_di = {
+        "bnet_file": network_name,
+        "init_active": list(state.loc[state[state.columns[0]]==1].index),
+        "nb_sims": nb_sims,
+        "mutants": {g+"_"+("KO" if (perts.loc[g][perts.columns[0]]==0) else "OE")+" {"+str(spreader)+"}": {gx: str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]]) for gx in [g]+spreader} for g in list(perts.index)},
+        "experiments": experiments,
+    }
+    with open("experiments.json", "w") as f:
+        json.dump(experiments_di)
+    sbcall("mpbn_sim --save experiments.json", shell=True)
+    
+#######################################
+## INFLUENCE MAXIMIZATION ALGORITHM  ##
+#######################################
 
 def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, repeat=1, exp_name="", quiet=False):
     '''
@@ -64,8 +86,6 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
             depth_args = exp.get("depth_args", {})
             if (not quiet):
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
-            #print(x0)
-            #print((x0['LRPAP1'], A[0]['LRPAP1'], exp_name))
             probs = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float)
             probs = {i: x for i,x in list(probs.items()) if (x>0)}
@@ -82,30 +102,11 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
             probs = np.array([probs[ia]/100 for ia in probs])
             attrs_init = pd.DataFrame({"WT_%d"%ia: a for ia, a in enumerate(A_WT)}).replace("*",np.nan).astype(float)
             sims, nb_gene = compare_states(attrs, attrs_init, gene_outputs)
-            #print((attrs.shape, attrs_init.shape))
-            #print((nb_gene, len(gene_outputs)))
             assert nb_gene == len(gene_outputs)
             sims = probs.T.dot(sims)
             dt = 1-np.max(sims) #max: minimum of change in (*different*) attractors induced by the subset S
             dists.append(dt)
     return np.mean(dists) if (repeat>1) else dists[0]
-
-def run_experiments(network_name, spreader, gene_list, state, gene_outputs, simu_params, quiet=False):
-    ## Create file
-    import json
-    from subprocess import call as sbcall
-    perts, perts_S = [(state.loc[[g for g in lst if (g in state.index)]]+1)%2 for lst in [gene_list, spreader]]
-    experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
-    experiments_di = {
-        "bnet_file": network_name,
-        "init_active": list(state.loc[state[state.columns[0]]==1].index),
-        "nb_sims": nb_sims,
-        "mutants": {g+"_"+("KO" if (perts.loc[g][perts.columns[0]]==0) else "OE")+" {"+str(spreader)+"}": {gx: str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]]) for gx in [g]+spreader} for g in list(perts.index)},
-        "experiments": experiments,
-    }
-    with open("experiments.json", "w") as f:
-        json.dump(experiments_di)
-    sbcall("mpbn_sim --save experiments.json", shell=True)
 
 def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, seednb=0, quiet=False):
     '''
@@ -147,7 +148,6 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     x0 = f.zero()
     for i in list(state.loc[state[state.columns[0]]==1].index):
         x0[i] = 1
-    #print(x0['LRPAP1'])
     ## 3. Get the reachable attractors from initial state in the absence of perturbation ("wild type")
     experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
     A_WT = [a for a in tqdm(list(f.attractors(reachable_from=x0)))]
@@ -174,25 +174,13 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
         f = mpbn.MPBooleanNetwork(f)
         #print(patch)
         for i, fi in patch.items():
+            #print((i,fi,fi=="nan", type(fi)))
+            if (fi=="nan"):
+                continue
             f[i] = fi
         return f
     perts, perts_S = [(state.loc[[g for g in lst if (g in state.index)]]+1)%2 for lst in [gene_list, spreader]]
-    #print(perts)
-    #print(perts_S)
-    #mutants = {}
-    #for g in list(perts.index):
-    #    mutants_ = {}
-    #    for gx in [g]+spreader:
-    #        print("****")
-    #        xx = pd.concat((perts,perts_S),axis=0)
-    #        #print(xx)
-    #        #print(xx.loc[gx])
-    #        x = str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]])
-    #        #print((g, gx, x))
-    #        mutants_.update({gx : x})
-    #    mutants.update({g : mutants_})
     mutants = {g: {gx: str(pd.concat((perts,perts_S),axis=0).loc[gx][perts.columns[0]]) for gx in [g]+spreader} for g in list(perts.index)}
-    #print(mutants)
     f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
     ## 5. Get the reachable attractors from initial state in the presence of mutations ("mutants" KO/OE)
     ## 6. Estimate probabilities of attractors from Mutants and compute similarities
@@ -243,13 +231,8 @@ def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, i
     if (states.shape[1]>1):
         spds = [(gmean([(s[ig]+1) for s in sprds_multistate])-1) for ig, g in enumerate(gene_list)]
     else:
-        spds = [sprds_multistate[0][ig] for ig, g in enumerate(gene_list)] ## todo
-        ##spds = [sprds_multistate[ig][0] for ig, g in enumerate(gene_list)]
+        spds = [sprds_multistate[0][ig] for ig, g in enumerate(gene_list)]
     return spds
-
-#######################################
-## INFLUENCE MAXIMIZATION ALGORITHM  ##
-#######################################
 
 def greedy(network_name, k, states, im_params, simu_params, save_folder=None, quiet=False):
     '''
@@ -323,8 +306,10 @@ def greedy(network_name, k, states, im_params, simu_params, save_folder=None, qu
             S_unfold += [nodes]
             S += [[nodes]]
         spreads.update({str(S):{g: sprds_lst[ig] if (g not in S_unfold) else S_spread for ig, g in enumerate(gene_list)}})
-        #with open(save_folder+"application_regulators.json", "w") as f:
-        #    json.dump({"spreads": spreads, "S": S, "S_unfold": S_unfold, "k": current_k}, f)
-        #    pd.DataFrame(spreads).to_csv(save_folder+"application_regulators.csv")
+        print(f"Saving in {save_folder+'application_regulators.json'}")
+        with open(save_folder+"application_regulators.json", "w") as f:
+            json.dump({"spreads": spreads, "S": S, "S_unfold": S_unfold, "k": current_k}, f)
+            pd.DataFrame(spreads).to_csv(save_folder+"application_regulators.csv")
+        print(f"Saved in {save_folder+'application_regulators.json'}")
     spreads_df = pd.DataFrame(spreads)
     return S, spreads_df
