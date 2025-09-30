@@ -88,7 +88,7 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, uni
             depth_args = exp.get("depth_args", {})
             if (not quiet):
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
-            probs = estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args)) ##
+            probs = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args)) ##
             probs = {i: x for i,x in list(probs.items()) if (x>0)}
             if (len(probs)==0 and len(A_WT)>0 and unif_proba):
                 print(f"Value of (nb_attractors={len(A_WT)})*(nb_sims={nb_sims}) is too small (nb_sims={nb_sims},#WT attractors={len(A_WT)},#attractors with proba>0={len(probs)}), selecting uniform probabilities")
@@ -165,7 +165,7 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     depth = getattr(mpbn_sim, f"{exp['depth']}_depth")
     rates_args = exp.get("rate_args", {})
     depth_args = exp.get("depth_args", {})
-    probs_WT = estimate_reachable_attractors_probabilities(f, x0, A_WT, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
+    probs_WT = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A_WT, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
     probs_WT = {i: x for i,x in list(probs_WT.items()) if (x>0)}
     A_WT = [A_WT[i] for i in list(probs_WT.keys())]
     if (len(A_WT)==0):
