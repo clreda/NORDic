@@ -24,7 +24,7 @@ setup(name=NAME,
     python_requires='>=3.8.5',
     install_requires=[
         "pandas>=1.5.1",
-        "numpy>=1.22.4,<2.0.0",
+        "numpy>=1.22.4",
         "clingo>=5.6.1",
         "graphviz>=0.20.1",
         "bonesis>=0.4.91",

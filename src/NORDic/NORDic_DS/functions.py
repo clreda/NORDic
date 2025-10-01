@@ -319,11 +319,11 @@ def simulate_treatment(network_name, targets, score, state, simu_params={}, quie
         for i, fi in patch.items():
             f[i] = fi
         return f
-    experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params.get("nb_sims", 100)
+    experiments, nb_sims, limit = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params.get("nb_sims", 100), simu_params.get("limit", 0) 
     mutants = {t: {gx: str(int(targets.loc[gx][t]>0)) for gx in targets[[t]].index if (targets.loc[gx][t]!=0)} for t in targets.columns}
     f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
     ## 4. Get the reachable attractors from initial state in the presence of mutations ("effect during drug exposure")
     ## 5. Estimate probabilities of attractors from Mutants and compute score
-    effects = [0 if (t not in f_mutants) else compute_score(f_mutants[t], x0, [a for a in tqdm(list(f_mutants[t].attractors(reachable_from=x0)))], score, genes, nb_sims, experiments, exp_name="Drug %s (%d/%d) in state %s" % (t, it+1, targets.shape[1], state.columns[0]), quiet=quiet) for it, t in enumerate(targets.columns)]
+    effects = [0 if (t not in f_mutants) else compute_score(f_mutants[t], x0, [a for a in tqdm(list(f_mutants[t].attractors(reachable_from=x0, limit=limit)))], score, genes, nb_sims, experiments, exp_name="Drug %s (%d/%d) in state %s" % (t, it+1, targets.shape[1], state.columns[0]), quiet=quiet) for it, t in enumerate(targets.columns)] ##
     assert len(effects)==targets.shape[1]
     return effects

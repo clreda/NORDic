@@ -110,6 +110,88 @@ def pubchem2drugname(pubchem_cids, lincs_args):
         drug_name = data[0]["pert_iname"] if (len(data)>0) else np.nan
         pert_inames.setdefault(pubchem_cid, drug_name)
     return pert_inames
+    
+def retrieve_drug_signature_iname(pert_iname, cell_ids, gene_list, lincs_args, binarize, quiet=False):
+     '''
+     Retrieve control & treated samples from LINCS L1000 and compute the
+corresponding drug signature
+
+     ...
+
+     Parameters
+     ----------
+     pert_iname : Python string
+         drug iname LINCS
+     cell_ids : Python character string list
+         list of candidate cell lines in LINCS L1000
+     gene_list : Python integer list
+         list of EntrezID genes
+     lincs_args : Python dictionary
+         additional arguments for LINCS L1000 requests
+     binarize : Python bool
+         should the resulting signatures be binarized?
+     quiet : Python bool
+         [default=False] : prints out verbose
+
+     Returns
+     ----------
+     sig : Pandas DataFrame
+         rows/[genes] x column/[drug PubChem]
+     '''
+     endpoint = "sigs"
+     method = "filter"
+     assert lincs_args and "credentials" in lincs_args
+     user_key = get_user_key(lincs_args["credentials"])
+     selection = lincs_args.get("selection", "distil_ss")
+     data = []
+     if (not quiet):
+         print("* Pert iname %s" % pert_iname)
+     for cell_id in cell_ids:
+         ## 1. Build request to get distil_id of relevant treated samples
+         where = {"pert_type": "trt_cp", "pert_iname": pert_iname,"cell_id": cell_id}
+         params = { "where": where, "fields": ["cell_id", "distil_id","brew_prefix"]+[selection] }
+         request_url = build_url(endpoint, method, params=params, user_key=user_key)
+         response = requests.get(request_url)
+         assert response.status_code == 200
+         data += json.loads(response.text)
+     if (len(data)==0):
+         print("No treated samples found.")
+         return None
+     ## At least @nsigs replicates and maximize the criterion
+     data_treated = [dt for dt in data if (len(dt["distil_id"]) > lincs_args.get("nsigs", 2))]
+     if (len(data_treated)==0):
+         print("Not enough replicates in treated samples.")
+         return None
+     data_treated = data_treated[np.argmax([dt[selection] for dt in data_treated])]
+     brew_prefix, cell_id, data_treated = data_treated["brew_prefix"], data_treated["cell_id"], data_treated["distil_id"]
+     ## 2. Get corresponding control samples from the same plate
+     where = {'pert_type': "ctl_vehicle", "cell_id": cell_id,"brew_prefix": brew_prefix}
+     params = {"where": where, "fields": ["distil_id"]+[selection] }
+     request_url = build_url(endpoint, method, params=params, user_key=user_key)
+     response = requests.get(request_url)
+     assert response.status_code == 200
+     data = json.loads(response.text)
+     if (len(data)==0):
+         print("No control samples found.")
+         return None
+     ## At least @nsigs replicates and maximize the criterion
+     data_control = [dt for dt in data if (len(dt["distil_id"]) > lincs_args.get("nsigs", 2))]
+     if (len(data_control)==0):
+         print("Not enough replicates in control samples.")
+         return None
+     data_control = data_control[np.argmax([dt[selection] for dt in data_control])]
+     data_control = data_control["distil_id"]
+     nsamples = len(data_treated+data_control)
+     if (not quiet):
+         print("%d samples" % nsamples)
+     sigs = create_restricted_drug_signatures(data_treated+data_control, gene_list, which_lvl=[3], strict=True,path_to_lincs=lincs_args["path_to_lincs"])
+     if (sigs is None):
+         print("Signatures not found.")
+         return None
+     assert sigs.shape[1] == nsamples
+     sig = binarize_via_CD(sigs, samples=[2]*len(data_treated)+[1]*len(data_control),binarize=int(binarize), nperm=10000)
+     sig.columns = [pert_iname]
+     return sig
 
 def retrieve_drug_signature(pubchem_cid, cell_ids, gene_list, lincs_args, binarize, quiet=False):
     '''
@@ -220,3 +302,35 @@ def compute_drug_signatures_L1000(pubchem_cids, lincs_args, binarize=True, gene_
     sigs = sigs_list[0].join(sigs_list[1:], how="outer")
     sigs.index = [gene_df.loc[i]["pr_gene_symbol"] for i in sigs.index]
     return sigs
+
+def compute_drug_signatures_L1000_iname(pert_inames, lincs_args, binarize=True, gene_list=None, chunksize=10):
+     '''
+     Get drug signatures from LINCS L1000
+
+     ...
+
+     Parameters
+     ----------
+     pert_inames : Python string list
+         list of perturbation names
+     lincs_args : Python dictionary
+         additional arguments for LINCS L1000 requests
+     binarize : Python bool
+         [default=True] : should the resulting signatures be binarized?
+
+     Returns
+     ----------
+     sigs : Pandas DataFrame
+         rows/[genes] x columns/[drug names]
+     '''
+     assert lincs_args and "credentials" in lincs_args and "path_to_lincs" in lincs_args
+     user_key = get_user_key(lincs_args["credentials"])
+     path_to_lincs = lincs_args["path_to_lincs"]
+     gene_files, _, _, _ = download_lincs_files(path_to_lincs, which_lvl=[3])
+     gene_df = pd.read_csv(path_to_lincs+gene_files[0], sep="\t", engine='python', index_col=0)
+     gene_list, gene_name_list = list(gene_df.index) if (gene_list is None) else gene_list, list(gene_df["pr_gene_symbol"])
+     sigs_list = [retrieve_drug_signature_iname(pert_iname, get_all_celllines([pert_iname], user_key) if (len(lincs_args.get("cell_lines", []))==0) else lincs_args["cell_lines"], gene_list, lincs_args, binarize) for pert_iname in pert_inames]
+     sigs_list = [sig for sig in sigs_list if (sig is not None)]
+     sigs = sigs_list[0].join(sigs_list[1:], how="outer")
+     sigs.index = [gene_df.loc[i]["pr_gene_symbol"] for i in sigs.index]
+     return sigs

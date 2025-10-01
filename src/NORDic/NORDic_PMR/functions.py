@@ -41,7 +41,7 @@ def run_experiments(network_name, spreader, gene_list, state, gene_outputs, simu
 ## INFLUENCE MAXIMIZATION ALGORITHM  ##
 #######################################
 
-def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, repeat=1, exp_name="", quiet=False):
+def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, unif_proba=True, repeat=1, exp_name="", quiet=False):
     '''
     Compute similarities between any attractor in WT and in mutants, weighted by their probabilities
 
@@ -63,6 +63,8 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
         number of iterations to compute the probabilities
     experiments : Python dictionary list
         list of experiments (different rates/depths)
+    unif_proba : Python bool
+    	if set to True, all reachable attractors have the same probability
     repeat : Python integer
         [default=1] : how many times should these experiments be repeated
     exp_name : Python character string
@@ -86,9 +88,15 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, rep
             depth_args = exp.get("depth_args", {})
             if (not quiet):
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
-            probs = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
-            attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float)
+            probs = estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args)) ##
             probs = {i: x for i,x in list(probs.items()) if (x>0)}
+            if (len(probs)==0 and len(A_WT)>0 and unif_proba):
+                print(f"Value of (nb_attractors={len(A_WT)})*(nb_sims={nb_sims}) is too small (nb_sims={nb_sims},#WT attractors={len(A_WT)},#attractors with proba>0={len(probs)}), selecting uniform probabilities")
+                probs = {i: 1/len(A) for i in range(len(A))}
+            elif ((len(probs)==0 and not unif_proba) or len(A_WT)==0):
+                raise ValueError(f"Value of #WT attractors={len(A_WT)},#attractors with proba>0={len(probs)} is too small, no probability for reachable attractors can be computed. limit and nsims={nb_sims} should be increased.")
+            attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float) 
+            print(len(probs))
             attrs = attrs[[attrs.columns[i] for i in list(probs.keys())]]
             ## if too many attractors, select the most common ones
             if (attrs.shape[1]>45000):
@@ -138,6 +146,7 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     spds : Python float dictionary
         change in mutant attractor states for each gene in gene_list that is, the similarity between any attractor reachable from state in WT and any in mutant spreader+{g} where g in gene_list
     '''
+    limit=simu_params.get("limit",0) ##
     random.seed(seednb)
     np.random.seed(seednb)
     ## 1. Load the Boolean network
@@ -150,16 +159,19 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
         x0[i] = 1
     ## 3. Get the reachable attractors from initial state in the absence of perturbation ("wild type")
     experiments, nb_sims = [{"name": "mpsim", "rates": simu_params.get("rates", "fully_asynchronous"), "depth": simu_params.get("depth", "constant_unitary")}], simu_params["nb_sims"]
-    A_WT = [a for a in tqdm(list(f.attractors(reachable_from=x0)))]
+    A_WT = [a for a in tqdm(list(f.attractors(reachable_from=x0,limit=limit)))] ##
     exp = experiments[0]
     rates = getattr(mpbn_sim, f"{exp['rates']}_rates")
     depth = getattr(mpbn_sim, f"{exp['depth']}_depth")
     rates_args = exp.get("rate_args", {})
     depth_args = exp.get("depth_args", {})
-    probs_WT = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A_WT, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
+    probs_WT = estimate_reachable_attractors_probabilities(f, x0, A_WT, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
     probs_WT = {i: x for i,x in list(probs_WT.items()) if (x>0)}
     A_WT = [A_WT[i] for i in list(probs_WT.keys())]
-    if (not quiet):
+    if (len(A_WT)==0):
+        A_WT = [state[state.columns[0]].to_dict()] ## if no convergent states can be found, compare to the initial state
+        print("Compare with initial state (initial state %s)" % state.columns[0])
+    elif (not quiet):
         print("%d wild type attractors with proba > 0 (initial state %s)" % (len(A_WT), state.columns[0]))
     ## if too many attractors, select the most common ones
     if (len(A_WT)>45000):
@@ -184,7 +196,18 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
     ## 5. Get the reachable attractors from initial state in the presence of mutations ("mutants" KO/OE)
     ## 6. Estimate probabilities of attractors from Mutants and compute similarities
-    spds = [0 if (name_g not in f_mutants) else compute_similarities(f_mutants[name_g], x0, [a for a in tqdm(list(f_mutants[name_g].attractors(reachable_from=x0)))], A_WT, [g for g in gene_outputs if (g not in [name_g]+spreader)], nb_sims, experiments, exp_name="Gene %s (%d/%d) in state %s" % (name_g, ig+1, len(gene_list), state.columns[0]), quiet=quiet) for ig, name_g in enumerate(gene_list)]
+    spds = [0 if (name_g not in f_mutants) 
+    	else compute_similarities(
+    		f_mutants[name_g], 
+    		x0, 
+    		[a for a in tqdm(list(f_mutants[name_g].attractors(reachable_from=x0,limit=limit)))],  ## 
+    		A_WT, 
+    		[g for g in gene_outputs if (g not in [name_g]+spreader)], 
+    		nb_sims, 
+    		experiments, 
+    		exp_name="Gene %s (%d/%d) in state %s" % (name_g, ig+1, len(gene_list), state.columns[0]),
+    		quiet=quiet
+    	) for ig, name_g in enumerate(gene_list)]
     return spds
 
 def spread_multistate(network_name, spreader, gene_list, states, gene_outputs, im_params, simu_params, quiet=False):
