@@ -278,7 +278,7 @@ class MPBN_SIM(BN_SIM):
         njobs = params.get('thread_count', 1)#self.njobs)
         max_time = params.get("max_time", 1000)
         noutputs = [g for g in (self.gene_list if (len(outputs)==0) else outputs) if (g not in self.all_mutants)]
-        seeds = choice(range(int(max(1e4,nsims))), size=nsims)
+        seeds = choice(range(int(max(1e4,nsims))), size=nsims).tolist()
         name_state = lambda s : " -- ".join(list(sorted([g for g in s if ((s[g]==1) and (g in noutputs))]))) if (any([(s[g]==1) and (g in noutputs) for g in s])) else "<nil>"
         #@delayed
         #@wrap_non_picklable_objects
