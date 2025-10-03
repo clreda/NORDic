@@ -3,7 +3,6 @@
 set -xe
 
 cd ${SRC_DIR}"/MaBoSS-2.0/engine/src/"
-
 make -j"${CPU_COUNT}" install \
     CC="${CC}" \
     CXX="${CXX}" \
