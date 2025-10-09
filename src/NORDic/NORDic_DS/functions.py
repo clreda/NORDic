@@ -212,7 +212,7 @@ def compute_frontier(df, samples, nbseed=0, quiet=False):
         print("<NORD_DS> Accuracy of the model %.2f" % acc)
     return model
 
-def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_name="", quiet=False):
+def compute_score(f, x0, A, score, genes, nb_sims, experiments, unif_proba=True, repeat=1, exp_name="", quiet=False):
     '''
     Compute similarities between any attractor in WT and in mutants, weighted by their probabilities
 
@@ -258,8 +258,15 @@ def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_na
             if (not quiet):
                 print(exp_name+" "*int(len(exp_name)>0)+(f"- {depth.__name__}{depth_args}\t{rates.__name__}{rates_args}"))
             probs = mpbn_sim.estimate_reachable_attractors_probabilities(f, x0, A, nb_sims, depth(f, **depth_args), rates(f, **rates_args))
-            attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float).loc[genes]
             probs = {i: x for i,x in list(probs.items()) if (x>0)}
+            if (len(probs)==0 and len(A)>0 and unif_proba):
+                print(f"Value of (nb_attractors={len(A)})*(nb_sims={nb_sims}) is too small (nb_sims={nb_sims},#WT attractors={len(A)},#attractors with proba>0={len(probs)}), selecting uniform probabilities")
+                probs = {i: 1/len(A) for i in range(len(A))}
+            elif (len(probs)==0 and len(A)>0 and (not unif_proba)):
+                continue ## ignore the rest ## DEFAULT
+            elif ((len(probs)==0 and not unif_proba) or len(A)==0):
+                raise ValueError(f"Value of #WT attractors={len(A)},#attractors with proba>0={len(probs)} is too small, no probability for reachable attractors can be computed. limit and nsims={nb_sims} should be increased.")
+            attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float).loc[genes]
             attrs = attrs[[attrs.columns[i] for i in list(probs.keys())]]
             ## if too many attractors, select the most common ones
             if (attrs.shape[1]>45000):
@@ -274,7 +281,7 @@ def compute_score(f, x0, A, score, genes, nb_sims, experiments, repeat=1, exp_na
             classification_attrs = score(attrs)
             drug_score = probs.T.dot(classification_attrs)
             d_scores.append(drug_score)
-    return np.mean(d_scores) if (repeat>1) else d_scores[0]
+    return -1 if (len(d_scores)==0) else (np.mean(d_scores) if (repeat>1) else d_scores[0]) ## DEFAULT
 
 def simulate_treatment(network_name, targets, score, state, simu_params={}, quiet=False):
     '''
@@ -324,6 +331,15 @@ def simulate_treatment(network_name, targets, score, state, simu_params={}, quie
     f_mutants = {name: patch_model(f, patch) for name, patch in mutants.items()}
     ## 4. Get the reachable attractors from initial state in the presence of mutations ("effect during drug exposure")
     ## 5. Estimate probabilities of attractors from Mutants and compute score
-    effects = [0 if (t not in f_mutants) else compute_score(f_mutants[t], x0, [a for a in tqdm(list(f_mutants[t].attractors(reachable_from=x0, limit=limit)))], score, genes, nb_sims, experiments, exp_name="Drug %s (%d/%d) in state %s" % (t, it+1, targets.shape[1], state.columns[0]), quiet=quiet) for it, t in enumerate(targets.columns)] ##
+    effects = [0 if (t not in f_mutants) else compute_score(
+    		f_mutants[t], 
+    		x0, 
+    		[a for a in tqdm(list(f_mutants[t].attractors(reachable_from=x0, limit=limit)))], 
+    		score, 
+    		genes, 
+    		nb_sims, 
+    		experiments, 
+    		unif_proba=simu_params.get("unif_proba", True),
+    		exp_name="Drug %s (%d/%d) in state %s" % (t, it+1, targets.shape[1], state.columns[0]), quiet=quiet) for it, t in enumerate(targets.columns)] ##
     assert len(effects)==targets.shape[1]
     return effects

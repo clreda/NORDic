@@ -93,10 +93,11 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, uni
             if (len(probs)==0 and len(A_WT)>0 and unif_proba):
                 print(f"Value of (nb_attractors={len(A_WT)})*(nb_sims={nb_sims}) is too small (nb_sims={nb_sims},#WT attractors={len(A_WT)},#attractors with proba>0={len(probs)}), selecting uniform probabilities")
                 probs = {i: 1/len(A) for i in range(len(A))}
+            elif (len(probs)==0 and len(A_WT)>0 and (not unif_proba)):
+                continue ## ignore the rest ## DEFAULT
             elif ((len(probs)==0 and not unif_proba) or len(A_WT)==0):
                 raise ValueError(f"Value of #WT attractors={len(A_WT)},#attractors with proba>0={len(probs)} is too small, no probability for reachable attractors can be computed. limit and nsims={nb_sims} should be increased.")
             attrs = pd.DataFrame({"MUT_%d"%ia: a for ia, a in enumerate(A)}).replace("*",np.nan).astype(float) 
-            print(len(probs))
             attrs = attrs[[attrs.columns[i] for i in list(probs.keys())]]
             ## if too many attractors, select the most common ones
             if (attrs.shape[1]>45000):
@@ -114,7 +115,7 @@ def compute_similarities(f, x0, A, A_WT, gene_outputs, nb_sims, experiments, uni
             sims = probs.T.dot(sims)
             dt = 1-np.max(sims) #max: minimum of change in (*different*) attractors induced by the subset S
             dists.append(dt)
-    return np.mean(dists) if (repeat>1) else dists[0]
+    return -1 if (len(dists)==0) else (np.mean(dists) if (repeat>1) else dists[0]) ## DEFAULT
 
 def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, seednb=0, quiet=False):
     '''
@@ -205,6 +206,7 @@ def spread(network_name, spreader, gene_list, state, gene_outputs, simu_params, 
     		[g for g in gene_outputs if (g not in [name_g]+spreader)], 
     		nb_sims, 
     		experiments, 
+    		unif_proba=simu_params.get("unif_proba", True),
     		exp_name="Gene %s (%d/%d) in state %s" % (name_g, ig+1, len(gene_list), state.columns[0]),
     		quiet=quiet
     	) for ig, name_g in enumerate(gene_list)]
