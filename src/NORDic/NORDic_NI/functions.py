@@ -561,7 +561,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
             signatures = signatures[[c for c in signatures.columns if (("initial" in c) or any([(g in c) for g in gene_list]))]]
             signatures = signatures[list(sorted(list(signatures.columns)))]
             cols = [c for c in signatures.columns if ("initial" not in c)]
-        if (pd.isnull(signatures.values).all()) or (sig_args.get("bin_thres",0.5)==0 and experiments_fname is None)):
+        if (pd.isnull(signatures.values).all()) or (sig_args.get("bin_thres",0.5)==0 and experiments_fname is None):
             signatures = []
         ## If considering only a subset of experiments
         elif (len(bonesis_args.get("exp_ids", []))>0):
