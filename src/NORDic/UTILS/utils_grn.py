@@ -496,7 +496,7 @@ def build_observations(grn, signatures, quiet=False):
         for col in cols:
             data_exps.update(data_df[[col]].dropna().astype(int).to_dict())
     if (not quiet):
-        print_exps = pd.DataFrame.from_dict(data_exps, orient="index").fillna(-1).astype(int)
+        print_exps = pd.DataFrame.from_dict(data_exps, orient="index").fillna(-1).astype(str)
         print_exps[print_exps==-1] = ""
         print("\n<UTILS_GRN> %d experiments\n%s" % (len(exps_ids), str(print_exps)))
     BO = bonesis.BoNesis(grn, data_exps)
