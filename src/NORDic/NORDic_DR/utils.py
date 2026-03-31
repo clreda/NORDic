@@ -21,7 +21,10 @@ def sherman_morrison(M, x):
 #' @returns Mahalanobis norm of x wrt M
 def mahalanobis(x, M, power=1):
     assert power in [1,2]
-    return float(np.sqrt(x.T.dot(M.dot(x))) if (power==1) else x.T.dot(M.dot(x)))
+    X = x.T.dot(M.dot(x))
+    if (X.shape==(1,1)):
+        X = X[0,0]         
+    return float(np.sqrt(X)) if (power==1) else X
 
 #' @param ls Python list of elements
 #' @param m integer

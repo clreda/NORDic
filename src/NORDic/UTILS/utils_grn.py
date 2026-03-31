@@ -497,7 +497,7 @@ def build_observations(grn, signatures, quiet=False):
             data_exps.update(data_df[[col]].dropna().astype(int).to_dict())
     if (not quiet):
         print_exps = pd.DataFrame.from_dict(data_exps, orient="index").fillna(-1).astype(str)
-        print_exps[print_exps==-1] = ""
+        print_exps[print_exps=="-1"] = ""
         print("\n<UTILS_GRN> %d experiments\n%s" % (len(exps_ids), str(print_exps)))
     BO = bonesis.BoNesis(grn, data_exps)
     ## 2. Instantiate reachability & fixed point constraints
@@ -853,7 +853,7 @@ def reconnect_network(network_fname):
     influences = solution2influences(network["Solution"])
     assert influences.shape[0]==influences.shape[1]
     assert all([influences.index[i]==influences.columns[i] for i in range(influences.shape[0])])
-    influences = influences.loc[(influences.abs().sum(axis=1)>0)&(influences.abs().sum(axis=0)>0)]
+    influences = influences.loc[(influences.abs().sum(axis=1)>0)|(influences.abs().sum(axis=0)>0)]
     gene_list = list(influences.index)
     network_connected = network.loc[gene_list]
     def get_all_genes(network):

@@ -116,7 +116,10 @@ class testing_problem(object):
     def reward(self, arm):
         patient = np.random.choice(range(self.memoization.shape[1]), 1, p=None, replace=True)
         if (not np.isnan(self.memoization[arm, patient])):
-            return float(self.memoization[arm, patient])
+            val = self.memoization[arm, patient]
+            if (len(val.shape)>0):
+                val = val[0]
+            return float(val)
         result = float(simulate_treatment(self.network_name, self.targets[[self.targets.columns[arm]]], 
 		self.score, self.states.iloc[:,patient], 
 		self.simu_params, quiet=False)[0])

@@ -155,7 +155,7 @@ class BN_SIM(object):
 
     def attrs_similarity(self, attrs1, attrs2, gene_outputs=None):
         assert self.network is not None
-        if (np.isnan(attrs1.values).all() or np.isnan(attrs2.values).all()):
+        if (np.isnan(attrs1.values.astype(float)).all() or np.isnan(attrs2.values.astype(float)).all()):
             return np.array([[0.]])
         if (gene_outputs is None):
             self.gene_outputs = [g for g in self.gene_list if (g not in [m for m in self.mutation_permanent]+[m for m in self.mutation_transient])]
@@ -314,11 +314,11 @@ class MPBN_SIM(BN_SIM):
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.show()
         if ((njobs==1) or (nsims==1)):
-            trajectories = [y for s in seeds for y in generate_trajectory(s, self.network, params, self.initial, noutputs)]
+            trajectories = [y for s in seeds for y in generate_trajectory(int(s), self.network, params, self.initial, noutputs)]
         else:
             set_loky_pickler()
             parallel = Parallel(n_jobs=njobs, backend='loky')
-            trajectories = [y for x in parallel(delayed(generate_trajectory)(s, self.network, params, self.initial, noutputs) for s in seeds) for y in x]
+            trajectories = [y for x in parallel(delayed(generate_trajectory)(int(s), self.network, params, self.initial, noutputs) for s in seeds) for y in x]
         trajectories = pd.DataFrame(trajectories, index=range(nsims*max_time), columns=["step","state","count"])
         probs = pd.pivot_table(trajectories, values="count", index="step", columns="state", aggfunc='count').fillna(0)/nsims
         if (show_plot):
