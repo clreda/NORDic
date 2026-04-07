@@ -482,7 +482,7 @@ def build_observations(grn, signatures, quiet=False):
     #data_exps.update({"zero": {g: 0 for g in grn.nodes}})
     ## 1b. For each experiment (1 initial state, 1 final state, 1 perturbation)
     for exp_nb in exps_ids:
-        cell = exps[exp_nb].split("_")[-1]
+        cell = exps[exp_nb-1].split("_")[-1]
         cols = ["Exp%d_"%(exp_nb+1)+x for x in ["init", "final"]]
         data_df = signatures[["initial_"+cell, exps[exp_nb-1]]]
 
@@ -496,7 +496,7 @@ def build_observations(grn, signatures, quiet=False):
         for col in cols:
             data_exps.update(data_df[[col]].dropna().astype(int).to_dict())
     if (not quiet):
-        print_exps = pd.DataFrame.from_dict(data_exps, orient="index").fillna(-1).astype(str)
+        print_exps = pd.DataFrame.from_dict(data_exps, orient="index").astype(str).fillna("-1")
         print_exps[print_exps=="-1"] = ""
         print("\n<UTILS_GRN> %d experiments\n%s" % (len(exps_ids), str(print_exps)))
     BO = bonesis.BoNesis(grn, data_exps)
