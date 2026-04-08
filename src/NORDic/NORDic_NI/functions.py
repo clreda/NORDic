@@ -409,7 +409,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
 
     ## Filter out edges which do not involve nodes which are both present in the experiments
     if (not accept_nonRNA and profiles is not None):
-        test_in_profiles = np.vectorize(lambda x : x in [p for p in list(profiles.index) if (p not in add_rows_profiles)])
+        test_in_profiles = np.vectorize(lambda x : x in [p for p in list(profiles.index)+list(profiles.loc["perturbed"].dropna()) if (p not in add_rows_profiles)])
         network = network.loc[(test_in_profiles(network["preferredName_A"])&test_in_profiles(network["preferredName_B"]))]
         ## Write down the list of missing genes in profiles
         genes_in_network = list(set(list(network["preferredName_A"])+list(network["preferredName_B"])))

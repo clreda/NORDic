@@ -14,6 +14,7 @@ from tqdm import tqdm
 from subprocess import call as sbcall
 from copy import deepcopy
 from sklearn.linear_model import LogisticRegression as Logit
+from tqdm import tqdm
 
 from NORDic.UTILS.utils_state import quantile_normalize
 
@@ -183,8 +184,9 @@ def get_weakly_connected(network_df, gene_list, index_col="preferredName_A", col
     '''
     adjacency = network_df.pivot_table(index=index_col, columns=column_col, values=score_col, aggfunc="mean")
     ## Undirected adjacency matrix
-    adjacency[~np.isnan(adjacency)] = 1
+    adjacency[~pd.isnull(adjacency)] = 1
     adjacency = adjacency.fillna(0)
+    ## Symmetrize genes in the adjacency matrix
     missing_index = [g for g in gene_list if (g not in adjacency.index)]
     if (len(missing_index)>0):
         missing_index_df = pd.DataFrame(0, index=missing_index, columns=adjacency.columns)
@@ -194,23 +196,29 @@ def get_weakly_connected(network_df, gene_list, index_col="preferredName_A", col
         missing_columns_df = pd.DataFrame(0, index=adjacency.index, columns=missing_columns)
         adjacency = pd.concat((adjacency, missing_columns_df), axis=1)
     assert adjacency.shape[0]==adjacency.shape[1]==len(gene_list)
+    adjacency = adjacency[adjacency.index]
     N = len(gene_list)
     components = []
     to_visit = [0]
     visited = [False]*N
-    while (not all(visited)):
-        component = []
-        while (True):
-            node = to_visit.pop()
-            visited[node] = True
-            if (node not in component):
-                component.append(node)
-            children = [list(adjacency.index).index(list(adjacency.columns)[i]) for i in np.argwhere(adjacency.values[node, :] != 0).flatten().tolist()]
-            to_visit = [child for child in children if (not visited[child])]+to_visit
-            if (len(to_visit)==0):
-                break
-        components.append(component)
-        to_visit = [np.argmin(visited)]
+    with tqdm(total=N) as pbar:
+        while (not all(visited)):
+            component = []
+            while (True):
+                node = to_visit.pop()
+                visited[node] = True
+                pbar.update(1)
+                if (node not in component):
+                    component.append(node)
+                children = [list(adjacency.index).index(list(adjacency.columns)[i]) for i in np.argwhere(adjacency.values[node, :] != 0).flatten().tolist()]
+                ## undirected
+                children += [i for i in np.argwhere(adjacency.values[:, node] != 0).flatten().tolist()]
+                children = list(set(children))
+                to_visit = list(set([child for child in children if (not visited[child])]+to_visit))
+                if (len(to_visit)==0):
+                    break
+            components.append(component)
+            to_visit = [np.argmin(visited)]
     components = list(sorted(components, key=lambda c : len(c), reverse=True))
     components = [[list(adjacency.index)[n] for n in c] for c in components]
     return components
@@ -473,7 +481,9 @@ def build_observations(grn, signatures, quiet=False):
     if (len(signatures)==0):
         BO = bonesis.BoNesis(grn, data_exps)
         return BO
+    print(signatures)
     signatures = signatures.loc[[g for g in signatures.index if (g in grn.nodes)]]
+    print(signatures)
     ## 1. Add signatures of experimental states
     exps = [x for x in signatures.columns if ("initial" not in x)]
     exps_ids = range(len(exps))
@@ -484,14 +494,18 @@ def build_observations(grn, signatures, quiet=False):
     for exp_nb in exps_ids:
         cell = exps[exp_nb-1].split("_")[-1]
         cols = ["Exp%d_"%(exp_nb+1)+x for x in ["init", "final"]]
-        data_df = signatures[["initial_"+cell, exps[exp_nb-1]]]
+        initial = signatures[["initial_"+cell]]
+        initial = initial.iloc[:,0] ## remove duplicate columns
+        exp = signatures[[exps[exp_nb-1]]]
+        exp = exp.iloc[:,0] 
+        data_df = pd.concat((initial, exp), axis=1)
 
         ## Compatible with perturbation experiment
         data_df = data_df.T
         pert, sign = exps[exp_nb-1].split("_")[0], 0 if (exps[exp_nb-1].split("_")[1]=="KD") else 1
         data_df[pert] = sign 
         data_df = data_df.T
-
+        
         data_df.columns = cols
         for col in cols:
             data_exps.update(data_df[[col]].dropna().astype(int).to_dict())
@@ -499,6 +513,7 @@ def build_observations(grn, signatures, quiet=False):
         print_exps = pd.DataFrame.from_dict(data_exps, orient="index").astype(str).fillna("-1")
         print_exps[print_exps=="-1"] = ""
         print("\n<UTILS_GRN> %d experiments\n%s" % (len(exps_ids), str(print_exps)))
+
     BO = bonesis.BoNesis(grn, data_exps)
     ## 2. Instantiate reachability & fixed point constraints
     for exp_nb in exps_ids:
