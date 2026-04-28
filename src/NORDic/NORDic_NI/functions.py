@@ -425,7 +425,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
 
     score_thres = 0 if (string_args is None) else string_args.get("score", 0)
     edges_file = file_folder+"EDGES_score=%f.tsv" % (score_thres)
-    if (not os.path.exists(edges_file) and ((network["sign"]==2).any() or (network["directed"]==0).any())):
+    if (not os.path.exists(edges_file) and ((network_fname is None) and ((network["sign"]==2).any() or (network["directed"]==0).any()))):
         network_df = get_genes_interactions_from_PPI(network, connected=(edge_args is not None and edge_args.get("connected", True)), score=score_thres, filtering=(edge_args is not None and edge_args.get("filter", True)))
         network_df.to_csv(edges_file, sep="\t", index=None)
     elif (not os.path.exists(edges_file)):
