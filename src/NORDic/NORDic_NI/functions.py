@@ -139,7 +139,7 @@ def solution_generation(file_folder, taxon_id, path_to_genes=None, disgenet_args
     #####################################
     if (len(solution_fname_ls)>0):
         for fname in solution_fname_ls:
-            nbits = int(sbcheck_output("ls -l "+fname+"  | cut -d\" \" -f5", shell=True).decode("utf-8"))
+            nbits = os.path.getsize(fname)
             if (nbits==0):
                 sbcall("rm "+fname, shell=True)
             else:
