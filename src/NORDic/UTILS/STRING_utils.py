@@ -312,9 +312,7 @@ def get_interactions_from_STRING(gene_list, taxon_id, min_score=0, app_name=None
     protein_action_fname = (file_folder if (file_folder) else "")+"protein_action_v"+version+".tsv"
     species = str(taxon_id)
     ftype ="protein.actions"
-    fname_ = ftype+".v"+version+".txt"
-    alpha, beta = version.split(".")
-    STRING_url = "https://version-"+alpha+"-"+beta+".string-db.org/download/"+ftype+".v"+version+"/"+species+"."+fname_+".gz"
+    STRING_url = f"https://stringdb-static.org/download/{ftype}.v{version}/{species}.{ftype}.v{version}.txt.gz"
     if (not quiet):
         print("<STRING> Retrieving the file from STRING", end="... ")
     if (file_folder is not None and not os.path.exists(protein_action_fname)):
