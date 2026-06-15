@@ -103,7 +103,7 @@ class TestSIM(unittest.TestCase):
         _, net_MABOSS_noMut = test(MABOSS_SIM,seednb,njobs,network_fname,C,T,"attractors",verbose=0)
         res = pd.DataFrame({"score": net_MABOSS_noMut.max_values}).T
         self.assertTrue(np.isclose(res.loc["score"]["initial->Reachable"],1))
-        self.assertTrue(np.isclose(res.loc["score"]["initial->NotReachable"],1))
+        self.assertTrue(np.isclose(res.loc["score"]["initial->NotReachable"],0))
 
     def test_MPBN_Trajectories_Profiles(self):
         x0, network_fname, seednb, njobs = self.create_instance()
@@ -127,7 +127,7 @@ class TestSIM(unittest.TestCase):
         _, net_MPBN_noMut = test(MPBN_SIM,seednb,njobs,network_fname,C,T,"attractors",verbose=0)
         res = pd.DataFrame({"score": net_MPBN_noMut.max_values}).T
         self.assertTrue(np.isclose(res.loc["score"]["initial->Reachable"],1))
-        self.assertTrue(np.isclose(res.loc["score"]["initial->NotReachable"],1))
+        self.assertTrue(np.isclose(res.loc["score"]["initial->NotReachable"],0))
 
     def test_BONESIS_Trajectories_Profiles(self):
         x0, network_fname, seednb, njobs = self.create_instance()
