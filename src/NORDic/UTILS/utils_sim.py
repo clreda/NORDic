@@ -177,14 +177,15 @@ class BN_SIM(object):
             grf_list = f.read().split("\n")
         grfs = dict([x.split(", ") for x in grf_list if (len(x)>0)])
         input_genes = [g for g in grfs if (grfs[g] in ["0","1"])] ## genes with no regulators
-        self.mutation_permanent = {inp: int(initial.loc[inp][initial.columns[0]]) for inp in input_genes if (inp in initial.dropna().index)}
-        N = len(self.mutation_permanent)
+        self.mutation_transient = {inp: int(initial.loc[inp][initial.columns[0]]) for inp in input_genes if (inp in initial.dropna().index)}
+        self.mutation_permanent = {}
+        N = len(self.transient)
         self.mutation_permanent.update(mutation_permanent)
         if (verbose):
-            print("Initialized %d permanent mutations (%d from initial state)" % (len(self.mutation_permanent), N))
+            print("Initialized %d permanent mutations" % (len(self.mutation_permanent)))
         self.mutation_transient.update(mutation_transient)
-        if (verbose):
-            print("Initialized %d transient mutations" % len(self.mutation_transient))
+        if (verbose): 
+            print("Initialized %d transient mutations (%d from initial state)" % (len(self.mutation_transient), N))
         self.all_mutants = list(set([g for g in self.mutation_permanent]+[g for g in self.mutation_transient]))
         if (verbose):
             print("... Total of %d (unique) mutations" % len(self.all_mutants))
@@ -336,7 +337,7 @@ class BONESIS_SIM(BN_SIM):
 
     def initialize_network(self, network_fname):
         with open(network_fname, "r") as f:
-            solution = pd.Series(dict([x.split(", ") for x in f.read().split("\n")]))
+            solution = pd.Series(dict([x.split(", ") for x in f.read().split("\n") if (len(x)!=0)]))
         influences = solution2influences(solution)
         influences.index = ["_".join(x.split("-")) for x in influences.index]
         influences.columns = ["_".join(x.split("-")) for x in influences.columns]

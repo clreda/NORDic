@@ -481,9 +481,7 @@ def build_observations(grn, signatures, quiet=False):
     if (len(signatures)==0):
         BO = bonesis.BoNesis(grn, data_exps)
         return BO
-    print(signatures)
     signatures = signatures.loc[[g for g in signatures.index if (g in grn.nodes)]]
-    print(signatures)
     ## 1. Add signatures of experimental states
     exps = [x for x in signatures.columns if ("initial" not in x)]
     exps_ids = range(len(exps))
@@ -538,7 +536,7 @@ def build_observations(grn, signatures, quiet=False):
 
 def solution2influences(solution):
     '''
-    Converts a solution object into a influences object
+    Converts a solution object into an influences object
 
     ...
 
