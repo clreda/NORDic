@@ -179,7 +179,7 @@ class BN_SIM(object):
         input_genes = [g for g in grfs if (grfs[g] in ["0","1"])] ## genes with no regulators
         self.mutation_transient = {inp: int(initial.loc[inp][initial.columns[0]]) for inp in input_genes if (inp in initial.dropna().index)}
         self.mutation_permanent = {}
-        N = len(self.transient)
+        N = len(self.mutation_transient)
         self.mutation_permanent.update(mutation_permanent)
         if (verbose):
             print("Initialized %d permanent mutations" % (len(self.mutation_permanent)))
