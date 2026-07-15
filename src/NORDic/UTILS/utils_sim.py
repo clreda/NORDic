@@ -64,14 +64,15 @@ def test(enumerator, seednb, njobs, network_fname, control_profile, treated_prof
                 net_t = enumerator(seednb,njobs)
                 attrs2 = net_t.up_to_attractors(network_fname, treated_profiles[[t]], treated_profiles[[t]], {}, {}, verbose)
                 attrs2.columns = ["Attr%d_%s_2" % (i,t) for i in range(attrs2.shape[1])]
+            attrs1, attrs2 = attrs1.astype(float), attrs2.astype(float)
             sims = net_c.attrs_similarity(attrs1, attrs2, gene_outputs=gene_outputs)
             sims_c.setdefault(t, sims)
             if(verbose):
-                if (np.isnan(attrs1).values.all()&np.isnan(attrs2).values.all()):
+                if (np.isnan(attrs1.values).all()&np.isnan(attrs2.values).all()):
                     print("NaN (not reachable)")
                     print("Similarity %s" % str(sims))
                     continue
-                elif (np.isnan(attrs1).values.all()):
+                elif (np.isnan(attrs1.values).all()):
                     print("Treated %s (showing 10 first out of %d, Control %s: NaN, 5/%d genes)" % (t, attrs2.shape[1], c, attrs2.shape[0]))
                     #print(attrs2.iloc[:,:10].dropna(how="all").head())
                     if (any([g in gene_outputs for g in mutation])):
@@ -79,7 +80,7 @@ def test(enumerator, seednb, njobs, network_fname, control_profile, treated_prof
                             print("".join(list(attrs2.loc[g].iloc[:,:10].astype(str))))
                     print("Similarity %s" % str(sims))
                     continue
-                elif (np.isnan(attrs2).values.all()):
+                elif (np.isnan(attrs2.values).all()):
                     print("Control %s (showing 10 first out of %d, Treated %s: NaN, 5/%d genes)" % (c, attrs1.shape[1], t, attrs2.shape[0]))
                     #print(attrs1.iloc[:,:10].dropna(how="all").head())
                     if (any([g in gene_outputs for g in mutation])):
@@ -88,7 +89,8 @@ def test(enumerator, seednb, njobs, network_fname, control_profile, treated_prof
                     print("Similarity %s" % str(sims))
                     continue   
                 A_set = attrs1.iloc[:,:10].join(attrs2.iloc[:,:10], how="outer").dropna(how="any")
-                A_set = A_set.loc[[g for g in gene_outputs if (g in A_set.index)]]         
+                if (gene_outputs is not None):
+                    A_set = A_set.loc[[g for g in gene_outputs if (g in A_set.index)]]      
                 print("Control %s, Treated %s (showing 10 first out of %d, resp. 10/%d, %d genes)" % (c,t,attrs1.shape[1],attrs2.shape[1], A_set.shape[0]))
                 subst = (A_set-A_set[attrs2.columns[0]]).mean(axis=1)
                 if (A_set.shape[1]<=2):
