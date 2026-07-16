@@ -30,11 +30,12 @@ requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - {{ stdlib('c') }}
     - flex
     - bison
     - make
   host:
-    - python
+    - python <3.13
     - pip
     - clingo >=5.6.1
     - cmappy >=4.0.1
@@ -50,7 +51,7 @@ requirements:
     - tqdm >=4.62.3
     - numpy >=1.22.4,!=2.0.*,!=2.1.*
   run:
-    - python
+    - python <3.13
     - clingo >=5.6.1
     - cmappy >=4.0.1
     - graphviz >=0.20.1
