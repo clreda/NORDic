@@ -9,6 +9,7 @@ import pandas as pd
 import NORDic
 from NORDic.UTILS.utils_sim import BONESIS_SIM
 
+## TODO add file_folder to save files
 def sampling_regulatory_functions(solution_fixed, net_changing, network_fname, select_reg, merge_reg):
 	if (net_changing.shape[0]==0):
 		solution_copy = solution_fixed.copy()
