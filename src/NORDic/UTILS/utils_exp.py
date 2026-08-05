@@ -259,6 +259,6 @@ def get_experimental_constraints(file_folder,cell_lines, pert_types, pert_di, ta
     if (len(signatures)==0): 
         return pd.DataFrame([], index=pert_inames)
     all_sigs = list(signatures.values())
-    signatures = all_sigs[0].join(all_sigs[1:], how="outer") 
+    signatures = pd.concat(tuple(all_sigs), axis=1)
     signatures = signatures.loc[~signatures.index.duplicated()]
     return signatures

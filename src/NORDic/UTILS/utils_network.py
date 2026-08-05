@@ -171,7 +171,7 @@ def get_network_from_OmniPath(gene_list=None, disease_name=None, species="human"
     '''
     assert species in ['human', 'mouse', 'rat']
     assert types_int in [None, "post_translational", "transcriptional", "post_transcriptional", "mirna_transcriptional"]
-    assert sources_int in [None]+list(op.interactions.AllInteractions.resources())
+    assert sources_int in [None]#+list(op.interactions.AllInteractions.resources())
     assert domains_int in [None]+['collectri', 'dorothea', 'kinaseextra', 'ligrecextra', 'lncrna_mrna', 'mirnatarget', 'omnipath', 'pathwayextra', 'small_molecule', 'tf_mirna', 'tfregulons', 'tf_target']
     assert domains_annot in [None]+list(op.requests.Annotations.resources())
     assert (gene_list is not None) or (disease_name is not None)
