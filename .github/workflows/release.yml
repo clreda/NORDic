@@ -37,14 +37,23 @@ jobs:
     - name: prepare
       run: |
         python setup.py sdist bdist_wheel
-        conda install -y anaconda-client conda-build conda-verify conda-libmamba-solver
+        conda install anaconda-client conda-build conda-verify yaml conda-libmamba-solver -y
+        conda install -c conda-forge python-libarchive-c -y
         conda config --set solver libmamba
         conda config --set channel_priority flexible
-        conda config --set anaconda_upload yes
-        conda remove --name base -y conda-anaconda-telemetry
+        conda config --set anaconda_upload no
+        conda remove --name base conda-anaconda-telemetry -y
     - name: build
       run: |
         cd conda
-        conda build --user creda --token $ANACONDA_TOKEN --override-channels -c conda-forge -c colomoto -c bioconda .
+        CONDA_BASE=$(conda info --base)
+	CONDA_PYTHON="$CONDA_BASE/bin/python"
+	$CONDA_PYTHON -m pip install pyyaml libarchive beautifulsoup4 evalidate py-rattler-build --force-reinstall
+        NORDIC_CONDA=$(conda info --base)/bin/conda
+        PACKAGE=$($NORDIC_CONDA build --user creda --token $ANACONDA_TOKEN --override-channels -c conda-forge -c colomoto -c bioconda . --output | grep linux-64 | head -1)
+	ANACONDA_DIR=$(dirname $(which anaconda))
+	PYTHON_PATH="$ANACONDA_DIR/../bin/python"
+	$PYTHON_PATH -m pip install python-dateutil defusedxml nbformat
+        anaconda --token $ANACONDA_TOKEN upload $PACKAGE
       env:
         ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}

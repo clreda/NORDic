@@ -19,6 +19,6 @@ cd ${SRC_DIR}"/bonesis-0.7.0/"
 
 "${PYTHON}" -m pip install --no-deps --no-build-isolation . -vvv
 
-cd ${SRC_DIR}"/NORDic-2.8.0/" || exit 1
+cd ${SRC_DIR}"/NORDic-2.8.1/" || exit 1
 
 "${PYTHON}" -m pip install --no-deps --no-build-isolation . -vvv

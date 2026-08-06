@@ -1,6 +1,6 @@
 {% set name = "nordic" %}
 {% set ucname = "NORDic" %}
-{% set version = "2.8.0" %}
+{% set version = "2.8.1" %}
 
 package:
   name: "{{ name|lower }}"
@@ -16,8 +16,8 @@ source:
   - url: "https://files.pythonhosted.org/packages/71/52/ddc50b79a6b89f0681b31aed9e49912f8c45a333e3228fc558d537b859ca/bonesis-0.7.0.tar.gz"
     sha256: 61adec7e27f2267b93c9d95d5e03ad4c68730606de0dd69d8a835a28381070b4
     folder: "bonesis-0.7.0"
-  - url: "https://files.pythonhosted.org/packages/04/87/957967ad5c9902a6688b663cd9a0db12d79596484ee3adf916d0f60e00fc/{{ name }}-{{ version }}.tar.gz"
-    sha256: 763824b0d1d52eeb7137f5a74493631877ed8c656803f765af960e83f1eebf04
+  - url: "https://files.pythonhosted.org/packages/31/50/28a5ad836af9ae083dd0c68ab86c29feadc010338e81edf0096ab18c1b1e/{{ name }}-{{ version }}.tar.gz"
+    sha256: 8ba6f9fae8770beb0b3a32e21e855052cf72df7762b9b9ead78e0ceb722f3e6f
     folder: "{{ ucname }}-{{ version }}"
     
 build:
@@ -30,7 +30,7 @@ requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - {{ stdlib('c') }}
+    #- {{ stdlib('c') }} ## needed for bioconda
     - flex
     - bison
     - make
