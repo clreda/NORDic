@@ -28,7 +28,7 @@ def sampling_regulatory_functions(solution_fixed, net_changing, network_fname, s
 	## Select choice : all conditions for cell-to-cell communications
 	grfs = {k:select_reg(grfs[k]) for k in grfs}
 	for gene in grfs:
-		if (str(solution_merged.loc[gene][solution_merged.columns[0]]) in ["0","1"]):
+		if ((gene not in solution_merged.index) or (str(solution_merged.loc[gene][solution_merged.columns[0]]) in ["0","1"])):
 			solution_merged.loc[gene] = grfs[gene]
 		else:
 			## Merge choice : trigger either the intercell and/or cell-to-cell regulations
